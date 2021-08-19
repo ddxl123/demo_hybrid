@@ -2,7 +2,6 @@
     package="com.example.hybrid">
 
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-
     <application
         android:icon="@mipmap/ic_launcher"
         android:label="hybrid">

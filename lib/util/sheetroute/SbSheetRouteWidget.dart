@@ -110,6 +110,7 @@ class _SbSheetRouteWidgetState<T> extends State<SbSheetRouteWidget<T>> with Sing
   Widget headerStateful() {
     return StatefulInitBuilder(
       init: (StatefulInitBuilderState state) {
+        print(state.hashCode);
         sheetPageController.headerSetState = state.refresh;
       },
       builder: (State state) {
@@ -122,7 +123,7 @@ class _SbSheetRouteWidgetState<T> extends State<SbSheetRouteWidget<T>> with Sing
   Widget bodyStateful() {
     return StatefulInitBuilder(
       init: (StatefulInitBuilderState state) {
-        sheetPageController.headerSetState = state.refresh;
+        sheetPageController.bodySetState = state.refresh;
       },
       builder: (State state) {
         return widget.sbSheetPage.bodySliver();
@@ -134,7 +135,7 @@ class _SbSheetRouteWidgetState<T> extends State<SbSheetRouteWidget<T>> with Sing
   Widget loadArea() {
     return StatefulInitBuilder(
       init: (StatefulInitBuilderState state) {
-        sheetPageController.headerSetState = state.refresh;
+        sheetPageController.loadAreaSetState = state.refresh;
       },
       builder: (State state) {
         return LoadAreaWidget<T>(sheetPageController.loadAreaController);

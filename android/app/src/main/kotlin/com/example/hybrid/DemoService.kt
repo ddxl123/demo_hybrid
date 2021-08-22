@@ -2,13 +2,7 @@ package com.example.hybrid
 
 import android.app.Service
 import android.content.Intent
-import android.content.pm.ActivityInfo
-import android.graphics.BlendMode
-import android.graphics.Color
-import android.graphics.PixelFormat
-import android.graphics.PorterDuff
-import android.os.Build
-import android.os.IBinder
+import android.os.*
 import android.view.Gravity
 import android.view.WindowManager
 import android.widget.Button
@@ -16,9 +10,12 @@ import androidx.annotation.RequiresApi
 
 class DemoService : Service() {
     @RequiresApi(Build.VERSION_CODES.O)
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-
+    override fun onCreate() {
+        super.onCreate()
+        println("-------------- ${this.hashCode()}")
         val windowManager = getSystemService(WINDOW_SERVICE) as WindowManager;
+
+        val ap = (application as GlobalApplication)
 
         val layoutParams1 = WindowManager.LayoutParams();
         layoutParams1.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
@@ -29,34 +26,47 @@ class DemoService : Service() {
         layoutParams1.x = 50
         layoutParams1.y = 100
 
-        val layoutParams2 = WindowManager.LayoutParams();
-        layoutParams2.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-        layoutParams2.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-        layoutParams2.gravity = Gravity.LEFT or Gravity.TOP
-        layoutParams2.width = 300
-        layoutParams2.height = 300
-        layoutParams2.x = 500
-        layoutParams2.y = 1000
 
-        val layoutParams3 = WindowManager.LayoutParams();
-        layoutParams3.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-        layoutParams3.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-        layoutParams3.gravity = Gravity.LEFT or Gravity.TOP
-        layoutParams3.width = 300
-        layoutParams3.height = 300
-        layoutParams3.x = 0
-        layoutParams3.y = 1300
+        windowManager.addView(
+            FlutterEngineHandler.flutterEnginers.data_center.flutterView,
+            layoutParams1
+        )
+
+//        val uiHandler: Handler = object : Handler(Looper.getMainLooper()) {
+//            override fun handleMessage(msg: Message) {
+//                windowManager.removeView((application as GlobalApplication).flutterEngine.flutterView)
+//                windowManager.addView(
+//                    (application as GlobalApplication).flutterEngine.flutterView,
+//                    layoutParams1
+//                )
+//                println("----------1 111")
+//            }
+//        }
+//
+//        class Tt : TimerTask() {
+//            override fun run() {
+//                uiHandler.sendEmptyMessage(1)
+//            }
+//
+//        }
+//
+//        Timer().schedule(Tt(), 10000, 10000)
+    }
 
 
-        windowManager.addView(MainActivity.flutterView1, layoutParams1)
-        windowManager.addView(MainActivity.flutterView2, layoutParams2)
-        windowManager.addView(MainActivity.flutterView3, layoutParams3)
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
         return super.onStartCommand(intent, flags, startId)
     }
 
     override fun onBind(intent: Intent?): IBinder? {
-        TODO("Not yet implemented")
+        TODO()
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        println("-------------- destroy")
+    }
+
 }
 

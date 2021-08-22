@@ -24,6 +24,12 @@ class SbLogger {
     _withDebug();
   }
 
+  static String? _currentIsolate;
+
+  static void init(String currentIsolate) {
+    SbLogger._currentIsolate = currentIsolate;
+  }
+
   /// 信息码。
   int? code;
 
@@ -41,34 +47,34 @@ class SbLogger {
 
   SbLogger _withDebug() {
     try {
-      log('> — — ');
+      log('> — — ${_currentIsolate == null ? 'Isolate logger been not init!' : ''}');
       if (code != null) {
-        log('  | code: $code');
+        log('  | $_currentIsolate | code: $code');
       }
       if (viewMessage != null) {
-        log('  | viewMessage: $viewMessage');
+        log('  | $_currentIsolate | viewMessage: $viewMessage');
       }
       if (description != null) {
-        log('  | description: ${description!.description} ${'(package:' + description!.stackTrace.toString().split('(package:')[2].split(')')[0] + ')'}');
+        log('  | $_currentIsolate | description: ${description!.description} ${'(package:' + description!.stackTrace.toString().split('(package:')[2].split(')')[0] + ')'}');
       }
       if (data != null) {
         try {
-          log('  | data: ${const JsonEncoder.withIndent('  ').convert(data)}');
+          log('  | $_currentIsolate | data: ${const JsonEncoder.withIndent('  ').convert(data)}');
         } catch (e) {
-          log('  | data: $data');
+          log('  | $_currentIsolate | data: $data');
         }
       }
 
-      log('  | loggerOutputSt: (package:' + StackTrace.current.toString().split('(package:')[3].split(')')[0] + ')');
+      log('  | $_currentIsolate | loggerOutputSt: (package:' + StackTrace.current.toString().split('(package:')[3].split(')')[0] + ')');
 
       if (exception != null) {
-        log('  | exception: ↓', error: exception);
+        log('  | $_currentIsolate | exception: ↓', error: exception);
       }
       if (stackTrace != null) {
-        log('  | stackTrace: ↓', stackTrace: stackTrace);
+        log('  | $_currentIsolate | stackTrace: ↓', stackTrace: stackTrace);
       }
     } catch (e, st) {
-      log('  | logger internal error: ↓', error: e, stackTrace: st);
+      log('  | $_currentIsolate | logger internal error: ↓', error: e, stackTrace: st);
     }
     return this;
   }

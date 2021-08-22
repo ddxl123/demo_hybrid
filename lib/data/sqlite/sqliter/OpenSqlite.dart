@@ -6,6 +6,7 @@ const String dbName = '/jysp.db';
 
 /// 打开 sqlite 数据库
 Future<void> openDb() async {
+  print('init');
   dbPathRoot = await getDatabasesPath();
   final String dbPath = dbPathRoot + dbName;
   db = await openDatabase(dbPath);

@@ -48,6 +48,11 @@ android {
             signingConfig signingConfigs.debug
         }
     }
+
+    // 允许在 kotlin 中调用 java 接口的 static 方法
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
 }
 
 flutter {

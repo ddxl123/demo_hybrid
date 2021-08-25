@@ -1,6 +1,6 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:hybrid/mainentry/data/DataChannel.dart';
-import 'package:hybrid/util/sblogger/SbLogger.dart';
 
 import 'AppInitPage.dart';
 
@@ -10,6 +10,14 @@ class DataCenterEntry extends StatefulWidget {
 }
 
 class _DataCenterEntryState extends State<DataCenterEntry> {
+  @override
+  void initState() {
+    super.initState();
+    print('DataCenterEntry initState');
+    Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+      print('DataCenterEntry');
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

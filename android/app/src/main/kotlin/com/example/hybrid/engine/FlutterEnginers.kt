@@ -1,11 +1,15 @@
 package com.example.hybrid.engine
 
-import com.example.hybrid.FlutterEnginer
-import com.example.hybrid.engine.transfer.DataCenterEngineDataTransfer
-import com.example.hybrid.engine.transfer.MainEngineDataTransfer
+import android.content.Context
+import com.example.hybrid.GlobalApplication
+import com.example.hybrid.engine.datatransfer.DataCenterDataTransfer
+import com.example.hybrid.engine.datatransfer.MainDataTransfer
 
-object FlutterEnginers {
-    val main = FlutterEnginer("") { MainEngineDataTransfer(it) }
+/**
+ * 由 [FlutterEngineHandler] 启动。
+ */
+class FlutterEnginers {
+    val main = FlutterEnginer("main") { MainDataTransfer(it) }
 
-    val data_center = FlutterEnginer("data_center") { DataCenterEngineDataTransfer(it) }
+    val data_center = FlutterEnginer("data_center") { DataCenterDataTransfer(it) }
 }

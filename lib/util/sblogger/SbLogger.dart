@@ -24,10 +24,10 @@ class SbLogger {
     _withDebug();
   }
 
-  static String? _currentIsolate;
+  static String? _entryName;
 
-  static void init(String currentIsolate) {
-    SbLogger._currentIsolate = currentIsolate;
+  static void engineEntryBinding(String entryName) {
+    SbLogger._entryName = entryName;
   }
 
   /// 信息码。
@@ -47,34 +47,34 @@ class SbLogger {
 
   SbLogger _withDebug() {
     try {
-      log('> — — ${_currentIsolate == null ? 'Isolate logger been not init!' : ''}');
+      log('> — — ${_entryName == null ? 'Warning: unassigned engine entry!' : ''}');
       if (code != null) {
-        log('  | $_currentIsolate | code: $code');
+        log('  | $_entryName | code: $code');
       }
       if (viewMessage != null) {
-        log('  | $_currentIsolate | viewMessage: $viewMessage');
+        log('  | $_entryName | viewMessage: $viewMessage');
       }
       if (description != null) {
-        log('  | $_currentIsolate | description: ${description!.description} ${'(package:' + description!.stackTrace.toString().split('(package:')[2].split(')')[0] + ')'}');
+        log('  | $_entryName | description: ${description!.description} ${'(package:' + description!.stackTrace.toString().split('(package:')[2].split(')')[0] + ')'}');
       }
       if (data != null) {
         try {
-          log('  | $_currentIsolate | data: ${const JsonEncoder.withIndent('  ').convert(data)}');
+          log('  | $_entryName | data: ${const JsonEncoder.withIndent('  ').convert(data)}');
         } catch (e) {
-          log('  | $_currentIsolate | data: $data');
+          log('  | $_entryName | data: $data');
         }
       }
 
-      log('  | $_currentIsolate | loggerOutputSt: (package:' + StackTrace.current.toString().split('(package:')[3].split(')')[0] + ')');
+      log('  | $_entryName | loggerOutputSt: (package:' + StackTrace.current.toString().split('(package:')[3].split(')')[0] + ')');
 
       if (exception != null) {
-        log('  | $_currentIsolate | exception: ↓', error: exception);
+        log('  | $_entryName | exception: \n$exception');
       }
       if (stackTrace != null) {
-        log('  | $_currentIsolate | stackTrace: ↓', stackTrace: stackTrace);
+        log('  | $_entryName | stackTrace: \n$stackTrace');
       }
     } catch (e, st) {
-      log('  | $_currentIsolate | logger internal error: ↓', error: e, stackTrace: st);
+      log('  | $_entryName | logger internal error: ↓', error: e, stackTrace: st);
     }
     return this;
   }

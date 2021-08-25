@@ -5,14 +5,13 @@ import android.content.Intent
 import android.os.*
 import android.view.Gravity
 import android.view.WindowManager
-import android.widget.Button
 import androidx.annotation.RequiresApi
+import com.example.hybrid.engine.FlutterEngineHandler
 
 class DemoService : Service() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate() {
         super.onCreate()
-        println("-------------- ${this.hashCode()}")
         val windowManager = getSystemService(WINDOW_SERVICE) as WindowManager;
 
         val ap = (application as GlobalApplication)
@@ -28,7 +27,7 @@ class DemoService : Service() {
 
 
         windowManager.addView(
-            FlutterEngineHandler.flutterEnginers.data_center.flutterView,
+            FlutterEngineHandler.getFlutterEnginersByObject.data_center.flutterView,
             layoutParams1
         )
 

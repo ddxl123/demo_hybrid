@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hybrid/data/mysql/http/HttpInit.dart';
 import 'package:hybrid/data/sqlite/sqliter/SqliteInit.dart';
-import 'package:hybrid/main.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
 enum AppInitStatus { ok, exception, initializing }
@@ -22,7 +21,6 @@ class _AppInitPageState extends State<AppInitPage> {
 
   late final Future<AppInitStatus> _future = Future<AppInitStatus>(
     () async {
-      SbLogger.init(entryName);
       HttpInit().init();
       final SqliteInitResult sqliteInitResult = await SqliteInit().init();
       // FloatingBallInit().init(context);

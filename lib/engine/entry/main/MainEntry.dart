@@ -21,7 +21,7 @@ class _MainEntryState extends State<MainEntry> {
         final MessageResult<bool> messageResult = await DataTransferBinding.instance.currentDataTransfer.sendMessageToOtherEngine<void, bool>(
           sendToWhichEngine: EngineEntryName.native,
           operationId: OMain_FlutterSend.start_data_center_engine,
-          data: null,
+          data: <String, Object?>{'aaaa': 123.1},
         );
         await messageResult.handle(
           (bool data) async {

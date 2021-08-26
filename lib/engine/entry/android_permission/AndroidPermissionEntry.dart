@@ -1,5 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:hybrid/engine/constant/EngineEntryName.dart';
+import 'package:hybrid/engine/constant/OAndroidPermission.dart';
+import 'package:hybrid/engine/datatransfer/root/BaseDataTransfer.dart';
 import 'package:hybrid/engine/datatransfer/root/DataTransferBinding.dart';
+import 'package:hybrid/util/sblogger/SbLogger.dart';
 import 'package:hybrid/util/sbroundedbox/SbRoundedBox.dart';
 
 class AndroidPermissionEntry extends StatefulWidget {
@@ -12,13 +18,40 @@ class _AndroidPermissionEntryState extends State<AndroidPermissionEntry> {
   Widget build(BuildContext context) {
     return SbRoundedBox(
       children: <Widget>[
-        Permission(
-          name: '悬浮窗权限',
-          permissionGet: () async {
-            DataTransferBinding.instance.currentDataTransfer.sendMessageToOtherEngine(operationId: '', sendToWhichEngine: '', data: null);
-          },
-        )
+        _floatingWindows(),
       ],
+    );
+  }
+
+  Widget _floatingWindows() {
+    return Permission(
+      name: '悬浮窗权限',
+      permissionGet: () async {
+        final MessageResult<bool> messageResult = await DataTransferBinding.instance.currentDataTransfer.sendMessageToOtherEngine<void, bool>(
+          operationId: OAndroidPermission_FlutterSend.check_floating_window,
+          sendToWhichEngine: EngineEntryName.native,
+          data: null,
+        );
+
+        PermissionResult permissionResult = PermissionResult.error;
+        await messageResult.handle(
+          (bool data) async {
+            permissionResult = data == true ? PermissionResult.allowed : PermissionResult.notAllowed;
+          },
+          (Object? exception, StackTrace? stackTrace) async {
+            permissionResult = PermissionResult.error;
+            SbLogger(
+              code: null,
+              viewMessage: null,
+              data: null,
+              description: Description('检查是否已获取悬浮窗权限发生异常！'),
+              exception: exception,
+              stackTrace: stackTrace,
+            ).withRecord();
+          },
+        );
+        return permissionResult;
+      },
     );
   }
 }
@@ -67,11 +100,21 @@ class _PermissionState extends State<Permission> {
           const Icon(Icons.done, color: Colors.green)
         else if (current == PermissionResult.notAllowed)
           const Icon(Icons.clear, color: Colors.red)
-        else
+        else if (current == PermissionResult.loading)
           const CircularProgressIndicator(color: Colors.grey)
+        else
+          () {
+            Timer(
+              const Duration(seconds: 2),
+              () {
+                doPermissionReGet();
+              },
+            );
+            return const Icon(Icons.error);
+          }()
       ],
     );
   }
 }
 
-enum PermissionResult { allowed, notAllowed, loading }
+enum PermissionResult { allowed, notAllowed, loading, error }

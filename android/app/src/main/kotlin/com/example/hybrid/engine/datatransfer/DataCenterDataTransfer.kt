@@ -1,9 +1,8 @@
 package com.example.hybrid.engine.datatransfer
 
-import android.content.Context
-import com.example.hybrid.engine.FlutterEnginer
+import com.example.hybrid.engine.manager.FlutterEnginer
 
-class DataCenterDataTransfer(flutterEnginer: FlutterEnginer) : BaseDataTransfer(flutterEnginer) {
+class DataCenterDataTransfer(flutterEnginer: FlutterEnginer) : AbstractDataTransfer(flutterEnginer) {
 
     override fun listenFromFlutterEngineToNative(operationId: String, data: Any?): Any? {
         TODO("Not yet implemented")

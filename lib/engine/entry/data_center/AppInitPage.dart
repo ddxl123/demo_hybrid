@@ -25,6 +25,7 @@ class _AppInitPageState extends State<AppInitPage> {
       final SqliteInitResult sqliteInitResult = await SqliteInit().init();
       // FloatingBallInit().init(context);
       if (sqliteInitResult == SqliteInitResult.ok) {
+
         return AppInitStatus.ok;
       } else {
         return AppInitStatus.exception;
@@ -61,11 +62,7 @@ class _AppInitPageState extends State<AppInitPage> {
             );
           case ConnectionState.done:
             if (snapshot.hasData && snapshot.data == AppInitStatus.ok) {
-              return const Scaffold(
-                body: Center(
-                  child: Text('应用初始化成功！'),
-                ),
-              );
+              return widget.builder();
             } else {
               return const Scaffold(
                 body: Center(

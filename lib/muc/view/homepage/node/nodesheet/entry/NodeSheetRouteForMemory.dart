@@ -62,10 +62,10 @@ class NodeSheetRouteForMemory extends AbstractNodeSheetRoute<MFMemory> {
           child: Text(sheetPageController.bodyData[index].get_title ?? ''),
           onUp: (PointerEvent event) async {
             final MFMemory model = sheetPageController.bodyData[index];
-            SbHelper().getNavigator!.push(MaterialPageRoute<void>(builder: (_) => FragmentPage(model.get_fragment_aiid, model.get_fragment_uuid)));
+            SbHelper.getNavigator!.push(MaterialPageRoute<void>(builder: (_) => FragmentPage(model.get_fragment_aiid, model.get_fragment_uuid)));
           },
           onLongPressed: (PointerDownEvent event) {
-            SbHelper().getNavigator!.push(LongPressedFragmentForMemory(this, sheetPageController.bodyData[index]));
+            SbHelper.getNavigator!.push(LongPressedFragmentForMemory(this, sheetPageController.bodyData[index]));
           },
         ),
       );

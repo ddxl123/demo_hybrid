@@ -9,6 +9,6 @@ class HomePageGetController extends GetxController {
   SbFreeBoxController sbFreeBoxController = SbFreeBoxController();
 
   void toSelectPool(Rect triggerRect) {
-    SbHelper().getNavigator!.push(SelectPoolRoute(triggerRect: triggerRect));
+    SbHelper.getNavigator!.push(SelectPoolRoute(triggerRect: triggerRect));
   }
 }

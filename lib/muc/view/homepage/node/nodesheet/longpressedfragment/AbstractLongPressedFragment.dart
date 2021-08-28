@@ -26,7 +26,7 @@ abstract class AbstractLongPressedFragment<FDM extends ModelBase> extends Abstra
           TextButton(
             child: const Text('删除碎片'),
             onPressed: () {
-              SbHelper().getNavigator!.pop(SbPopResult(popResultSelect: PopResultSelect.one, value: null));
+              SbHelper.getNavigator!.pop(SbPopResult(popResultSelect: PopResultSelect.one, value: null));
             },
           ),
         ]),

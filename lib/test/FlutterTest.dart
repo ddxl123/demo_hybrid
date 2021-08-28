@@ -5,11 +5,15 @@ class FlutterTest extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        body: AAA(),
+        body: Center(
+          child: AAA(),
+        ),
       ),
     );
   }
 }
+
+bool b = true;
 
 class AAA extends StatefulWidget {
   @override
@@ -19,42 +23,37 @@ class AAA extends StatefulWidget {
 class _AAAState extends State<AAA> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Column(
-        children: [
-          select(),
+    if (b) {
+      return Column(
+        children: <Widget>[
+          BBB(),
           TextButton(
+            child: const Text('change'),
             onPressed: () {
               b = !b;
               setState(() {});
             },
-            child: Text('aaa'),
-          ),
-          TextButton(
-            onPressed: () {
-              setState(() {});
-            },
-            child: Text('aaa'),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget select() {
-    if (b) {
-      return BBB();
+      );
     } else {
-      return CCC();
+      return Column(
+        children: <Widget>[
+          CCC(),
+          TextButton(
+            child: const Text('change'),
+            onPressed: () {
+              b = !b;
+              setState(() {});
+            },
+          ),
+        ],
+      );
     }
   }
 }
 
-bool b = true;
-
 class BBB extends StatefulWidget {
-  const BBB({Key? key}) : super(key: key);
-
   @override
   _BBBState createState() => _BBBState();
 }
@@ -62,21 +61,20 @@ class BBB extends StatefulWidget {
 class _BBBState extends State<BBB> {
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    print('bbb init');
+    print('BBB init');
   }
 
   @override
   Widget build(BuildContext context) {
-    print('bbb build');
-    return Container();
+    print('BBB build');
+    return Container(
+      child: const Text('BBB'),
+    );
   }
 }
 
 class CCC extends StatefulWidget {
-  const CCC({Key? key}) : super(key: key);
-
   @override
   _CCCState createState() => _CCCState();
 }
@@ -84,14 +82,15 @@ class CCC extends StatefulWidget {
 class _CCCState extends State<CCC> {
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    print('ccc init');
+    print('CCC init');
   }
 
   @override
   Widget build(BuildContext context) {
-    print('ccc build');
-    return Container();
+    print('CCC build');
+    return Container(
+      child: const Text('CCC'),
+    );
   }
 }

@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:hybrid/engine/constant/EngineEntryName.dart';
 import 'package:hybrid/engine/datatransfer/root/DataTransferBinding.dart';
@@ -29,6 +28,7 @@ class MessageResult<R extends Object> {
   }
 }
 
+/// 需在引擎入口执行前创建该 [BaseDataTransfer] 实例，之后使用 [DataTransferBinding.instance] 对该实例进行操作。
 abstract class BaseDataTransfer {
   BaseDataTransfer() {
     _listenerMessageFromOtherFlutterEngine();
@@ -108,7 +108,7 @@ abstract class BaseDataTransfer {
   Future<void> _listenerMessageFromOtherFlutterEngine() async {
     _basicMessageChannel.setMessageHandler(
       (Object? message) async {
-        final Map<String, Object?> messageMap = message! as Map<String, Object?>;
+        final Map<String, dynamic> messageMap = message! as Map<String, dynamic>;
         return await listenerMessageFormOtherFlutterEngine(messageMap['operation_id']! as String, messageMap['data']);
       },
     );
@@ -116,4 +116,8 @@ abstract class BaseDataTransfer {
 
   /// {@macro BaseDataTransfer._listenerMessageFromOtherEngine}
   Future<Object?> listenerMessageFormOtherFlutterEngine(String operationId, Object? data);
+
+  Exception throwUnhandledOperationIdException(String currentOperationId) {
+    return Exception('Unhandled $currentOperationId');
+  }
 }

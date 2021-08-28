@@ -63,10 +63,10 @@ class NodeSheetRouteForFragment extends AbstractNodeSheetRoute<MFFragment> {
           child: Text(sheetPageController.bodyData[index].get_title ?? ''),
           onUp: (PointerUpEvent event) async {
             final MFFragment model = sheetPageController.bodyData[index];
-            SbHelper().getNavigator!.push(MaterialPageRoute<void>(builder: (_) => FragmentPage(model.get_aiid, model.get_uuid)));
+            SbHelper.getNavigator!.push(MaterialPageRoute<void>(builder: (_) => FragmentPage(model.get_aiid, model.get_uuid)));
           },
           onLongPressed: (PointerDownEvent event) {
-            SbHelper().getNavigator!.push(LongPressedFragmentForFragment(this, sheetPageController.bodyData[index]));
+            SbHelper.getNavigator!.push(LongPressedFragmentForFragment(this, sheetPageController.bodyData[index]));
           },
         ),
       );

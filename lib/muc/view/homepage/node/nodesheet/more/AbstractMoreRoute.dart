@@ -25,7 +25,7 @@ abstract class AbstractMoreRoute<FDM extends ModelBase> extends AbstractPoolEntr
             TextButton(
               child: const Text('添加碎片'),
               onPressed: () {
-                SbHelper().getNavigator!.pop(SbPopResult(popResultSelect: PopResultSelect.one, value: null));
+                SbHelper.getNavigator!.pop(SbPopResult(popResultSelect: PopResultSelect.one, value: null));
               },
             ),
           ],

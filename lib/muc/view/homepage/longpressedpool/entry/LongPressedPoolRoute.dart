@@ -17,11 +17,11 @@ class LongPressedPoolRouteForFragment extends AbstractLongPressedPoolRoute {
     final MPnFragment pnFragment = MPnFragment.createModel(
       id: null,
       aiid: null,
-      uuid: SbHelper().newUuid,
+      uuid: SbHelper.newUuid,
       created_at: null,
       updated_at: null,
       easy_position: easyPosition,
-      title: SbHelper().randomString(10),
+      title: SbHelper.randomString(10),
       rule_aiid: null,
       rule_uuid: null,
     );
@@ -36,11 +36,11 @@ class LongPressedPoolRouteForMemory extends AbstractLongPressedPoolRoute {
     final MPnMemory pnMemory = MPnMemory.createModel(
       id: null,
       aiid: null,
-      uuid: SbHelper().newUuid,
+      uuid: SbHelper.newUuid,
       created_at: null,
       updated_at: null,
       easy_position: easyPosition,
-      title: SbHelper().randomString(10),
+      title: SbHelper.randomString(10),
       rule_aiid: null,
       rule_uuid: null,
     );
@@ -55,11 +55,11 @@ class LongPressedPoolRouteForComplete extends AbstractLongPressedPoolRoute {
     final MPnComplete pnComplete = MPnComplete.createModel(
       id: null,
       aiid: null,
-      uuid: SbHelper().newUuid,
+      uuid: SbHelper.newUuid,
       created_at: null,
       updated_at: null,
       easy_position: easyPosition,
-      title: SbHelper().randomString(10),
+      title: SbHelper.randomString(10),
       rule_aiid: null,
       rule_uuid: null,
     );
@@ -74,11 +74,11 @@ class LongPressedPoolRouteForRule extends AbstractLongPressedPoolRoute {
     final MPnRule pnRule = MPnRule.createModel(
       id: null,
       aiid: null,
-      uuid: SbHelper().newUuid,
+      uuid: SbHelper.newUuid,
       created_at: null,
       updated_at: null,
       easy_position: easyPosition,
-      title: SbHelper().randomString(10),
+      title: SbHelper.randomString(10),
     );
     final MPnRule newModel = await SqliteCurd<MPnRule>().insertRow(model: pnRule, transactionMark: null);
     return PoolNodeModel.from(newModel);

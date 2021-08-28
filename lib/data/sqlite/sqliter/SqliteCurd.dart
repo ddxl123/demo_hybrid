@@ -59,7 +59,7 @@ enum CheckResult {
 /// 【上传队列】中所有属于同一事务的行需要做相同标记 [mark]，若重复再次执行，则需覆盖 [mark]。
 class TransactionMark {
   TransactionMark(this.transaction) {
-    mark = SbHelper().newTimestamp;
+    mark = SbHelper.newTimestamp;
   }
 
   Transaction transaction;
@@ -175,8 +175,8 @@ class SqliteCurd<T extends ModelBase> {
       id: null,
       aiid: null,
       uuid: null,
-      created_at: SbHelper().newTimestamp,
-      updated_at: SbHelper().newTimestamp,
+      created_at: SbHelper.newTimestamp,
+      updated_at: SbHelper.newTimestamp,
       for_table_name: model.tableName,
       for_row_id: rowId,
       for_aiid: null,
@@ -251,8 +251,8 @@ class SqliteCurd<T extends ModelBase> {
         id: null,
         aiid: null,
         uuid: null,
-        created_at: SbHelper().newTimestamp,
-        updated_at: SbHelper().newTimestamp,
+        created_at: SbHelper.newTimestamp,
+        updated_at: SbHelper.newTimestamp,
         for_table_name: newModel.tableName,
         for_row_id: newModel.get_id,
         for_aiid: newModel.get_aiid,
@@ -271,7 +271,7 @@ class SqliteCurd<T extends ModelBase> {
         uploadModel!.tableName,
         <String, Object?>{
           uploadModel!.updated_columns: allUpdatedColumns,
-          uploadModel!.updated_at: SbHelper().newTimestamp,
+          uploadModel!.updated_at: SbHelper.newTimestamp,
           uploadModel!.mark: transactionMark.mark,
         },
         where: '${uploadModel!.id} = ?',
@@ -325,8 +325,8 @@ class SqliteCurd<T extends ModelBase> {
         id: null,
         aiid: null,
         uuid: null,
-        created_at: SbHelper().newTimestamp,
-        updated_at: SbHelper().newTimestamp,
+        created_at: SbHelper.newTimestamp,
+        updated_at: SbHelper.newTimestamp,
         for_table_name: model.tableName,
         for_row_id: model.get_id,
         for_aiid: model.get_aiid,
@@ -356,7 +356,7 @@ class SqliteCurd<T extends ModelBase> {
         <String, Object?>{
           uploadModel!.curd_status: CurdStatus.D.index,
           uploadModel!.mark: transactionMark.mark,
-          uploadModel!.updated_at: SbHelper().newTimestamp,
+          uploadModel!.updated_at: SbHelper.newTimestamp,
         },
       );
     }

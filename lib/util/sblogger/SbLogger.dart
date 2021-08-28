@@ -45,8 +45,15 @@ class SbLogger {
   Object? exception;
   StackTrace? stackTrace;
 
+  bool get isAllNull => code == null && viewMessage == null && description == null && data == null && exception == null && stackTrace == null;
+
   SbLogger _withDebug() {
     try {
+      if (isAllNull) {
+        log('> — — ${_entryName == null ? 'Warning: The log information to be output is all empty!' : ''}');
+        return this;
+      }
+
       log('> — — ${_entryName == null ? 'Warning: unassigned engine entry!' : ''}');
       if (code != null) {
         log('  | $_entryName | code: $code');

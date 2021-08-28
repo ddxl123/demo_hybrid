@@ -200,8 +200,8 @@ class LoginPage extends SbRoute {
                     id: null,
                     aiid: null,
                     uuid: null,
-                    created_at: SbHelper().newTimestamp,
-                    updated_at: SbHelper().newTimestamp,
+                    created_at: SbHelper.newTimestamp,
+                    updated_at: SbHelper.newTimestamp,
                     // 无论 token 值是否有问题，都进行存储。
                     token: hr.responseDataVO.token,
                   );

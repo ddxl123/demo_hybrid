@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 /// column 类型的圆角框。
@@ -40,25 +42,23 @@ class SbRoundedBox extends StatelessWidget {
         height: height,
         constraints: BoxConstraints(
           minWidth: 0,
-          maxWidth: MediaQuery.of(context).size.width,
+          maxWidth: MediaQueryData.fromWindow(window).size.width,
           minHeight: 0,
-          maxHeight: MediaQuery.of(context).size.height,
+          maxHeight: MediaQueryData.fromWindow(window).size.height,
         ),
         padding: padding,
         decoration: BoxDecoration(
           color: Colors.yellow,
           borderRadius: BorderRadius.circular(10),
           boxShadow: const <BoxShadow>[
-            BoxShadow(
-                offset: Offset(10, 10), blurRadius: 10, spreadRadius: -10),
+            BoxShadow(offset: Offset(10, 10), blurRadius: 10, spreadRadius: -10),
           ],
         ),
         child: () {
           if (isScrollable) {
             return SingleChildScrollView(
               padding: EdgeInsets.zero,
-              physics: const AlwaysScrollableScrollPhysics(
-                  parent: BouncingScrollPhysics()),
+              physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
               child: Column(
                 crossAxisAlignment: crossAxisAlignment,
                 mainAxisSize: MainAxisSize.min,

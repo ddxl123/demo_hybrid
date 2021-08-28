@@ -15,6 +15,10 @@ object FlutterEnginerCache {
         return cacheEnginers[entryPointName]
     }
 
+    fun containsKey(entryPointName: String): Boolean {
+        return cacheEnginers.containsKey(entryPointName)
+    }
+
     fun remove(entryPointName: String) {
         cacheEnginers.remove(entryPointName)
     }

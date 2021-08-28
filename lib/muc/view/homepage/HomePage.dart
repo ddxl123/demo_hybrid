@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hybrid/global/Global.dart';
@@ -25,7 +24,7 @@ class HomePage extends StatelessWidget {
         freeMoveScaleLayerWidgets: _freeMoveScaleLayerWidgets(),
       ),
       onLongPressed: (PointerDownEvent event) {
-        SbHelper().getNavigator!.push(PoolEntry().toLongPressPool());
+        SbHelper.getNavigator!.push(PoolEntry().toLongPressPool());
       },
     );
   }
@@ -68,7 +67,7 @@ class HomePage extends StatelessWidget {
               child: TextButton(
                 child: const Text('我'),
                 onPressed: () {
-                  SbHelper().getNavigator!.push(LoginPage());
+                  SbHelper.getNavigator!.push(LoginPage());
                 },
               ),
             ),

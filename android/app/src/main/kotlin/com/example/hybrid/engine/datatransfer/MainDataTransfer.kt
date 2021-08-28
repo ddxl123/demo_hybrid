@@ -2,32 +2,30 @@ package com.example.hybrid.engine.datatransfer
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import com.example.hybrid.engine.manager.FlutterEnginer
 import com.example.hybrid.engine.constant.OMain_FlutterSend
 import com.example.hybrid.engine.manager.FlutterEngineManager
-import com.example.hybrid.util.checkType
+import com.example.hybrid.engine.manager.FlutterEnginer
+import com.example.hybrid.engine.permission.CheckPermission
+import com.example.hybrid.engine.service.DataCenterService
 
 class MainDataTransfer(val flutterEnginer: FlutterEnginer) : AbstractDataTransfer(flutterEnginer) {
-    @RequiresApi(Build.VERSION_CODES.O)
+    @RequiresApi(Build.VERSION_CODES.R)
     override fun listenFromFlutterEngineToNative(operationId: String, data: Any?): Any? {
         when (operationId) {
-            // 启动数据中心引擎服务。
-            OMain_FlutterSend.start_data_center_engine -> {
-
-                // 启动引擎的初始大小与位置，当引擎被初始化完成后，会被在其他 operationId 重新设置大小与位置。
-                val dataMap = data.checkType<Map<*, *>>()
-                val width = dataMap["width"].checkType<Int>()
-                val height = dataMap["height"].checkType<Int>()
-                val x = dataMap["x"].checkType<Int>()
-                val y = dataMap["y"].checkType<Int>()
-
-                FlutterEngineManager.getFlutterEnginersByObject.data_center.createNewEngineAndAttach()
-                    .floatingWindow!!.setSize(width, height)
-                    .setPosition(x, y)
+            OMain_FlutterSend.check_floating_window_permission -> {
+                return CheckPermission.checkFloatingWindow(false)
+            }
+            OMain_FlutterSend.check_and_push_page_floating_window_permission -> {
+                return CheckPermission.checkFloatingWindow(true)
+            }
+            OMain_FlutterSend.start_data_center_engine_and_keep_background_running_by_floating_window -> {
+                // 启动数据中心引擎服务。
+                FlutterEngineManager.startService(DataCenterService::class.java)
 
                 // 引擎启动成功。
                 return true
             }
+
 
             else -> {
                 return throwUnhandledOperationIdException(operationId)

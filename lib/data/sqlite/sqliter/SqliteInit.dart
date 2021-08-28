@@ -96,8 +96,8 @@ class SqliteInit {
       id: null,
       aiid: null,
       uuid: null,
-      created_at: SbHelper().newTimestamp,
-      updated_at: SbHelper().newTimestamp,
+      created_at: SbHelper.newTimestamp,
+      updated_at: SbHelper.newTimestamp,
       saved_version: currentAppVersion,
     );
     await db.insert(appVersionInfo.tableName, appVersionInfo.getRowJson);

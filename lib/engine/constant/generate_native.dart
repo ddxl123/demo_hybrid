@@ -5,9 +5,6 @@ void main() {
     writeDirectory: Directory(r'D:\project\hybrid\android\app\src\main\kotlin\com\example\hybrid\engine\constant'),
     writePackage: 'com.example.hybrid.engine.constant',
   );
-
-
-
 }
 
 /// [writeDirectory] 要写入的文件夹路径。
@@ -112,4 +109,6 @@ $listenConstantContent}
       }
     }
   }
+
+  print('生成成功！');
 }

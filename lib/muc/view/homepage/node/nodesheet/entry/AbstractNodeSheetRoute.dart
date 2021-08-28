@@ -37,7 +37,7 @@ abstract class AbstractNodeSheetRoute<FDM extends ModelBase> extends AbstractPoo
             TextButton(
               child: const Icon(Icons.more_horiz),
               onPressed: () {
-                SbHelper().getNavigator!.push(moreRoute);
+                SbHelper.getNavigator!.push(moreRoute);
               },
             ),
           ],
@@ -49,7 +49,7 @@ abstract class AbstractNodeSheetRoute<FDM extends ModelBase> extends AbstractPoo
 
   @override
   void popMethod() {
-    SbHelper().getNavigator!.removeRoute(this);
+    SbHelper.getNavigator!.removeRoute(this);
   }
 
   @override

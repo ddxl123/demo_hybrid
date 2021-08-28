@@ -18,10 +18,10 @@ abstract class AbstractNodeWidget extends AbstractPoolEntryWidget {
           child: Text(nodeTitle),
         ),
         onLongPressed: (_) {
-          SbHelper().getNavigator!.push(onLongPressedRoute);
+          SbHelper.getNavigator!.push(onLongPressedRoute);
         },
         onUp: (_) {
-          SbHelper().getNavigator!.push(onUpRoute);
+          SbHelper.getNavigator!.push(onUpRoute);
         },
       ),
     );

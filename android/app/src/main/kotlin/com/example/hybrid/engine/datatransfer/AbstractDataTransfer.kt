@@ -13,16 +13,15 @@ import java.lang.Exception
  *
  * 这里 [context] 使用 val 修饰不清楚到底会不会出现内存泄露。
  */
-abstract class AbstractDataTransfer(private val flutterEnginer: FlutterEnginer) {
+abstract class AbstractDataTransfer(flutterEnginer: FlutterEnginer) {
 
-    val basicMessageChannel: BasicMessageChannel<Any?> = BasicMessageChannel(
+    private val basicMessageChannel: BasicMessageChannel<Any?> = BasicMessageChannel(
         flutterEnginer.flutterEngine!!.dartExecutor.binaryMessenger,
         flutterEnginer.channelName,
         StandardMessageCodec()
     )
 
     init {
-
         basicMessageChannel.setMessageHandler { message, reply ->
 
             val messageMap = message as Map<*, *>
@@ -41,7 +40,7 @@ abstract class AbstractDataTransfer(private val flutterEnginer: FlutterEnginer) 
                     val toFlutterEnginer =
                         FlutterEngineManager.getFlutterEnginersByEntryPoint(sendToWhichEngine)!!
 
-                    toFlutterEnginer.dataTransfer!!.basicMessageChannel.send(messageMap) {
+                    toFlutterEnginer.dataTransfer.basicMessageChannel.send(messageMap) {
                         reply.reply(it)
                     }
                 }

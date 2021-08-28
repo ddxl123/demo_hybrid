@@ -19,7 +19,7 @@ class NodeWidgetForFragment extends AbstractNodeWidget {
   const NodeWidgetForFragment(PoolNodeModel poolNodeModel) : super(poolNodeModel);
 
   @override
-  Offset get easyPosition => SbHelper().str2Offset(poolNodeModel.getCurrentNodeModel<MPnFragment>().get_easy_position) ?? Offset.zero;
+  Offset get easyPosition => SbHelper.str2Offset(poolNodeModel.getCurrentNodeModel<MPnFragment>().get_easy_position) ?? Offset.zero;
 
   @override
   Route<void> get onLongPressedRoute => LongPressedNodeRouteForFragment(poolNodeModel);
@@ -35,7 +35,7 @@ class NodeWidgetForMemory extends AbstractNodeWidget {
   const NodeWidgetForMemory(PoolNodeModel poolNodeModel) : super(poolNodeModel);
 
   @override
-  Offset get easyPosition => SbHelper().str2Offset(poolNodeModel.getCurrentNodeModel<MPnMemory>().get_easy_position) ?? Offset.zero;
+  Offset get easyPosition => SbHelper.str2Offset(poolNodeModel.getCurrentNodeModel<MPnMemory>().get_easy_position) ?? Offset.zero;
 
   @override
   Route<void> get onLongPressedRoute => LongPressedNodeRouteForMemory(poolNodeModel);
@@ -51,7 +51,7 @@ class NodeWidgetForComplete extends AbstractNodeWidget {
   const NodeWidgetForComplete(PoolNodeModel poolNodeModel) : super(poolNodeModel);
 
   @override
-  Offset get easyPosition => SbHelper().str2Offset(poolNodeModel.getCurrentNodeModel<MPnComplete>().get_easy_position) ?? Offset.zero;
+  Offset get easyPosition => SbHelper.str2Offset(poolNodeModel.getCurrentNodeModel<MPnComplete>().get_easy_position) ?? Offset.zero;
 
   @override
   Route<void> get onLongPressedRoute => LongPressedNodeRouteForComplete(poolNodeModel);
@@ -67,7 +67,7 @@ class NodeWidgetForRule extends AbstractNodeWidget {
   const NodeWidgetForRule(PoolNodeModel poolNodeModel) : super(poolNodeModel);
 
   @override
-  Offset get easyPosition => SbHelper().str2Offset(poolNodeModel.getCurrentNodeModel<MPnRule>().get_easy_position) ?? Offset.zero;
+  Offset get easyPosition => SbHelper.str2Offset(poolNodeModel.getCurrentNodeModel<MPnRule>().get_easy_position) ?? Offset.zero;
 
   @override
   Route<void> get onLongPressedRoute => LongPressedNodeRouteForRule(poolNodeModel);

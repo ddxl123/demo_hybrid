@@ -31,6 +31,6 @@ class PoolEntry {
   final PoolGetController fragmentPoolGetController = Get.find<PoolGetController>();
 
   void to(Route<void> route) {
-    SbHelper().getNavigator!.push<void>(route);
+    SbHelper.getNavigator!.push<void>(route);
   }
 }

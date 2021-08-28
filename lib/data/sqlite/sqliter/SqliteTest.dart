@@ -22,13 +22,13 @@ class SqliteTest {
         await MPnFragment.createModel(
           id: null,
           aiid: null,
-          uuid: SbHelper().newUuid,
+          uuid: SbHelper.newUuid,
           created_at: null,
           updated_at: null,
           rule_aiid: null,
           rule_uuid: null,
-          easy_position: '${SbHelper().randomDouble(2000)},${SbHelper().randomDouble(2000)}',
-          title: SbHelper().randomString(20),
+          easy_position: '${SbHelper.randomDouble(2000)},${SbHelper.randomDouble(2000)}',
+          title: SbHelper.randomString(20),
         ).insertDb();
       },
     );
@@ -38,13 +38,13 @@ class SqliteTest {
         await MPnMemory.createModel(
           id: null,
           aiid: null,
-          uuid: SbHelper().newUuid,
+          uuid: SbHelper.newUuid,
           rule_aiid: null,
           rule_uuid: null,
           created_at: null,
           updated_at: null,
-          easy_position: '${SbHelper().randomDouble(2000)},${SbHelper().randomDouble(2000)}',
-          title: SbHelper().randomString(20),
+          easy_position: '${SbHelper.randomDouble(2000)},${SbHelper.randomDouble(2000)}',
+          title: SbHelper.randomString(20),
         ).insertDb();
       },
     );
@@ -54,13 +54,13 @@ class SqliteTest {
         await MPnComplete.createModel(
           id: null,
           aiid: null,
-          uuid: SbHelper().newUuid,
+          uuid: SbHelper.newUuid,
           rule_aiid: null,
           rule_uuid: null,
           created_at: null,
           updated_at: null,
-          easy_position: '${SbHelper().randomDouble(2000)},${SbHelper().randomDouble(2000)}',
-          title: SbHelper().randomString(20),
+          easy_position: '${SbHelper.randomDouble(2000)},${SbHelper.randomDouble(2000)}',
+          title: SbHelper.randomString(20),
         ).insertDb();
       },
     );
@@ -70,11 +70,11 @@ class SqliteTest {
         await MPnRule.createModel(
           id: null,
           aiid: null,
-          uuid: SbHelper().newUuid,
+          uuid: SbHelper.newUuid,
           created_at: null,
           updated_at: null,
-          easy_position: '${SbHelper().randomDouble(2000)},${SbHelper().randomDouble(2000)}',
-          title: SbHelper().randomString(20),
+          easy_position: '${SbHelper.randomDouble(2000)},${SbHelper.randomDouble(2000)}',
+          title: SbHelper.randomString(20),
         ).insertDb();
       },
     );

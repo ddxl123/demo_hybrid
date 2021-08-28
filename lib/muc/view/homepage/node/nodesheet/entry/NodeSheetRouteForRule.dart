@@ -61,7 +61,7 @@ class NodeSheetRouteForRule extends AbstractNodeSheetRoute<MFRule> {
         child: SbButton(
           child: Text(sheetPageController.bodyData[index].get_title ?? ''),
           onLongPressed: (PointerDownEvent event) {
-            SbHelper().getNavigator!.push(LongPressedFragmentForRule(this, sheetPageController.bodyData[index]));
+            SbHelper.getNavigator!.push(LongPressedFragmentForRule(this, sheetPageController.bodyData[index]));
           },
         ),
       );

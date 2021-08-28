@@ -5,141 +5,117 @@ import androidx.annotation.RequiresApi
 import com.example.hybrid.GlobalApplication
 import com.example.hybrid.engine.datatransfer.AbstractDataTransfer
 import com.example.hybrid.engine.floatingwindow.AbstractFloatingWindow
-import com.example.hybrid.engine.service.AbstractService
 import io.flutter.FlutterInjector
 import io.flutter.embedding.android.FlutterSurfaceView
 import io.flutter.embedding.android.FlutterView
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.dart.DartExecutor
+import java.lang.Exception
+import com.example.hybrid.engine.service.AbstractService
 import com.example.hybrid.MainActivity
+import com.example.hybrid.engine.constant.EngineEntryName
 
-class FlutterEnginer(
-    val entryPointName: String,
-    private val putEngineDataTransfer: (FlutterEnginer) -> AbstractDataTransfer,
-    private val putService: ((FlutterEnginer) -> AbstractService)?,
-    private val putFloatingWindow: ((FlutterEnginer) -> AbstractFloatingWindow)?
-) {
-    init {
-        println("--------- $entryPointName 入口的 FlutterEnginer 已被创建，但未附着对应的 FlutterEngine。")
-    }
-
-    val channelName = "data_channel"
-    var flutterEngine: FlutterEngine? = null
-    var flutterView: FlutterView? = null
-    var dataTransfer: AbstractDataTransfer? = null
-    var service: AbstractService? = null
-    var floatingWindow: AbstractFloatingWindow? = null
-
-    private val isAttach
-        get() = flutterEngine != null
+/**
+ * 只要 [FlutterEnginer] 被创建，就会被添加到 [FlutterEnginerCache] 中，
+ */
+class FlutterEnginer {
 
     /**
-     * 将已有的 [MainActivity] 的 [FlutterEngine] 附着在 [FlutterEnginer] 上。
+     * 创建新的 [FlutterEngine] 构造器。
      *
-     * 当 [flutterEngine] != null 时，不会被重新 [attachMain]。
-     *
-     * 构建内容:
-     *  1. [flutterEngine] - 必选
-     *  2. [dataTransfer] - 必选
-     *  3. [FlutterEnginerCache] - 必选
+     * 通常由 [AbstractService] 进行构造。
      */
     @RequiresApi(Build.VERSION_CODES.N)
-    fun attachMain(flutterEngine: FlutterEngine): FlutterEnginer {
-        if (isAttach) {
-            return this
+    constructor(
+        entryPointName: String,
+        service: AbstractService,
+        putDataTransfer: (FlutterEnginer) -> AbstractDataTransfer,
+        putFloatingWindow: (FlutterEnginer) -> AbstractFloatingWindow
+    ) {
+        if (FlutterEnginerCache.containsKey(entryPointName)) {
+            throw Exception("$entryPointName 入口的 FlutterEnginer 被重复创建！")
         }
 
-        this.flutterEngine = flutterEngine
-
-        moreInit()
-
-        return this
-    }
-
-    /**
-     * 创建一个新 [FlutterEngine] 并将其附着在当前 [FlutterEnginer] 上。
-     *
-     * 当 [flutterEngine] != null 时，不会被重新 [createNewEngineAndAttach] 。
-     *
-     * 构建内容:
-     *  1. [flutterEngine] - 必选
-     *  2. [flutterView] - 必选
-     *  3. [service] - 可选 (根据 [putService] 是否为空)
-     *  4. [floatingWindow] - 可选 (根据 [putFloatingWindow] 是否为空)
-     *  5. [dataTransfer] - 必选
-     *  6. [FlutterEnginerCache] - 必选
-     */
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun createNewEngineAndAttach(): FlutterEnginer {
-        if (isAttach) {
-            return this
-        }
-
-        val entryPoint = DartExecutor.DartEntrypoint(
-            FlutterInjector.instance().flutterLoader().findAppBundlePath(), entryPointName
-        )
-
-        flutterEngine = FlutterEngineManager.flutterEngineGroup.createAndRunEngine(
-            GlobalApplication.context,
-            entryPoint
-        ).apply { lifecycleChannel.appIsResumed() }
-
-
-        flutterView = FlutterView(
-            GlobalApplication.context,
-            FlutterSurfaceView(GlobalApplication.context, true)
-        ).apply { attachToFlutterEngine((flutterEngine!!)) }
-
-        service = putService?.invoke(this)
-        floatingWindow = putFloatingWindow?.invoke(this)
-
-        moreInit()
-
-        return this
-    }
-
-    /**
-     * 一旦 [FlutterEnginer] 被 [FlutterEngine] 附着，便 [moreInit]。
-     */
-    @RequiresApi(Build.VERSION_CODES.N)
-    private fun moreInit() {
-        this.dataTransfer = putEngineDataTransfer(this)
-
+        // 必须按照顺序。
+        this.entryPointName = entryPointName
         FlutterEnginerCache.put(this.entryPointName, this)
 
-        println("--------- $entryPointName 入口的 FlutterEngine 已附着。")
+        this.flutterEngine = FlutterEngineManager.flutterEngineGroup.createAndRunEngine(
+            GlobalApplication.context,
+            DartExecutor.DartEntrypoint(
+                FlutterInjector.instance().flutterLoader().findAppBundlePath(), entryPointName
+            )
+        ).apply { lifecycleChannel.appIsResumed() }
+        this.flutterView = FlutterView(
+            GlobalApplication.context,
+            FlutterSurfaceView(GlobalApplication.context, true)
+        ).apply { attachToFlutterEngine(flutterEngine!!) }
+
+        this.dataTransfer = putDataTransfer(this)
+        this.floatingWindow = putFloatingWindow(this)
+
+        this.service = service
     }
+
+    /**
+     * 使用已有的 [FlutterEngine] 的构造器。
+     *
+     * 通常由 [MainActivity] 进行构造。
+     */
+    @RequiresApi(Build.VERSION_CODES.N)
+    constructor(
+        entryPointName: String,
+        putDataTransfer: (FlutterEnginer) -> AbstractDataTransfer,
+        flutterEngine: FlutterEngine
+    ) {
+        if (FlutterEnginerCache.containsKey(entryPointName)) {
+            throw Exception("$entryPointName 入口的 FlutterEnginer 被重复创建！")
+        }
+
+        // 必须按照顺序。
+        this.entryPointName = entryPointName
+        FlutterEnginerCache.put(this.entryPointName, this)
+        this.flutterEngine = flutterEngine
+        this.dataTransfer = putDataTransfer(this)
+    }
+
+
+    val channelName = "data_channel"
+    var entryPointName: String
+    var flutterEngine: FlutterEngine?
+    var dataTransfer: AbstractDataTransfer
+
+    var floatingWindow: AbstractFloatingWindow? = null
+    var flutterView: FlutterView? = null
+
+    private var service: AbstractService? = null
+
 
     /**
      * 可见但不响应用户输入，程序保持运行。
      */
-    fun toInactive() {
-        flutterEngine!!.lifecycleChannel.appIsInactive()
+    fun doInactive() {
+        flutterEngine?.lifecycleChannel?.appIsInactive()
     }
 
     /**
      * 不可见且不响应用户输入，程序保持运行。
      */
-    fun toPaused() {
-        flutterEngine!!.lifecycleChannel.appIsPaused()
+    fun doPause() {
+        flutterEngine?.lifecycleChannel?.appIsPaused()
     }
 
     /**
-     * 销毁该引擎。
+     * 彻底销毁该 [FlutterEnginer]，同时关闭对应的 [AbstractService]。
      */
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun toDestroy() {
-        dataTransfer = null
-
-        floatingWindow?.removeFlutterView()
-        floatingWindow = null
-        flutterView = null
-
+    @RequiresApi(Build.VERSION_CODES.R)
+    fun doDestroyCompletely() {
+        this.floatingWindow?.removeView()
+        this.flutterEngine = null
+        this.floatingWindow = null
+        this.flutterView = null
         FlutterEnginerCache.remove(this.entryPointName)
-        flutterEngine?.destroy()
-        flutterEngine = null
-
-        service?.stopSelf()
-        service = null
+        this.service?.stopSelf()
+        this.service = null
     }
 }

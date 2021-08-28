@@ -25,7 +25,7 @@ abstract class LongPressedNodeRouteBase extends AbstractPoolEntryRoute {
             TextButton(
               child: const Text('删除节点'),
               onPressed: () async {
-                SbHelper().getNavigator!.pop(SbPopResult(popResultSelect: PopResultSelect.one, value: null));
+                SbHelper.getNavigator!.pop(SbPopResult(popResultSelect: PopResultSelect.one, value: null));
               },
             ),
           ],

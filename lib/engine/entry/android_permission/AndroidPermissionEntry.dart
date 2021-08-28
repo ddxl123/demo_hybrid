@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:hybrid/engine/constant/EngineEntryName.dart';
@@ -16,9 +17,41 @@ class AndroidPermissionEntry extends StatefulWidget {
 class _AndroidPermissionEntryState extends State<AndroidPermissionEntry> {
   @override
   Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: AndroidPermissionEntryMain(),
+      ),
+    );
+  }
+}
+
+class AndroidPermissionEntryMain extends StatefulWidget {
+  @override
+  _AndroidPermissionEntryMainState createState() => _AndroidPermissionEntryMainState();
+}
+
+class _AndroidPermissionEntryMainState extends State<AndroidPermissionEntryMain> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance!.addPostFrameCallback(
+      (Duration timeStamp) {},
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return SbRoundedBox(
+      width: MediaQueryData.fromWindow(window).size.width / 2,
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
       children: <Widget>[
         _floatingWindows(),
+        Permission(
+            name: '应用自启权限',
+            permissionGet: () async {
+              return PermissionResult.error;
+            })
       ],
     );
   }
@@ -96,6 +129,7 @@ class _PermissionState extends State<Permission> {
     return Row(
       children: <Widget>[
         Text(widget.name),
+        Expanded(child: Container()),
         if (current == PermissionResult.notAllowed)
           const Icon(Icons.done, color: Colors.green)
         else if (current == PermissionResult.notAllowed)

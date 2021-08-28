@@ -34,5 +34,5 @@ class SbRectWidget extends StatelessWidget {
 }
 
 void toLoginPage() {
-  SbHelper().getNavigator!.push(LoginPage());
+  SbHelper.getNavigator!.push(LoginPage());
 }

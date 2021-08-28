@@ -63,10 +63,10 @@ class NodeSheetRouteForComplete extends AbstractNodeSheetRoute<MFComplete> {
           child: Text(sheetPageController.bodyData[index].get_title ?? ''),
           onUp: (PointerUpEvent event) {
             final MFComplete model = sheetPageController.bodyData[index];
-            SbHelper().getNavigator!.push(MaterialPageRoute<void>(builder: (_) => FragmentPage(model.get_fragment_aiid, model.get_fragment_uuid)));
+            SbHelper.getNavigator!.push(MaterialPageRoute<void>(builder: (_) => FragmentPage(model.get_fragment_aiid, model.get_fragment_uuid)));
           },
           onLongPressed: (PointerDownEvent event) {
-            SbHelper().getNavigator!.push(LongPressedFragmentForComplete(this, sheetPageController.bodyData[index]));
+            SbHelper.getNavigator!.push(LongPressedFragmentForComplete(this, sheetPageController.bodyData[index]));
           },
         ),
       );

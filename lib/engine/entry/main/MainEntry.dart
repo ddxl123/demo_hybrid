@@ -5,6 +5,8 @@ import 'package:hybrid/engine/constant/OMain.dart';
 import 'package:hybrid/engine/datatransfer/root/BaseDataTransfer.dart';
 import 'package:hybrid/engine/datatransfer/root/DataTransferBinding.dart';
 import 'package:hybrid/engine/entry/main/FloatingWindowPermissionRoute.dart';
+import 'package:hybrid/muc/getcontroller/SingleGetController.dart';
+import 'package:hybrid/muc/update/SingleUpdate.dart';
 import 'package:hybrid/muc/view/homepage/HomePage.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sbbutton/SbButton.dart';
@@ -33,15 +35,16 @@ class _MainEntryMainState extends State<MainEntryMain> {
 
   /// 该入口引擎是否初始化完成并可以进行之后的操作。
   ///
-  /// 若为 null，则代表初始化失败。
-  bool? isOk = false;
+  /// 若 is_ok 为 null，则代表初始化失败。
+  final SingleGetController _singleGetController =
+      Get.put(SingleGetController(SingleUpdate(), <String, Object?>{'is_ok': false}), tag: DataTransferManager.instance.currentEntryName);
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance!.addPostFrameCallback(
       (Duration timeStamp) async {
-        final MessageResult<bool> messageResult = await DataTransferBinding.instance.currentDataTransfer.sendMessageToOtherEngine<void, bool>(
+        final MessageResult<bool> messageResult = await DataTransferManager.instance.currentDataTransfer.sendMessageToOtherEngine<void, bool>(
           sendToWhichEngine: EngineEntryName.native,
           operationId: OMain_FlutterSend.check_floating_window_permission,
           data: null,
@@ -88,7 +91,7 @@ class _MainEntryMainState extends State<MainEntryMain> {
       exception: null,
       stackTrace: null,
     );
-    final MessageResult<bool> result = await DataTransferBinding.instance.currentDataTransfer.sendMessageToOtherEngine<void, bool>(
+    final MessageResult<bool> result = await DataTransferManager.instance.currentDataTransfer.sendMessageToOtherEngine<void, bool>(
       sendToWhichEngine: EngineEntryName.native,
       operationId: OMain_FlutterSend.start_data_center_engine_and_keep_background_running_by_floating_window,
       data: null,
@@ -104,8 +107,6 @@ class _MainEntryMainState extends State<MainEntryMain> {
             exception: null,
             stackTrace: null,
           );
-          isOk = true;
-          setState(() {});
         } else {
           throw Exception('返回的数据为 false');
         }
@@ -119,7 +120,7 @@ class _MainEntryMainState extends State<MainEntryMain> {
           exception: exception,
           stackTrace: stackTrace,
         );
-        isOk = null;
+        _singleGetController.any['is_ok'] = false;
         setState(() {});
       },
     );
@@ -127,14 +128,19 @@ class _MainEntryMainState extends State<MainEntryMain> {
 
   @override
   Widget build(BuildContext context) {
-    if (isOk == null) {
-      return const Center(child: Text('初始化时出现了异常！'));
-    }
-    if (!isOk!) {
-      return const Center(
-        child: Text('正在初始化中...'),
-      );
-    }
-    return HomePage();
+    return GetBuilder<SingleGetController>(
+      builder: (SingleGetController controller) {
+        if (controller.any['is_ok'] == false) {
+          return const Center(
+            child: Text('正在初始化悬浮窗中...'),
+          );
+        }
+        if (controller.any['is_ok'] == true) {
+          return HomePage();
+        }
+        return const Center(child: Text('初始化悬浮窗时出现了异常！'));
+      },
+      tag: DataTransferManager.instance.currentEntryName,
+    );
   }
 }

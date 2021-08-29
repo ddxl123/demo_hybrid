@@ -1,9 +1,9 @@
 import 'package:hybrid/engine/datatransfer/root/BaseDataTransfer.dart';
 
-class DataTransferBinding {
-  DataTransferBinding._();
+class DataTransferManager {
+  DataTransferManager._();
 
-  static DataTransferBinding instance = DataTransferBinding._();
+  static DataTransferManager instance = DataTransferManager._();
 
   late String currentEntryName;
 

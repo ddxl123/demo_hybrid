@@ -60,7 +60,7 @@ class _AndroidPermissionEntryMainState extends State<AndroidPermissionEntryMain>
     return Permission(
       name: '悬浮窗权限',
       permissionGet: () async {
-        final MessageResult<bool> messageResult = await DataTransferBinding.instance.currentDataTransfer.sendMessageToOtherEngine<void, bool>(
+        final MessageResult<bool> messageResult = await DataTransferManager.instance.currentDataTransfer.sendMessageToOtherEngine<void, bool>(
           operationId: OAndroidPermission_FlutterSend.check_floating_window,
           sendToWhichEngine: EngineEntryName.native,
           data: null,

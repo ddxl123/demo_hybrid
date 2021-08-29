@@ -15,7 +15,7 @@ import 'engine/entry/main/MainEntry.dart';
 void initBeforeRun(String entryName, BaseDataTransfer dataTransfer()) {
   WidgetsFlutterBinding.ensureInitialized();
   SbLogger.engineEntryBinding(entryName);
-  DataTransferBinding.instance.binding(entryName, dataTransfer);
+  DataTransferManager.instance.binding(entryName, dataTransfer);
 }
 
 /// 应用的主入口。

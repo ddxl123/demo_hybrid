@@ -28,7 +28,7 @@ class MessageResult<R extends Object> {
   }
 }
 
-/// 需在引擎入口执行前创建该 [BaseDataTransfer] 实例，之后使用 [DataTransferBinding.instance] 对该实例进行操作。
+/// 需在引擎入口执行前创建该 [BaseDataTransfer] 实例，之后使用 [DataTransferManager.instance] 对该实例进行操作。
 abstract class BaseDataTransfer {
   BaseDataTransfer() {
     _listenerMessageFromOtherFlutterEngine();
@@ -37,7 +37,7 @@ abstract class BaseDataTransfer {
       code: null,
       viewMessage: null,
       data: null,
-      description: Description('${DataTransferBinding.instance.currentEntryName} 入口的 BaseDataTransfer 已被初始化。'),
+      description: Description('${DataTransferManager.instance.currentEntryName} 入口的 BaseDataTransfer 已被初始化。'),
       exception: null,
       stackTrace: null,
     );
@@ -80,11 +80,14 @@ abstract class BaseDataTransfer {
       if (resultObj == null) {
         throw Exception('''
                 
-        来自原生回复的数据为 null！
+        来自原生的响应数据为 null！
         可能的原因如下：
           1. 消息通道异常。--- 直接返回了 null，而未抛出如何异常，没有错误 log 输出
-          2. 原生抛出了未捕获的异常：
+          2. 原生发生了异常：
             1) 未发现引擎 sendToWhichEngine: $sendToWhichEngine。
+            2) 未对 operationId: $operationId 进行处理。
+          3. 接收者发生了异常
+            1) listenerMessageFormOtherFlutterEngine 内部异常！
             2) 未对 operationId: $operationId 进行处理。
         ''');
       } else {
@@ -105,11 +108,16 @@ abstract class BaseDataTransfer {
   /// 不监听 native 单独传递过来。
   ///
   /// {@endtemplate}
-  Future<void> _listenerMessageFromOtherFlutterEngine() async {
+  void _listenerMessageFromOtherFlutterEngine() {
     _basicMessageChannel.setMessageHandler(
       (Object? message) async {
-        final Map<String, dynamic> messageMap = message! as Map<String, dynamic>;
-        return await listenerMessageFormOtherFlutterEngine(messageMap['operation_id']! as String, messageMap['data']);
+        try {
+          final Map<Object?, Object?> messageMap = message! as Map<Object?, Object?>;
+          return await listenerMessageFormOtherFlutterEngine(messageMap['operation_id']! as String, messageMap['data']);
+        } catch (e, st) {
+          SbLogger(code: null, viewMessage: null, data: null, description: Description('接收者发生了异常！'), exception: e, stackTrace: st);
+          return null;
+        }
       },
     );
   }

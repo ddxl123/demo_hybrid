@@ -15,6 +15,8 @@ class MUser implements ModelBase{
                 required String? password,
                 required String? email,
                 required int? age,
+                required String? token,
+                required int? is_downloaded_init_data,
         
   }) {
     _rowJson.addAll(
@@ -28,6 +30,8 @@ class MUser implements ModelBase{
               'password': password,
               'email': email,
               'age': age,
+              'token': token,
+              'is_downloaded_init_data': is_downloaded_init_data,
       
       },
     );
@@ -44,6 +48,8 @@ class MUser implements ModelBase{
             String get password => 'password';
             String get email => 'email';
             String get age => 'age';
+            String get token => 'token';
+            String get is_downloaded_init_data => 'is_downloaded_init_data';
       
   final Map<String, Object?> _rowJson = <String, Object?>{};
   
@@ -59,6 +65,8 @@ class MUser implements ModelBase{
             String? get get_password => _rowJson['password'] as String?;
             String? get get_email => _rowJson['email'] as String?;
             int? get get_age => _rowJson['age'] as int?;
+            String? get get_token => _rowJson['token'] as String?;
+            int? get get_is_downloaded_init_data => _rowJson['is_downloaded_init_data'] as int?;
       
     Set<String> getDeleteManyForTwo() => <String>{
       

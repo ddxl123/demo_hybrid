@@ -1,24 +1,9 @@
-abstract class _RequestVO {
-  List<KeyValue<Object?>> get keyValues;
-
-  Map<String, dynamic> toJson() {
-    final Map<String, Object?> json = <String, Object?>{};
-    for (final KeyValue<Object?> item in keyValues) {
-      json.addAll(<String, Object?>{item.key: item.value});
-    }
-    return json;
-  }
+abstract class RequestDataVO {
+  Map<String, Object?> toJson();
 }
 
-abstract class RequestDataVO extends _RequestVO {}
-
-abstract class RequestParamsVO extends _RequestVO {}
-
-class KeyValue<V> {
-  KeyValue(this.key, this.value);
-
-  late String key;
-  late V value;
+abstract class RequestParamsVO {
+  Map<String, Object?> toJson();
 }
 
 /// 之所以 [requestHeaders]、[requestDataVO]、[requestParamsVO] 是回调函数，是为了对其输入的不正确数据进行置空处理，
@@ -27,14 +12,14 @@ class HttpRequest<REQVO extends RequestDataVO, REQPVO extends RequestParamsVO> {
   HttpRequest({
     required this.method,
     required this.path,
-    required Map<String, dynamic>? getRequestHeaders()?,
-    required REQVO? getRequestDataVO()?,
-    required REQPVO? getRequestParamsVO()?,
+    required Map<String, dynamic>? setRequestHeaders()?,
+    required REQVO? setRequestDataVO()?,
+    required REQPVO? setRequestParamsVO()?,
   }) {
     try {
-      requestHeaders = getRequestHeaders?.call();
-      requestDataVO = getRequestDataVO?.call();
-      requestParamsVO = getRequestParamsVO?.call();
+      requestHeaders = setRequestHeaders?.call();
+      requestDataVO = setRequestDataVO?.call();
+      requestParamsVO = setRequestParamsVO?.call();
     } catch (e, st) {
       exception = e;
       stackTrace = st;

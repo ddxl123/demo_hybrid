@@ -1,20 +1,5 @@
-import 'dart:async';
-
 void main() {
-  a();
-}
-
-void a() async {
-  runZoned(
-    () {},
-  );
-  try {
-    await b();
-  } catch (e) {
-    print(e);
-  }
-}
-
-Future<void> b() async {
-  throw Exception('err');
+  '_a_b_c'.split('_').forEach((element) {
+    print(element[0]);
+  });
 }

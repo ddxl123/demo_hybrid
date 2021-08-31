@@ -1,13 +1,10 @@
 import 'dart:async';
 
-
 import 'package:flutter/material.dart';
 import 'package:hybrid/data/mysql/http/HttpCurd.dart';
-import 'package:hybrid/data/mysql/httpstore/handler/HttpRequest.dart';
 import 'package:hybrid/data/mysql/httpstore/handler/HttpResponse.dart';
-import 'package:hybrid/data/mysql/httpstore/store/loginandregister/HttpStore_login_and_register_by_email_send_email.dart';
-import 'package:hybrid/data/mysql/httpstore/store/loginandregister/HttpStore_login_and_register_by_email_verify_email.dart';
-import 'package:hybrid/data/sqlite/mmodel/MToken.dart';
+import 'package:hybrid/data/mysql/httpstore/store/notjwt/loginandregister/HttpStore_login_and_register_by_email_send_email.dart';
+import 'package:hybrid/data/mysql/httpstore/store/notjwt/loginandregister/HttpStore_login_and_register_by_email_verify_email.dart';
 import 'package:hybrid/data/sqlite/mmodel/MUser.dart';
 import 'package:hybrid/data/sqlite/sqliter/OpenSqlite.dart';
 import 'package:hybrid/global/Global.dart';
@@ -115,8 +112,8 @@ class LoginPage extends SbRoute {
 
               final HttpStore_login_and_register_by_email_send_email httpStore = await HttpCurd.sendRequest(
                 httpStore: HttpStore_login_and_register_by_email_send_email(
-                  getRequestDataVO_LARBESE: () => RequestDataVO_LARBESE(
-                    email: KeyValue<String>(MUser().email, emailTextEditingController.text),
+                  setRequestDataVO_LARBESE: () => RequestDataVO_LARBESE(
+                    email: emailTextEditingController.text,
                   ),
                 ),
                 sameNotConcurrent: null,
@@ -172,9 +169,9 @@ class LoginPage extends SbRoute {
           onPressed: () async {
             final HttpStore_login_and_register_by_email_verify_email httpStore = await HttpCurd.sendRequest(
               httpStore: HttpStore_login_and_register_by_email_verify_email(
-                getRequestDataVO_LARBEVE: () => RequestDataVO_LARBEVE(
-                  email: KeyValue<String>(MUser().email, emailTextEditingController.text),
-                  code: KeyValue<int>('code', int.parse(codeTextEditingController.text)),
+                setRequestDataVO_LARBEVE: () => RequestDataVO_LARBEVE(
+                  email: emailTextEditingController.text,
+                  code: int.parse(codeTextEditingController.text),
                 ),
               ),
               sameNotConcurrent: null,
@@ -195,18 +192,24 @@ class LoginPage extends SbRoute {
               doContinue: (HttpResponse<ResponseCodeCollect_LARBEVE, ResponseDataVO_LARBEVE> hr) async {
                 // 登陆/注册成功
                 if (hr.code == hr.responseCodeCollect.C2_01_02_01 || hr.code == hr.responseCodeCollect.C2_01_02_02) {
+                  // TODO:
                   // 云端 token 生成成功，存储至本地。
-                  final MToken newToken = MToken.createModel(
+                  final MUser newToken = MUser.createModel(
                     id: null,
                     aiid: null,
                     uuid: null,
-                    created_at: SbHelper.newTimestamp,
-                    updated_at: SbHelper.newTimestamp,
+                    username: null,
+                    password: null,
+                    email: null,
+                    age: null,
                     // 无论 token 值是否有问题，都进行存储。
                     token: hr.responseDataVO.token,
+                    is_downloaded_init_data: null,
+                    created_at: SbHelper.newTimestamp,
+                    updated_at: SbHelper.newTimestamp,
                   );
 
-                  await db.delete(MToken().tableName);
+                  await db.delete(newToken.tableName);
                   await db.insert(newToken.tableName, newToken.getRowJson);
 
                   SbLogger(

@@ -2,6 +2,8 @@
 
 import 'package:dio/dio.dart';
 import 'package:hybrid/data/mysql/httpstore/handler/HttpStore.dart';
+import 'package:hybrid/data/sqlite/mmodel/MUser.dart';
+import 'package:hybrid/data/sqlite/mmodel/ModelManager.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
 import '../../../Config.dart';
@@ -18,9 +20,6 @@ class HttpCurd {
   ///
   ///
   /// general request
-  ///
-  /// [getHttpStore] 必须使用函数传入 [HS]，因为需要验证 [HS] 的请求参数，如果以对象的方式传入，则会导致请求参数验证异常无法捕获问题！
-  ///   由于存在 [HttpStore_Catch] ，返回的 [HS] 对象可能与传入的 [HS] 对象不同，因此作 [HttpResponse.handle] 处理时需要使用返回的 [HS] 对象！
   ///
   /// [sameNotConcurrent] 不可并发标记。多个请求（可相同可不同），具有相同标记的请求不可并发。为 null 时代表不进行标记（即可并发）。
   ///
@@ -59,6 +58,13 @@ class HttpCurd {
         _sameNotConcurrentMap[sameNotConcurrent] = true;
       }
 
+      // 检测本地是否存在账号信息？
+      final List<MUser> mUsers = await ModelManager.queryRowsAsModels(connectTransaction: null, tableName: MUser().tableName);
+      if (mUsers.isEmpty) {
+        //TODO: 弹出【登陆界面引擎】
+        return await httpStore.setCancel(viewMessage: '未登录！', description: Description('本地不存在账号信息！'), exception: null, stackTrace: null) as HS;
+      }
+
       SbLogger(
         code: null,
         viewMessage: null,
@@ -72,7 +78,7 @@ class HttpCurd {
         await Future<void>.delayed(const Duration(seconds: 2));
       }
 
-      final Response<Map<String, dynamic>> response = await dio.request<Map<String, dynamic>>(
+      final Response<Map<String, Object?>> response = await dio.request<Map<String, Object?>>(
         httpStore.httpRequest.path,
         data: httpStore.httpRequest.requestDataVO?.toJson(),
         queryParameters: httpStore.httpRequest.requestParamsVO?.toJson(),
@@ -82,6 +88,15 @@ class HttpCurd {
         ),
       );
 
+      // 说明 token 刷新成功，即验证用户身份成功。
+      if (response.headers.map['authorization'] != null) {
+        // 检测本地初始化数据是否已下载？
+        if (mUsers.first.get_is_downloaded_init_data != 1) {
+          //TODO: 未下载，则弹出下载的相关页面，下载前删除除了 user 数据外的其他全部数据。
+          return await httpStore.setCancel(viewMessage: '数据未下载！', description: Description('Token 刷新成功，但未下载初始化数据！'), exception: null, stackTrace: null) as HS;
+        }
+      }
+
       _sameNotConcurrentMap.remove(sameNotConcurrent);
       _isBanAllRequest = false;
       return await httpStore.setPass(response) as HS;
@@ -90,26 +105,11 @@ class HttpCurd {
       _isBanAllRequest = false;
       if (e is DioError) {
         if (e.type == DioErrorType.sendTimeout || e.type == DioErrorType.connectTimeout || e.type == DioErrorType.receiveTimeout) {
-          return await httpStore.setCancel(
-            viewMessage: '请求超时！',
-            description: Description('dio 异常！可能是发送超时、连接超时、接收超时'),
-            exception: e,
-            stackTrace: st,
-          ) as HS;
+          return await httpStore.setCancel(viewMessage: '请求超时！', description: Description('dio 异常！可能是发送超时、连接超时、接收超时'), exception: e, stackTrace: st) as HS;
         }
-        return await httpStore.setCancel(
-          viewMessage: '请求异常！',
-          description: Description('dio 异常！'),
-          exception: e,
-          stackTrace: st,
-        ) as HS;
+        return await httpStore.setCancel(viewMessage: '请求异常！', description: Description('dio 异常！'), exception: e, stackTrace: st) as HS;
       }
-      return await httpStore.setCancel(
-        viewMessage: '发生错误！',
-        description: Description('1. 可能是某个请求参数错误！'),
-        exception: e,
-        stackTrace: st,
-      ) as HS;
+      return await httpStore.setCancel(viewMessage: '发生错误！', description: Description('1. 可能是某个请求参数错误！'), exception: e, stackTrace: st) as HS;
     }
   }
 

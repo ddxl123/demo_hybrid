@@ -1,7 +1,6 @@
         import './creator/ModelCreator.dart';
     
               import '../cmodel/local/CAppVersionInfo.dart';
-            import '../cmodel/local/CToken.dart';
             import '../cmodel/local/CUpload.dart';
             import '../cmodel/nonlocal/CUser.dart';
             import '../cmodel/nonlocal/f/CFComplete.dart';
@@ -16,7 +15,6 @@
     class ModelList{
       List<ModelCreator> modelCreators = <ModelCreator>[
             CAppVersionInfo(),
-            CToken(),
             CUpload(),
             CUser(),
             CFComplete(),

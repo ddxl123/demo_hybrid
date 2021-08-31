@@ -12,6 +12,8 @@ abstract class HttpStore<REQVO extends RequestDataVO, REQPVO extends RequestPara
   late final HttpResponse<RESPCCOL, RESPDVO> httpResponse;
 
   /// 返回 false 表示拦截发生异常。
+  ///
+  /// 无论是被 [setCancel] 还是被 [setPass]，都需要配置 [_requestIntercept] 的结果。
   Future<bool> _requestIntercept() async {
     try {
       await HttpRequestIntercept<REQVO, REQPVO>(httpRequest).intercept();
@@ -50,20 +52,20 @@ abstract class HttpStore_GET<REQPVO extends RequestParamsVO, RESPCCOL extends Re
     extends HttpStore<RequestDataVO, REQPVO, RESPCCOL, RESPDVO> {
   HttpStore_GET(
     String path,
-    REQPVO getRequestParamsVO(),
+    REQPVO setRequestParamsVO(),
     RESPCCOL responseCodeCollect,
-    RESPDVO responseDataVO,
+    RESPDVO setResponseDataVO(Map<String, Object?> json),
   ) {
     httpRequest = HttpRequest<RequestDataVO, REQPVO>(
       method: 'GET',
       path: path,
-      getRequestHeaders: null,
-      getRequestParamsVO: getRequestParamsVO,
-      getRequestDataVO: null,
+      setRequestHeaders: null,
+      setRequestParamsVO: setRequestParamsVO,
+      setRequestDataVO: null,
     );
     httpResponse = HttpResponse<RESPCCOL, RESPDVO>(
       responseCodeCollect: responseCodeCollect,
-      responseDataVO: responseDataVO,
+      setResponseDataVO: setResponseDataVO,
     );
   }
 }
@@ -72,20 +74,20 @@ abstract class HttpStore_POST<REQVO extends RequestDataVO, RESPCCOL extends Resp
     extends HttpStore<REQVO, RequestParamsVO, RESPCCOL, RESPDVO> {
   HttpStore_POST(
     String path,
-    REQVO getRequestDataVO(),
+    REQVO setRequestDataVO(),
     RESPCCOL responseCodeCollect,
-    RESPDVO responseDataVO,
+    RESPDVO setResponseDataVO(Map<String, Object?> json),
   ) {
     httpRequest = HttpRequest<REQVO, RequestParamsVO>(
       method: 'POST',
       path: path,
-      getRequestHeaders: null,
-      getRequestParamsVO: null,
-      getRequestDataVO: getRequestDataVO,
+      setRequestHeaders: null,
+      setRequestParamsVO: null,
+      setRequestDataVO: setRequestDataVO,
     );
     httpResponse = HttpResponse<RESPCCOL, RESPDVO>(
       responseCodeCollect: responseCodeCollect,
-      responseDataVO: responseDataVO,
+      setResponseDataVO: setResponseDataVO,
     );
   }
 }

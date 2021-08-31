@@ -2,7 +2,6 @@
 
 import 'dart:io';
 
-
 import 'Member.dart';
 import 'ModelList.dart';
 import 'Util.dart';
@@ -27,51 +26,51 @@ class Writer {
 
   String get outModelListPath => mainFolderPath + 'builder/ModelList.dart';
 
-  Future<void> writer() async {
-    await setModelPath();
-    await runWriteModelList();
-    await runWriteModels();
-    await runWriteModelBase();
-    await runWriteModelManager();
-    await runParseIntoSqls();
+  void writer() {
+    setModelPath();
+    runWriteModelList();
+    runWriteModels();
+    runWriteModelBase();
+    runWriteModelManager();
+    runParseIntoSqls();
   }
 
-  Future<void> setModelPath() async {
+  void setModelPath() {
     // ignore: avoid_slow_async_io
-    if (await Directory(outModelFolderPath).exists()) {
+    if (Directory(outModelFolderPath).existsSync()) {
       throw '文件夹已存在！';
     } else {
-      await Directory(outModelFolderPath).create();
+      Directory(outModelFolderPath).createSync();
     }
   }
 
-  Future<void> runWriteModelList() async {
+  void runWriteModelList() {
     // 写入对象。
-    await File(outModelListPath).writeAsString(ModelListContent().content());
+    File(outModelListPath).writeAsStringSync(ModelListContent().content());
     print('ModelList file is created successfully!');
     // 创建写入的对象来执行任务。
     ModelList();
   }
 
-  Future<void> runWriteModels() async {
+  void runWriteModels() {
     for (int i = 0; i < modelFields.length; i++) {
       final String tableName = modelFields.keys.elementAt(i);
       final Map<String, List<Object>> fields = modelFields[tableName]!;
 
       // 注意加上前缀 'M'。
-      await File('$outModelFolderPath/M${toCamelCase(tableName)}.dart')
-          .writeAsString(ModelContent(folderPath: outModelFolderPath, tableName: tableName, fields: fields).content());
+      File('$outModelFolderPath/M${toCamelCase(tableName)}.dart')
+          .writeAsStringSync(ModelContent(folderPath: outModelFolderPath, tableName: tableName, fields: fields).content());
       print("Named '$tableName''s model file is created successfully!");
     }
   }
 
-  Future<void> runWriteModelBase() async {
-    await File('$outModelFolderPath/ModelBase.dart').writeAsString(ModelBaseContent(folderPath: outModelFolderPath).content());
+  void runWriteModelBase() {
+    File('$outModelFolderPath/ModelBase.dart').writeAsStringSync(ModelBaseContent(folderPath: outModelFolderPath).content());
     print("'ModelBase' file is created successfully!");
   }
 
-  Future<void> runWriteModelManager() async {
-    await File('$outModelFolderPath/ModelManager.dart').writeAsString(ModelManagerContent(folderPath: outModelFolderPath).content());
+  void runWriteModelManager() {
+    File('$outModelFolderPath/ModelManager.dart').writeAsStringSync(ModelManagerContent(folderPath: outModelFolderPath).content());
     print("'ModelManager' file is created successfully!");
   }
 
@@ -96,7 +95,7 @@ class Writer {
       },
     );
 
-    await File('$outModelFolderPath/ParseIntoSqls.dart').writeAsString(ParseIntoSqlsContent(rawSqls: rawSqls).parseIntoSqlsContent());
+    File('$outModelFolderPath/ParseIntoSqls.dart').writeAsStringSync(ParseIntoSqlsContent(rawSqls: rawSqls).parseIntoSqlsContent());
     print("'ParseIntoSqls' file is created successfully!");
   }
 }

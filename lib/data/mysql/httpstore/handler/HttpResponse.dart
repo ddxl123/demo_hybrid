@@ -5,30 +5,31 @@ import 'HttpResponseIntercept.dart';
 
 abstract class ResponseCodeCollect {}
 
-abstract class ResponseDataVO {
-  ResponseDataVO from(Map<String, dynamic> dataJson);
-}
-
 class ResponseNullCodeCollect extends ResponseCodeCollect {}
+
+abstract class ResponseDataVO {
+  Map<String, Object?> toJson();
+}
 
 class ResponseNullDataVO extends ResponseDataVO {
   @override
-  ResponseDataVO from(Map<String, dynamic> dataJson) {
-    return this;
-  }
+  Map<String, Object?> toJson() => <String, Object?>{};
 }
 
+///
 class HttpResponse<RESPCCOL extends ResponseCodeCollect, RESPDVO extends ResponseDataVO> {
   HttpResponse({
     required this.responseCodeCollect,
-    required this.responseDataVO,
+    required this.setResponseDataVO,
   });
 
   /// 响应码集。
   final RESPCCOL responseCodeCollect;
 
   /// 响应体 data VO 模型。
-  final RESPDVO responseDataVO;
+  late final RESPDVO responseDataVO;
+
+  final RESPDVO Function(Map<String, Object?> json) setResponseDataVO;
 
   /// 响应头。
   Headers? responseHeaders;
@@ -95,7 +96,7 @@ class HttpResponse<RESPCCOL extends ResponseCodeCollect, RESPDVO extends Respons
       );
       final Map<String, dynamic>? data = response.data!['data'] as Map<String, dynamic>?;
       if (data != null) {
-        responseDataVO.from(data);
+        responseDataVO = setResponseDataVO(data);
       }
     } catch (e, st) {
       _setAll(
@@ -115,6 +116,8 @@ class HttpResponse<RESPCCOL extends ResponseCodeCollect, RESPDVO extends Respons
   ///   - 若内部存在异常，则直接 [doCancel]，而这里的 cancel 内容是格式化 [HttpResponse]。
   ///
   /// [doCancel] 处理除 [doContinue] 外的其他任何异常或响应。
+  ///
+  /// [doContinue] -> [HttpResponseIntercept] -> [doCancel]，执行 [HttpResponseIntercept] 必会执行 [doCancel]。
   Future<void> handle({
     required Future<bool> doContinue(HttpResponse<RESPCCOL, RESPDVO> hr),
     required Future<void> doCancel(HttpResponse<RESPCCOL, RESPDVO> hr),

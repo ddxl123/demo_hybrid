@@ -3,7 +3,6 @@
     import 'package:hybrid/data/sqlite/sqliter/OpenSqlite.dart';
     import 'ModelBase.dart';
           import 'MAppVersionInfo.dart';
-            import 'MToken.dart';
             import 'MUpload.dart';
             import 'MUser.dart';
             import 'MPnRule.dart';
@@ -43,8 +42,6 @@
       switch (tableName) {
               case 'app_version_info':
         return MAppVersionInfo() as T;
-            case 'token':
-        return MToken() as T;
             case 'upload':
         return MUpload() as T;
             case 'user':

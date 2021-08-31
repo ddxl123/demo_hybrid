@@ -15,7 +15,7 @@ class ModelListContent {
   }
 
   String modelCreatorsContent() {
-    // 获取 main.dart 所在的文件夹的绝对 path。
+    // 获取 modelmain.dart 所在的文件夹的绝对 path。
     final String modelbuilderPath = (Platform.script.pathSegments.toList()..removeLast()).join('/');
 
     // 获取 model 文件夹绝对 path。

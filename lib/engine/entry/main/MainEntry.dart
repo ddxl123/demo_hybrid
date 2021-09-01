@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:hybrid/engine/constant/EngineEntryName.dart';
 import 'package:hybrid/engine/constant/OMain.dart';
 import 'package:hybrid/engine/datatransfer/root/BaseDataTransfer.dart';
-import 'package:hybrid/engine/datatransfer/root/DataTransferBinding.dart';
+import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
 import 'package:hybrid/engine/entry/main/FloatingWindowPermissionRoute.dart';
 import 'package:hybrid/muc/getcontroller/SingleGetController.dart';
 import 'package:hybrid/muc/update/SingleUpdate.dart';

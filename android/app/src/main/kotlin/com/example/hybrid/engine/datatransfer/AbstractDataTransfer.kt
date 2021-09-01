@@ -39,7 +39,6 @@ abstract class AbstractDataTransfer(flutterEnginer: FlutterEnginer) {
                 else -> {
                     val toFlutterEnginer =
                         FlutterEngineManager.getFlutterEnginersByEntryPoint(sendToWhichEngine)!!
-
                     toFlutterEnginer.dataTransfer.basicMessageChannel.send(messageMap) {
                         reply.reply(it)
                     }

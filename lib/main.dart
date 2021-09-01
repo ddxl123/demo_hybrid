@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hybrid/engine/datatransfer/AndroidPermissionDataTransfer.dart';
 import 'package:hybrid/engine/datatransfer/DataCenterDataTransfer.dart';
 import 'package:hybrid/engine/datatransfer/root/BaseDataTransfer.dart';
-import 'package:hybrid/engine/datatransfer/root/DataTransferBinding.dart';
+import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
 import 'package:hybrid/engine/entry/android_permission/AndroidPermissionEntry.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 

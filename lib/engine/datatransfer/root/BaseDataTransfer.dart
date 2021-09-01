@@ -2,28 +2,43 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:hybrid/engine/constant/EngineEntryName.dart';
-import 'package:hybrid/engine/datatransfer/root/DataTransferBinding.dart';
+import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
 class MessageResult<R extends Object> {
-  MessageResult(this._data, this._exception, this._stackTrace);
+  MessageResult({required this.resultData, required this.exception, required this.stackTrace});
 
-  late final R? _data;
-  final Object? _exception;
-  final StackTrace? _stackTrace;
+  /// 响应的数据。
+  R? resultData;
+  Object? exception;
+  StackTrace? stackTrace;
 
-  bool get _hasErr => _exception != null;
+  /// 是否存在异常。
+  bool get _hasErr => exception != null;
+
+  /// 一次性设置全部。
+  void setAll({required R? resultData, required Object? exception, required StackTrace? stackTrace}) {
+    this.resultData = resultData;
+    this.exception = exception;
+    this.stackTrace = stackTrace;
+  }
+
+  /// 将当前对象克隆到指定对象上。
+  void cloneTo(MessageResult<R> otherMessageResult) {
+    otherMessageResult.setAll(resultData: resultData, exception: exception, stackTrace: stackTrace);
+  }
 
   /// 已对 [onSuccess] 内部进行异常捕获，若捕获到异常，则会转发给 [onError]。
   Future<void> handle(Future<void> onSuccess(R data), Future<void> onError(Object? exception, StackTrace? stackTrace)) async {
     if (!_hasErr) {
       try {
-        await onSuccess(_data!);
+        // 成功时，data 不能为 null。
+        await onSuccess(resultData!);
       } catch (e, st) {
         await onError(e, st);
       }
     } else {
-      await onError(_exception, _stackTrace);
+      await onError(exception, stackTrace);
     }
   }
 }
@@ -92,12 +107,12 @@ abstract class BaseDataTransfer {
         ''');
       } else {
         result = resultObj as R;
-        return MessageResult<R>(result, null, null);
+        return MessageResult<R>(resultData: result, exception: null, stackTrace: null);
       }
     } catch (e, st) {
       exception = e;
       stackTrace = st;
-      return MessageResult<R>(null, exception, stackTrace);
+      return MessageResult<R>(resultData: null, exception: exception, stackTrace: stackTrace);
     }
   }
 

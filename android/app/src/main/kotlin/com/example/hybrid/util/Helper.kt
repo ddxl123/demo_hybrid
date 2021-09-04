@@ -13,3 +13,21 @@ inline fun <reified T> Any?.checkType(): T {
     }
     return this
 }
+
+/**
+ * 蛇形转驼峰。
+ *
+ * "abc_def_g" -> "AbcDefG"
+ */
+fun String.snakeCaseToCamelCase(): String {
+    var currentStr = "_$this"
+    Regex("_").findAll("_$this").forEach { matchResult: MatchResult ->
+        val startIndex = matchResult.range.first
+        currentStr = currentStr.replaceRange(
+            startIndex,
+            startIndex + 1,
+            "_$this"[startIndex + 1].toUpperCase().toString()
+        )
+    }
+    return currentStr
+}

@@ -36,8 +36,8 @@ class FloatingWindowPermissionRoute extends SbRoute {
           return;
         }
 
-        final MessageResult<bool> result = await DataTransferManager.instance.currentDataTransfer.sendMessageToOtherEngine<void, bool>(
-          sendToWhichEngine: EngineEntryName.native,
+        final MessageResult<bool> result = await DataTransferManager.instance.currentDataTransfer._sendMessageToOtherEngine<void, bool>(
+          sendToWhichEngine: EngineEntryName.NATIVE,
           operationId: OMain_FlutterSend.check_floating_window_permission,
           data: null,
         );
@@ -84,8 +84,8 @@ class FloatingWindowPermissionRoute extends SbRoute {
 
   Future<void> _checkAndPush() async {
     // 进入该 route 时，立即检查并弹出悬浮窗权限页面。
-    final MessageResult<bool> result = await DataTransferManager.instance.currentDataTransfer.sendMessageToOtherEngine<void, bool>(
-      sendToWhichEngine: EngineEntryName.native,
+    final MessageResult<bool> result = await DataTransferManager.instance.currentDataTransfer._sendMessageToOtherEngine<void, bool>(
+      sendToWhichEngine: EngineEntryName.NATIVE,
       operationId: OMain_FlutterSend.check_and_push_page_floating_window_permission,
       data: null,
     );

@@ -73,7 +73,7 @@ $writeConstantContext}
       // send 常量内容。
       String sendConstantContent = '';
       for (final String it in sendConstantList) {
-        sendConstantContent += '    const val $it: String = "$it"\n';
+        sendConstantContent += '    const val ${it.toUpperCase()}: String = "$it"\n';
       }
 
       // listen 类名。

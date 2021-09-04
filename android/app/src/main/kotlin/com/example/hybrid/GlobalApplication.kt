@@ -5,8 +5,12 @@ import android.app.ActivityManager
 import android.app.Application
 import android.app.ApplicationExitInfo
 import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.example.hybrid.engine.manager.FlutterEngineManager
+import com.example.hybrid.test.TestService
 import kotlin.system.exitProcess
 
 class GlobalApplication : Application() {
@@ -16,24 +20,25 @@ class GlobalApplication : Application() {
         lateinit var context: Context
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate() {
         super.onCreate()
-
         context = this
+        startForegroundService(Intent(this, MainService::class.java))
 
         println("-------------- Application onCreate")
     }
 
 
+    // 低内存的时候执行
     override fun onLowMemory() {
         super.onLowMemory()
-        // 低内存的时候执行
         println("-------------- Application onLowMemory")
     }
 
+    // 程序在内存清理的时候执行
     override fun onTrimMemory(level: Int) {
         super.onTrimMemory(level)
-        // 程序在内存清理的时候执行
         println("-------------- Application onTrimMemory")
     }
 

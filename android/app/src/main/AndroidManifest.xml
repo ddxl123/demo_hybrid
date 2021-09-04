@@ -3,6 +3,7 @@
     package="com.example.hybrid">
 
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
         android:name=".GlobalApplication"
@@ -36,7 +37,11 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".test.TestActivity" />
+
         <service android:name=".engine.service.DataCenterService" />
+        <service android:name=".test.TestService" />
+        <service android:name=".MainService"/>
 
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

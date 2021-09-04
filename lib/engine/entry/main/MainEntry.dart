@@ -4,11 +4,9 @@ import 'package:hybrid/engine/constant/EngineEntryName.dart';
 import 'package:hybrid/engine/constant/OMain.dart';
 import 'package:hybrid/engine/datatransfer/root/BaseDataTransfer.dart';
 import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
-import 'package:hybrid/engine/entry/main/FloatingWindowPermissionRoute.dart';
 import 'package:hybrid/muc/getcontroller/SingleGetController.dart';
 import 'package:hybrid/muc/update/SingleUpdate.dart';
 import 'package:hybrid/muc/view/homepage/HomePage.dart';
-import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sbbutton/SbButton.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
@@ -37,44 +35,44 @@ class _MainEntryMainState extends State<MainEntryMain> {
   ///
   /// 若 is_ok 为 null，则代表初始化失败。
   final SingleGetController _singleGetController =
-      Get.put(SingleGetController(SingleUpdate(), <String, Object?>{'is_ok': false}), tag: DataTransferManager.instance.currentEntryName);
+      Get.put(SingleGetController(SingleUpdate(), <String, Object?>{'is_ok': false}), tag: DataTransferManager.instance.currentEntryPointName);
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance!.addPostFrameCallback(
       (Duration timeStamp) async {
-        final MessageResult<bool> messageResult = await DataTransferManager.instance.currentDataTransfer.sendMessageToOtherEngine<void, bool>(
-          sendToWhichEngine: EngineEntryName.native,
-          operationId: OMain_FlutterSend.check_floating_window_permission,
-          data: null,
-        );
-
-        Future<void> push() async {
-          await SbHelper.getNavigator!.push(FloatingWindowPermissionRoute());
-          init();
-        }
-
-        messageResult.handle(
-          (bool data) async {
-            if (data) {
-              init();
-            } else {
-              push();
-            }
-          },
-          (Object? exception, StackTrace? stackTrace) async {
-            SbLogger(
-              code: null,
-              viewMessage: null,
-              data: null,
-              description: Description('检查悬浮窗权限发生异常！'),
-              exception: exception,
-              stackTrace: stackTrace,
-            ).withRecord();
-            push();
-          },
-        );
+        // final MessageResult<bool> messageResult = await DataTransferManager.instance.currentDataTransfer.sendMessageToOtherEngine<void, bool>(
+        //   sendToWhichEngine: EngineEntryName.native,
+        //   operationId: OMain_FlutterSend.check_floating_window_permission,
+        //   data: null,
+        // );
+        //
+        // Future<void> push() async {
+        //   await SbHelper.getNavigator!.push(FloatingWindowPermissionRoute());
+        //   init();
+        // }
+        //
+        // messageResult.handle(
+        //   (bool data) async {
+        //     if (data) {
+        //       init();
+        //     } else {
+        //       push();
+        //     }
+        //   },
+        //   (Object? exception, StackTrace? stackTrace) async {
+        //     SbLogger(
+        //       code: null,
+        //       viewMessage: null,
+        //       data: null,
+        //       description: Description('检查悬浮窗权限发生异常！'),
+        //       exception: exception,
+        //       stackTrace: stackTrace,
+        //     ).withRecord();
+        //     push();
+        //   },
+        // );
       },
     );
   }
@@ -91,8 +89,8 @@ class _MainEntryMainState extends State<MainEntryMain> {
       exception: null,
       stackTrace: null,
     );
-    final MessageResult<bool> result = await DataTransferManager.instance.currentDataTransfer.sendMessageToOtherEngine<void, bool>(
-      sendToWhichEngine: EngineEntryName.native,
+    final MessageResult<bool> result = await DataTransferManager.instance.currentDataTransfer._sendMessageToOtherEngine<void, bool>(
+      sendToWhichEngine: EngineEntryName.NATIVE,
       operationId: OMain_FlutterSend.start_data_center_engine_and_keep_background_running_by_floating_window,
       data: null,
     );
@@ -140,7 +138,7 @@ class _MainEntryMainState extends State<MainEntryMain> {
         }
         return const Center(child: Text('初始化悬浮窗时出现了异常！'));
       },
-      tag: DataTransferManager.instance.currentEntryName,
+      tag: DataTransferManager.instance.currentEntryPointName,
     );
   }
 }

@@ -1,6 +1,6 @@
 class EngineEntryName {
-  static const String main = 'main';
-  static const String native = 'native';
-  static const String android_permission = 'android_permission';
-  static const String data_center = 'data_center';
+  static const String MAIN = 'main';
+  static const String NATIVE = 'native';
+  static const String ANDROID_PERMISSION = 'android_permission';
+  static const String DATA_CENTER = 'data_center';
 }

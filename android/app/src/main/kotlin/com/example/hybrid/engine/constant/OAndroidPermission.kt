@@ -1,7 +1,7 @@
 package com.example.hybrid.engine.constant
 
 object OAndroidPermission_FlutterSend {
-    const val check_floating_window: String = "check_floating_window"
+    const val CHECK_FLOATING_WINDOW: String = "check_floating_window"
 }
 
 object OAndroidPermission_FlutterListen {

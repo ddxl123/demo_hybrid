@@ -6,14 +6,10 @@ import com.example.hybrid.GlobalApplication
 import com.example.hybrid.engine.datatransfer.AbstractDataTransfer
 import com.example.hybrid.engine.floatingwindow.AbstractFloatingWindow
 import io.flutter.FlutterInjector
-import io.flutter.embedding.android.FlutterSurfaceView
-import io.flutter.embedding.android.FlutterView
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.dart.DartExecutor
 import java.lang.Exception
-import com.example.hybrid.engine.service.AbstractService
 import com.example.hybrid.MainActivity
-import com.example.hybrid.engine.constant.EngineEntryName
 
 /**
  * 只要 [FlutterEnginer] 被创建，就会被添加到 [FlutterEnginerCache] 中，
@@ -28,7 +24,6 @@ class FlutterEnginer {
     @RequiresApi(Build.VERSION_CODES.N)
     constructor(
         entryPointName: String,
-        service: AbstractService,
         putDataTransfer: (FlutterEnginer) -> AbstractDataTransfer,
         putFloatingWindow: (FlutterEnginer) -> AbstractFloatingWindow
     ) {
@@ -46,15 +41,9 @@ class FlutterEnginer {
                 FlutterInjector.instance().flutterLoader().findAppBundlePath(), entryPointName
             )
         ).apply { lifecycleChannel.appIsResumed() }
-        this.flutterView = FlutterView(
-            GlobalApplication.context,
-            FlutterSurfaceView(GlobalApplication.context, true)
-        ).apply { attachToFlutterEngine(flutterEngine!!) }
 
         this.dataTransfer = putDataTransfer(this)
         this.floatingWindow = putFloatingWindow(this)
-
-        this.service = service
     }
 
     /**
@@ -84,12 +73,8 @@ class FlutterEnginer {
     var entryPointName: String
     var flutterEngine: FlutterEngine?
     var dataTransfer: AbstractDataTransfer
-
     var floatingWindow: AbstractFloatingWindow? = null
-    var flutterView: FlutterView? = null
-
-    private var service: AbstractService? = null
-
+    var hadFirstFrameInitialized: Boolean = false
 
     /**
      * 可见但不响应用户输入，程序保持运行。
@@ -105,17 +90,12 @@ class FlutterEnginer {
         flutterEngine?.lifecycleChannel?.appIsPaused()
     }
 
-    /**
-     * 彻底销毁该 [FlutterEnginer]，同时关闭对应的 [AbstractService]。
-     */
-    @RequiresApi(Build.VERSION_CODES.R)
-    fun doDestroyCompletely() {
-        this.floatingWindow?.removeView()
-        this.flutterEngine = null
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun doDestroy() {
+        this.floatingWindow?.removeFlutterViewImmediately()
         this.floatingWindow = null
-        this.flutterView = null
+        this.flutterEngine?.destroy()
+        this.flutterEngine = null
         FlutterEnginerCache.remove(this.entryPointName)
-        this.service?.stopSelf()
-        this.service = null
     }
 }

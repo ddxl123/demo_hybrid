@@ -6,7 +6,6 @@ import com.example.hybrid.engine.constant.OMain_FlutterSend
 import com.example.hybrid.engine.manager.FlutterEngineManager
 import com.example.hybrid.engine.manager.FlutterEnginer
 import com.example.hybrid.engine.permission.CheckPermission
-import com.example.hybrid.engine.service.DataCenterService
 
 class MainDataTransfer(val flutterEnginer: FlutterEnginer) : AbstractDataTransfer(flutterEnginer) {
     @RequiresApi(Build.VERSION_CODES.R)
@@ -20,7 +19,7 @@ class MainDataTransfer(val flutterEnginer: FlutterEnginer) : AbstractDataTransfe
             }
             OMain_FlutterSend.start_data_center_engine_and_keep_background_running_by_floating_window -> {
                 // 启动数据中心引擎服务。
-                FlutterEngineManager.startService(DataCenterService::class.java)
+//                FlutterEngineManager.startServiceAndEngine(DataCenterService::class.java)
 
                 // 引擎启动成功。
                 return true

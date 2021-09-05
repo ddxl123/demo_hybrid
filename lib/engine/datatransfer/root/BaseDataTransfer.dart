@@ -55,7 +55,7 @@ abstract class BaseDataTransfer {
       code: null,
       viewMessage: null,
       data: null,
-      description: Description('${DataTransferManager.instance.currentEntryPointName} 入口的 BaseDataTransfer 已被初始化。'),
+      description: Description('${DataTransferManager.instance.currentEntryPointName} 入口的 BaseDataTransfer 初始化成功。'),
       exception: null,
       stackTrace: null,
     );

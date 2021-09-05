@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:hybrid/data/sqlite/mmodel/ModelBase.dart';
 import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
@@ -54,12 +53,17 @@ abstract class AbstractLongPressedFragment<FDM extends ModelBase> extends Abstra
       popResult,
       (SbPopResult quickPopResult) async {
         if (quickPopResult.popResultSelect == PopResultSelect.one) {
-          await SqliteCurd<FDM>().deleteRow(
+          await SqliteCurd.deleteRow(
             modelTableName: currentFragmentModel.tableName,
             modelId: currentFragmentModel.get_id,
             transactionMark: null,
+            onSuccess: () async {
+              fatherRoute.sheetPageController.bodyData.remove(currentFragmentModel);
+            },
+            onError: (Object? exception, StackTrace? stackTrace) async {
+              SbLogger(code: null, viewMessage: '删除失败！', data: null, description: Description('删除失败！'), exception: exception, stackTrace: stackTrace);
+            },
           );
-          fatherRoute.sheetPageController.bodyData.remove(currentFragmentModel);
           return true;
         }
         return false;

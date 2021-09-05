@@ -13,7 +13,7 @@ class FlutterTest extends StatelessWidget {
   }
 }
 
-bool b = true;
+int i = 0;
 
 class AAA extends StatefulWidget {
   @override
@@ -23,14 +23,14 @@ class AAA extends StatefulWidget {
 class _AAAState extends State<AAA> {
   @override
   Widget build(BuildContext context) {
-    if (b) {
+    if (i == 3 || i == 4) {
       return Column(
         children: <Widget>[
           BBB(),
           TextButton(
             child: const Text('change'),
             onPressed: () {
-              b = !b;
+              i++;
               setState(() {});
             },
           ),
@@ -43,7 +43,7 @@ class _AAAState extends State<AAA> {
           TextButton(
             child: const Text('change'),
             onPressed: () {
-              b = !b;
+              i++;
               setState(() {});
             },
           ),

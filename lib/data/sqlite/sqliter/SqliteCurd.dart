@@ -1,5 +1,5 @@
-
 import 'package:hybrid/data/sqlite/mmodel/MUpload.dart';
+import 'package:hybrid/data/sqlite/mmodel/MUser.dart';
 import 'package:hybrid/data/sqlite/mmodel/ModelBase.dart';
 import 'package:hybrid/data/sqlite/mmodel/ModelManager.dart';
 import 'package:hybrid/util/SbHelper.dart';
@@ -71,60 +71,134 @@ class TransactionMark {
 ///
 ///
 ///
-
-// TODO: 是否会存在同时执行多个 [RSqliteCURD] 造成 row 被删除后，再次触发删除，导致总是抛出异常。（对增删改查四方面进行分析）
-class SqliteCurd<T extends ModelBase> {
+/// TODO: 是否会存在同时执行多个 [SqliteCurd] 造成 row 被删除后，再次触发删除，导致总是抛出异常。（对增删改查四方面进行分析）
+class SqliteCurd {
   ///
 
+  /// 检查用户通过，则触发 [onSuccess]，否则触发 [onError]。
+  ///
+  /// 未通过原因：1. 用户未登录。 2. 初始化数据未下载。 3. 其他异常。
+  static Future<void> checkUser({
+    required Future<void> onSuccess(),
+    required Future<void> onError(Object? exception, StackTrace? stackTrace),
+  }) async {
+    try {
+      final List<MUser> users = await ModelManager.queryRowsAsModels<MUser>(connectTransaction: null, tableName: MUser().tableName);
+      if (users.isEmpty) {
+        // TODO: 弹出登陆页面引擎。
+        await onError(Exception('Users is empty!'), null);
+      } else {
+        if (users.first.get_is_downloaded_init_data != 1) {
+          // TODO: 弹出初始化数据下载页面引擎。
+          await onError(Exception('初始化数据未下载！'), null);
+        } else {
+          await onSuccess();
+        }
+      }
+    } catch (e, st) {
+      await onError(e, st);
+    }
+  }
+
   /// {@macro RSqliteCurd.insertRow}
-  Future<T> insertRow({required T model, required TransactionMark? transactionMark}) async {
-    if (transactionMark == null) {
-      // 开始事务。
-      return await db.transaction<T>(
-        (Transaction txn) async {
-          return await _toInsertRow(model: model, transactionMark: TransactionMark(txn));
-        },
-      );
-    } else {
-      // 继续事务。
-      return await _toInsertRow(model: model, transactionMark: transactionMark);
+  ///
+  /// 当 [transactionMark] 不为空时，内部的异常会 rethrow。
+  ///
+  /// 无论 [transactionMark] 是否为空，[onError] 都会接收到内部的异常。
+  static Future<void> insertRow<T extends ModelBase>({
+    required T model,
+    required TransactionMark? transactionMark,
+    required Future<void> onSuccess(T newModel),
+    required Future<void> onError(Object? exception, StackTrace? stackTrace),
+  }) async {
+    try {
+      if (transactionMark == null) {
+        // 开始事务。
+        final T newModel = await db.transaction<T>(
+          (Transaction txn) async {
+            return await _toInsertRow(model: model, transactionMark: TransactionMark(txn));
+          },
+        );
+        await onSuccess(newModel);
+      } else {
+        // 继续事务。
+        final T newModel = await _toInsertRow(model: model, transactionMark: transactionMark);
+        await onSuccess(newModel);
+      }
+    } catch (e, st) {
+      await onError(e, st);
+      if (transactionMark != null) {
+        rethrow;
+      }
     }
   }
 
   /// {@macro RSqliteCurd.updateRow}
-  Future<T> updateRow({
+  ///
+  /// 当 [transactionMark] 不为空时，内部的异常会 rethrow。
+  ///
+  /// 无论 [transactionMark] 是否为空，[onError] 都会接收到内部的异常。
+  static Future<void> updateRow<T extends ModelBase>({
     required String modelTableName,
     required int? modelId,
     required Map<String, Object?> updateContent,
     required TransactionMark? transactionMark,
+    required Future<void> onSuccess(T newModel),
+    required Future<void> onError(Object? exception, StackTrace? stackTrace),
   }) async {
-    if (transactionMark == null) {
-      // 开始事务。
-      return await db.transaction<T>(
-        (Transaction txn) async {
-          return await _toUpdateRow(modelTableName: modelTableName, modelId: modelId, updateContent: updateContent, transactionMark: TransactionMark(txn));
-        },
-      );
-    } else {
-      // 继续事务。
-      return await _toUpdateRow(modelTableName: modelTableName, modelId: modelId, updateContent: updateContent, transactionMark: transactionMark);
+    try {
+      if (transactionMark == null) {
+        // 开始事务。
+        final T newModel = await db.transaction<T>(
+          (Transaction txn) async {
+            return await _toUpdateRow(modelTableName: modelTableName, modelId: modelId, updateContent: updateContent, transactionMark: TransactionMark(txn));
+          },
+        );
+        await onSuccess(newModel);
+      } else {
+        // 继续事务。
+        final T newModel = await _toUpdateRow(modelTableName: modelTableName, modelId: modelId, updateContent: updateContent, transactionMark: transactionMark);
+        await onSuccess(newModel);
+      }
+    } catch (e, st) {
+      await onError(e, st);
+      if (transactionMark != null) {
+        rethrow;
+      }
     }
   }
 
   /// {@macro RSqliteCurd.deleteRow}
   ///
-  /// 返回是否删除成功，捕获到异常返回 false
-  Future<void> deleteRow({required String modelTableName, required int? modelId, required TransactionMark? transactionMark}) async {
-    if (transactionMark == null) {
-      // 开始事务。
-      await db.transaction<void>(
-        (Transaction txn) async {
-          await _toDeleteRow(modelTableName: modelTableName, modelId: modelId, transactionMark: TransactionMark(txn));
-        },
-      );
-    } else {
-      // 继续事务。
-      await _toDeleteRow(modelTableName: modelTableName, modelId: modelId, transactionMark: transactionMark);
+  /// 当 [transactionMark] 不为空时，内部的异常始终会 rethrow。
+  ///
+  /// 无论 [transactionMark] 是否为空，[onError] 都会接收到内部的异常。
+  static Future<void> deleteRow({
+    required String modelTableName,
+    required int? modelId,
+    required TransactionMark? transactionMark,
+    required Future<void> onSuccess(),
+    required Future<void> onError(Object? exception, StackTrace? stackTrace),
+  }) async {
+    try {
+      if (transactionMark == null) {
+        // 开始事务。
+        await db.transaction<void>(
+          (Transaction txn) async {
+            await _toDeleteRow(modelTableName: modelTableName, modelId: modelId, transactionMark: TransactionMark(txn));
+          },
+        );
+        await onSuccess();
+      } else {
+        // 继续事务。
+        await _toDeleteRow(modelTableName: modelTableName, modelId: modelId, transactionMark: transactionMark);
+        await onSuccess();
+      }
+    } catch (e, st) {
+      await onError(e, st);
+      if (transactionMark != null) {
+        rethrow;
+      }
     }
   }
 
@@ -138,18 +212,20 @@ class SqliteCurd<T extends ModelBase> {
   ///
   /// 对当前 [model] 执行 [insert] 操作。
   ///
+  /// 只有需要在 [MUpload] 中 CURD 的表才能使用 [_toInsertRow]。
+  ///
   /// 若插入的 [model] 已存在，则会抛异常。
   ///
   /// 当 { xx:null } 时，插入过程会将值设置成 null; 而 { 不存在 xx } 时，则按照默认值或 null；
   /// 例外： {'id':xx}: 为空或不存在 id 键时，会按照默认方式创建 id ；不为空时，会将该值设置为 id。
   /// 这是 insert 本身的特性。
   ///
-  /// - [model] 要插入的模型。
+  /// - [T]、[model] 要插入的模型。
   ///
   /// - [return] 返回插入的模型（带有插入后 sqlite 生成的 id），未插入前的 [model] 不带有 id。
   ///
   /// {@endtemplate}
-  Future<T> _toInsertRow({required TransactionMark transactionMark, required T model}) async {
+  static Future<T> _toInsertRow<T extends ModelBase>({required TransactionMark transactionMark, required T model}) async {
     // 插入时只能存在 uuid。
     if (model.get_uuid == null || model.get_aiid != null) {
       throw 'insert uuid/aiid err: ${model.get_uuid}, ${model.get_aiid}';
@@ -193,6 +269,8 @@ class SqliteCurd<T extends ModelBase> {
   ///
   /// 对 [model] 的 [update] 操作。
   ///
+  /// 只有需要在 [MUpload] 中 CURD 的表才能使用 [_toUpdateRow]。
+  ///
   /// 当将被 update 的 row 不存在时，会进行 create，这是 update 本身的特性。
   /// 但 [_check] 函数已经让被更新的 row 必然存在，不存在则会抛异常。
   ///
@@ -205,10 +283,10 @@ class SqliteCurd<T extends ModelBase> {
   ///
   /// - [updateContent] 更新的内容。
   ///
-  /// - [return] 返回 new model。
+  /// - [T]、[return] 返回更新后的 model。
   ///
   /// {@endtemplate}
-  Future<T> _toUpdateRow({
+  static Future<T> _toUpdateRow<T extends ModelBase>({
     required String modelTableName,
     required int? modelId,
     required Map<String, Object?> updateContent,
@@ -216,7 +294,7 @@ class SqliteCurd<T extends ModelBase> {
   }) async {
     // uploadModel 可空，若不可空不会抛异常，而会做下面的判断。
     MUpload? uploadModel;
-    final CheckResult checkResult = await _check(
+    final CheckResult checkResult = await _check<T>(
       modelTableName: modelTableName,
       modelId: modelId,
       transactionMark: transactionMark,
@@ -287,6 +365,8 @@ class SqliteCurd<T extends ModelBase> {
   ///
   /// 对 [model] 的 [delete] 操作。
   ///
+  /// 只有需要在 [MUpload] 中 CURD 的表才能使用 [_toDeleteRow]。
+  ///
   /// 当将被 delete 的 row 不存在时，并不会抛异常，这是 delete 本身的特性。
   /// 但 [_check] 函数已经让被删除的 row 必然存在，不存在则会抛异常。
   ///
@@ -295,7 +375,8 @@ class SqliteCurd<T extends ModelBase> {
   /// - [modelId] 要删除的模型 id，非 aiid/uuid。
   ///
   /// {@endtemplate}
-  Future<void> _toDeleteRow({required String modelTableName, required int? modelId, required TransactionMark transactionMark}) async {
+  static Future<void> _toDeleteRow<T extends ModelBase>(
+      {required String modelTableName, required int? modelId, required TransactionMark transactionMark}) async {
     // 若为空必然抛异常，因此必然不可空。
     late T model;
     // uploadModel 可空，若不可空不会抛异常，而会做下面的判断。
@@ -367,7 +448,7 @@ class SqliteCurd<T extends ModelBase> {
     }
 
     // 同时删除关联该模型的外表 row。
-    await _toDeleteMany(model: model, transactionMark: transactionMark);
+    await _toDeleteMany<T>(model: model, transactionMark: transactionMark);
   }
 
   ///
@@ -376,7 +457,7 @@ class SqliteCurd<T extends ModelBase> {
   ///
   ///
   /// 当 sqlite 应该存在当前 [model] 时，获取并检验当前 [model] 以及对应的 [MUpload]。
-  Future<CheckResult> _check({
+  static Future<CheckResult> _check<T extends ModelBase>({
     required String modelTableName,
     required int? modelId,
     required TransactionMark transactionMark,
@@ -440,8 +521,7 @@ class SqliteCurd<T extends ModelBase> {
   ///
 
   /// 筛选出需要同时删除的 关联该表的其他表对应的 row。
-  Future<void> _toDeleteMany({required T model, required TransactionMark transactionMark}) async {
-
+  static Future<void> _toDeleteMany<T extends ModelBase>({required T model, required TransactionMark transactionMark}) async {
     // for single
     for (int i = 0; i < model.getDeleteManyForSingle().length; i++) {
       final List<String> fk = model.getDeleteManyForSingle().elementAt(i).split('.');
@@ -492,7 +572,7 @@ class SqliteCurd<T extends ModelBase> {
   }
 
   /// 递归删除。
-  Future<void> _recursionDelete({
+  static Future<void> _recursionDelete({
     required String fkTableName,
     required String fkColumnName,
     required Object fkColumnValue,
@@ -507,9 +587,13 @@ class SqliteCurd<T extends ModelBase> {
     );
     // 把查询到的进行递归 delete
     for (int i = 0; i < queryResult.length; i++) {
-      await SqliteCurd<ModelBase>().deleteRow(modelTableName: queryResult[i].tableName, modelId: queryResult[i].get_id!, transactionMark: transactionMark);
+      await SqliteCurd.deleteRow(
+        modelTableName: queryResult[i].tableName,
+        modelId: queryResult[i].get_id!,
+        transactionMark: transactionMark,
+        onSuccess: () async {},
+        onError: (Object? exception, StackTrace? stackTrace) async {},
+      );
     }
   }
-
-  ///
 }

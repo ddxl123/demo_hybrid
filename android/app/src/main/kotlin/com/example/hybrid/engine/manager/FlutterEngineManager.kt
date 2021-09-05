@@ -4,7 +4,9 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import io.flutter.embedding.engine.FlutterEngineGroup
 import com.example.hybrid.GlobalApplication
+import com.example.hybrid.engine.constant.EngineEntryName
 import com.example.hybrid.engine.datatransfer.AbstractDataTransfer
+import com.example.hybrid.engine.datatransfer.MainDataTransfer
 import com.example.hybrid.engine.floatingwindow.AbstractFloatingWindow
 import com.example.hybrid.engine.floatingwindow.ViewParams
 import com.example.hybrid.util.snakeCaseToCamelCase
@@ -30,25 +32,40 @@ object FlutterEngineManager {
      * 如果已被启动，则直接返回现有的。
      */
     @RequiresApi(Build.VERSION_CODES.O)
-    fun startFlutterEngine(entryPointName: String): FlutterEnginer {
+    fun startFlutterEngine(
+        entryPointName: String,
+        mainEngine: FlutterEngine? = null
+    ): FlutterEnginer {
         if (FlutterEnginerCache.containsKey(entryPointName)) {
             return FlutterEnginerCache.get(entryPointName)!!
         }
 
         val entryPointNameCamelCase = entryPointName.snakeCaseToCamelCase()
 
-        val flutterEnginer = FlutterEnginer(
-            entryPointName,
-            {
-                Class.forName("${entryPointNameCamelCase}DataTransfer")
-                    .getDeclaredConstructor(FlutterEnginer::class.java)
-                    .newInstance(it) as AbstractDataTransfer
-            },
-            {
-                Class.forName("${entryPointNameCamelCase}FloatingWindow")
-                    .getDeclaredConstructor(FlutterEnginer::class.java)
-                    .newInstance(it) as AbstractFloatingWindow
-            })
+        val flutterEnginer: FlutterEnginer
+        if (entryPointName == EngineEntryName.main) {
+            flutterEnginer = FlutterEnginer(
+                entryPointName,
+                {
+                    Class.forName("${GlobalApplication.context.packageName}.engine.datatransfer.${entryPointNameCamelCase}DataTransfer")
+                        .getDeclaredConstructor(FlutterEnginer::class.java)
+                        .newInstance(it) as AbstractDataTransfer
+                }, mainEngine!!
+            )
+        } else {
+            flutterEnginer = FlutterEnginer(
+                entryPointName,
+                {
+                    Class.forName("${GlobalApplication.context.packageName}.engine.datatransfer.${entryPointNameCamelCase}DataTransfer")
+                        .getDeclaredConstructor(FlutterEnginer::class.java)
+                        .newInstance(it) as AbstractDataTransfer
+                },
+                {
+                    Class.forName("${GlobalApplication.context.packageName}.engine.floatingwindow.${entryPointNameCamelCase}FloatingWindow")
+                        .getDeclaredConstructor(FlutterEnginer::class.java)
+                        .newInstance(it) as AbstractFloatingWindow
+                })
+        }
 
         FlutterEnginerCache.put(entryPointName, flutterEnginer)
 

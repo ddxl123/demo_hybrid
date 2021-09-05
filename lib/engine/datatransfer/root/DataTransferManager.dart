@@ -225,6 +225,14 @@ class DataTransferManager {
   }) async {
     final MessageResult<R> executeResult = MessageResult<R>(resultData: null, exception: Exception('未对初始 executeResult 进行更改！'), stackTrace: null);
 
+    if (executeForWhichEngine == EngineEntryName.NATIVE || executeForWhichEngine == EngineEntryName.MAIN) {
+      return executeResult.setAll(
+        resultData: null,
+        exception: Exception('executeForWhichEngine 不能为 ${EngineEntryName.NATIVE} 或 ${EngineEntryName.MAIN}！'),
+        stackTrace: null,
+      );
+    }
+
     // 检测是否已启动引擎，若未启动，则启动。
     final MessageResult<bool> messageResult = await _sendMessageToOtherEngine<Map<String, Object?>, bool>(
       sendToWhichEngine: EngineEntryName.NATIVE,
@@ -263,5 +271,9 @@ class DataTransferManager {
 
   Future<MessageResult<R>> executeToNative<S, R extends Object>({required String operationId, required S data}) async {
     return await _sendMessageToOtherEngine<S, R>(sendToWhichEngine: EngineEntryName.NATIVE, operationId: operationId, data: data);
+  }
+
+  Future<MessageResult<R>> executeToMain<S, R extends Object>({required String operationId, required S data}) async {
+    return await _sendMessageToOtherEngine<S, R>(sendToWhichEngine: EngineEntryName.MAIN, operationId: operationId, data: data);
   }
 }

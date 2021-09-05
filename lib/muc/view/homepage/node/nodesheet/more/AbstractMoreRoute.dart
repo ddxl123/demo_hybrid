@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:hybrid/data/sqlite/mmodel/ModelBase.dart';
 import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
@@ -54,8 +53,17 @@ abstract class AbstractMoreRoute<FDM extends ModelBase> extends AbstractPoolEntr
       popResult,
       (SbPopResult quickPopResult) async {
         if (quickPopResult.popResultSelect == PopResultSelect.one) {
-          final FDM newModel = await SqliteCurd<FDM>().insertRow(model: insertModel, transactionMark: null);
-          fatherRoute.sheetPageController.bodyData.add(newModel);
+          await SqliteCurd.insertRow<FDM>(
+            model: insertModel,
+            transactionMark: null,
+            onSuccess: (FDM newModel) async {
+              fatherRoute.sheetPageController.bodyData.add(newModel);
+            },
+            onError: (Object? exception, StackTrace? stackTrace) async {
+              SbLogger(code: null, viewMessage: '添加失败！', data: null, description: Description('添加失败！'), exception: exception, stackTrace: stackTrace);
+            },
+          );
+
           return true;
         }
         return false;

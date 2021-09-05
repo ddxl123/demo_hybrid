@@ -15,7 +15,7 @@ class MainActivity : FlutterActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        FlutterEngineManager.startFlutterEngine(EngineEntryName.main)
+        FlutterEngineManager.startFlutterEngine(EngineEntryName.main, flutterEngine)
     }
 
     override fun onDestroy() {

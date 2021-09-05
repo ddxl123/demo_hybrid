@@ -1,6 +1,3 @@
-
-
-
 import 'package:hybrid/data/sqlite/mmodel/MPnComplete.dart';
 import 'package:hybrid/data/sqlite/mmodel/MPnFragment.dart';
 import 'package:hybrid/data/sqlite/mmodel/MPnMemory.dart';
@@ -13,7 +10,7 @@ import 'AbstractLongPressedPoolRoute.dart';
 
 class LongPressedPoolRouteForFragment extends AbstractLongPressedPoolRoute {
   @override
-  Future<PoolNodeModel> createNewNode(String easyPosition) async {
+  Future<PoolNodeModel?> createNewNode(String easyPosition) async {
     final MPnFragment pnFragment = MPnFragment.createModel(
       id: null,
       aiid: null,
@@ -25,14 +22,22 @@ class LongPressedPoolRouteForFragment extends AbstractLongPressedPoolRoute {
       rule_aiid: null,
       rule_uuid: null,
     );
-    final MPnFragment newModel = await SqliteCurd<MPnFragment>().insertRow(model: pnFragment, transactionMark: null);
-    return PoolNodeModel.from(newModel);
+    MPnFragment? newModel;
+    await SqliteCurd.insertRow<MPnFragment>(
+      model: pnFragment,
+      transactionMark: null,
+      onSuccess: (MPnFragment nm) async {
+        newModel = nm;
+      },
+      onError: (Object? exception, StackTrace? stackTrace) async {},
+    );
+    return newModel == null ? null : PoolNodeModel.from(newModel!);
   }
 }
 
 class LongPressedPoolRouteForMemory extends AbstractLongPressedPoolRoute {
   @override
-  Future<PoolNodeModel> createNewNode(String easyPosition) async {
+  Future<PoolNodeModel?> createNewNode(String easyPosition) async {
     final MPnMemory pnMemory = MPnMemory.createModel(
       id: null,
       aiid: null,
@@ -44,14 +49,23 @@ class LongPressedPoolRouteForMemory extends AbstractLongPressedPoolRoute {
       rule_aiid: null,
       rule_uuid: null,
     );
-    final MPnMemory newModel = await SqliteCurd<MPnMemory>().insertRow(model: pnMemory, transactionMark: null);
-    return PoolNodeModel.from(newModel);
+
+    MPnMemory? newModel;
+    await SqliteCurd.insertRow<MPnMemory>(
+      model: pnMemory,
+      transactionMark: null,
+      onSuccess: (MPnMemory nm) async {
+        newModel = nm;
+      },
+      onError: (Object? exception, StackTrace? stackTrace) async {},
+    );
+    return newModel == null ? null : PoolNodeModel.from(newModel!);
   }
 }
 
 class LongPressedPoolRouteForComplete extends AbstractLongPressedPoolRoute {
   @override
-  Future<PoolNodeModel> createNewNode(String easyPosition) async {
+  Future<PoolNodeModel?> createNewNode(String easyPosition) async {
     final MPnComplete pnComplete = MPnComplete.createModel(
       id: null,
       aiid: null,
@@ -63,14 +77,23 @@ class LongPressedPoolRouteForComplete extends AbstractLongPressedPoolRoute {
       rule_aiid: null,
       rule_uuid: null,
     );
-    final MPnComplete newModel = await SqliteCurd<MPnComplete>().insertRow(model: pnComplete, transactionMark: null);
-    return PoolNodeModel.from(newModel);
+
+    MPnComplete? newModel;
+    await SqliteCurd.insertRow<MPnComplete>(
+      model: pnComplete,
+      transactionMark: null,
+      onSuccess: (MPnComplete nm) async {
+        newModel = nm;
+      },
+      onError: (Object? exception, StackTrace? stackTrace) async {},
+    );
+    return newModel == null ? null : PoolNodeModel.from(newModel!);
   }
 }
 
 class LongPressedPoolRouteForRule extends AbstractLongPressedPoolRoute {
   @override
-  Future<PoolNodeModel> createNewNode(String easyPosition) async {
+  Future<PoolNodeModel?> createNewNode(String easyPosition) async {
     final MPnRule pnRule = MPnRule.createModel(
       id: null,
       aiid: null,
@@ -80,7 +103,16 @@ class LongPressedPoolRouteForRule extends AbstractLongPressedPoolRoute {
       easy_position: easyPosition,
       title: SbHelper.randomString(10),
     );
-    final MPnRule newModel = await SqliteCurd<MPnRule>().insertRow(model: pnRule, transactionMark: null);
-    return PoolNodeModel.from(newModel);
+
+    MPnRule? newModel;
+    await SqliteCurd.insertRow<MPnRule>(
+      model: pnRule,
+      transactionMark: null,
+      onSuccess: (MPnRule nm) async {
+        newModel = nm;
+      },
+      onError: (Object? exception, StackTrace? stackTrace) async {},
+    );
+    return newModel == null ? null : PoolNodeModel.from(newModel!);
   }
 }

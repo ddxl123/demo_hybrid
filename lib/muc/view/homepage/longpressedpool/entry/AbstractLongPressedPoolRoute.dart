@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hybrid/muc/getcontroller/homepage/HomePageGetController.dart';
@@ -24,8 +23,12 @@ abstract class AbstractLongPressedPoolRoute extends SbRoute {
               onPressed: () async {
                 final Offset offset = Get.find<HomePageGetController>().sbFreeBoxController.screenToBoxActual(position);
                 final String easyPosition = '${offset.dx},${offset.dy}';
-                final PoolNodeModel poolNodeModel = await createNewNode(easyPosition);
-                Get.find<PoolGetController>().updateLogic.insertNewNode(poolNodeModel);
+                final PoolNodeModel? poolNodeModel = await createNewNode(easyPosition);
+                if (poolNodeModel != null) {
+                  Get.find<PoolGetController>().updateLogic.insertNewNode(poolNodeModel);
+                } else {
+                  SbLogger(code: null, viewMessage: '添加节点失败！', data: null, description: Description('添加节点失败！'), exception: null, stackTrace: null);
+                }
               },
             ),
           ],
@@ -52,5 +55,5 @@ abstract class AbstractLongPressedPoolRoute extends SbRoute {
     return await quickWhenPop(popResult, (SbPopResult quickPopResult) async => false);
   }
 
-  Future<PoolNodeModel> createNewNode(String easyPosition);
+  Future<PoolNodeModel?> createNewNode(String easyPosition);
 }

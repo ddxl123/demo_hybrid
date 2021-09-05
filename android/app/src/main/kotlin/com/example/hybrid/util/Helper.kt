@@ -21,13 +21,13 @@ inline fun <reified T> Any?.checkType(): T {
  */
 fun String.snakeCaseToCamelCase(): String {
     var currentStr = "_$this"
-    Regex("_").findAll("_$this").forEach { matchResult: MatchResult ->
-        val startIndex = matchResult.range.first
-        currentStr = currentStr.replaceRange(
-            startIndex,
-            startIndex + 1,
-            "_$this"[startIndex + 1].toUpperCase().toString()
-        )
-    }
+    Regex("_").findAll("_$this")
+        .forEachIndexed { index, matchResult ->
+            val startIndex = matchResult.range.first
+            currentStr = currentStr.replaceRange(
+                IntRange(startIndex - index, startIndex + 1 - index),
+                "_$this"[startIndex + 1].toUpperCase().toString()
+            )
+        }
     return currentStr
 }

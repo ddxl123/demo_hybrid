@@ -48,8 +48,8 @@ class FloatingWindowPermissionRoute extends SbRoute {
               sbRouteSetState();
               timer.cancel();
               final SingleGetController singleGetController = Get.find<SingleGetController>(tag: SingleGetController.tag.MAIN_ENTRY_INIT_FLOATING_WINDOW);
-              // 触发 已允许悬浮窗权限，并进行用户数据初始化。
-              (singleGetController.any['set1']! as Function(SingleGetController))(singleGetController);
+              // 触发 已允许悬浮窗权限，并进行应用数据初始化。
+              (singleGetController.any['set2']! as Function(SingleGetController))(singleGetController);
               SbHelper.getNavigator!.pop(SbPopResult(popResultSelect: PopResultSelect.one, value: null));
             } else {
               isAllowed = false;

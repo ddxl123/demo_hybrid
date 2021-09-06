@@ -3,7 +3,7 @@
 import 'package:dio/dio.dart';
 import 'package:hybrid/data/mysql/httpstore/handler/HttpStore.dart';
 import 'package:hybrid/data/sqlite/mmodel/MUser.dart';
-import 'package:hybrid/data/sqlite/mmodel/ModelManager.dart';
+import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
 import '../../../Config.dart';
@@ -59,7 +59,7 @@ class HttpCurd {
       }
 
       // 检测本地是否存在账号信息？
-      final List<MUser> mUsers = await ModelManager.queryRowsAsModels(connectTransaction: null, tableName: MUser().tableName);
+      final List<MUser> mUsers = await SqliteCurd.queryRowsAsModels(connectTransaction: null, tableName: MUser().tableName);
       if (mUsers.isEmpty) {
         //TODO: 弹出【登陆界面引擎】
         return await httpStore.setCancel(viewMessage: '未登录！', description: Description('本地不存在账号信息！'), exception: null, stackTrace: null) as HS;

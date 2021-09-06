@@ -1,6 +1,6 @@
 import 'package:hybrid/data/mysql/constant/PathConstant.dart';
 import 'package:hybrid/data/sqlite/mmodel/MUser.dart';
-import 'package:hybrid/data/sqlite/mmodel/ModelManager.dart';
+import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
 
 import 'HttpRequest.dart';
 
@@ -17,7 +17,7 @@ class HttpRequestIntercept<REQVO extends RequestDataVO, REQPVO extends RequestPa
     }
     final String must = httpRequest.path.split('/')[0];
     if (must == PathConstant.JWT) {
-      final List<MUser> mUsers = await ModelManager.queryRowsAsModels(connectTransaction: null, tableName: MUser().tableName);
+      final List<MUser> mUsers = await SqliteCurd.queryRowsAsModels(connectTransaction: null, tableName: MUser().tableName);
       httpRequest.requestHeaders = <String, Object?>{'authorization': 'bearer ' + (mUsers.isEmpty ? '' : (mUsers.first.get_token ?? ''))};
     } else if (must == PathConstant.NO_JWT) {
     } else {

@@ -80,7 +80,7 @@ object FlutterEngineManager {
         entryPointName: String,
         startViewParams: ViewParams?,
         endViewParams: ViewParams?,
-        closeViewAfterSeconds: Int
+        closeViewAfterSeconds: Int?
     ) {
         FlutterEnginerCache.get(entryPointName)!!.floatingWindow!!.updateFlutterView(
             startViewParams,

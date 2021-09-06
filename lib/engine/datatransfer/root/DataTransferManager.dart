@@ -142,12 +142,13 @@ class DataTransferManager {
     required S operationData,
     required ViewParams? startViewParams,
     required ViewParams? endViewParams,
-    required int closeViewAfterSeconds,
+    required int? closeViewAfterSeconds,
   }) async {
     final MessageResult<bool> viewResult = await _sendMessageToOtherEngine<Map<String, Object?>, bool>(
       sendToWhichEngine: EngineEntryName.NATIVE,
       operationId: OExecute_FlutterSend.SET_VIEW,
       data: <String, Object?>{
+        'set_which_engine_view': executeForWhichEngine,
         'start_view_params': startViewParams?.toJson(),
         'end_view_params': endViewParams?.toJson(),
         'close_view_after_seconds': closeViewAfterSeconds,
@@ -213,7 +214,7 @@ class DataTransferManager {
   ///
   ///   > - 一旦 [startViewParams]，多少秒后关闭 view。
   ///
-  ///   > - 为 -1 时不关闭。
+  ///   > - 为空或为负数时，保持现状不关闭。
   ///
   Future<MessageResult<R>> execute<S, R extends Object>({
     required String executeForWhichEngine,
@@ -221,7 +222,7 @@ class DataTransferManager {
     required S operationData,
     required ViewParams? startViewParams,
     required ViewParams? endViewParams,
-    required int closeViewAfterSeconds,
+    required int? closeViewAfterSeconds,
   }) async {
     final MessageResult<R> executeResult = MessageResult<R>(resultData: null, exception: Exception('未对初始 executeResult 进行更改！'), stackTrace: null);
 
@@ -276,4 +277,8 @@ class DataTransferManager {
   Future<MessageResult<R>> executeToMain<S, R extends Object>({required String operationId, required S data}) async {
     return await _sendMessageToOtherEngine<S, R>(sendToWhichEngine: EngineEntryName.MAIN, operationId: operationId, data: data);
   }
+
+  Future<void> executeSqliteCurd() async {}
+
+  Future<void> executeSqlite() async {}
 }

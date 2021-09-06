@@ -66,6 +66,56 @@ class TransactionMark {
   late int mark;
 }
 
+class TwoId {
+  TwoId({
+    required String uuidKey,
+    required String aiidKey,
+    required String? uuidValue,
+    required int? aiidValue,
+  }) {
+    if (aiidValue != null && uuidValue == null) {
+      whereByTwoId = '$aiidKey = ?';
+      whereArgsByTwoId = <Object>[aiidValue];
+    } else if (aiidValue == null && uuidValue != null) {
+      whereByTwoId = '$uuidKey = ?';
+      whereArgsByTwoId = <Object>[uuidValue];
+    } else {
+      throw 'query by aiid and uuid err';
+    }
+  }
+
+  late String whereByTwoId;
+  late List<Object> whereArgsByTwoId;
+}
+
+class SingleResult<T> {
+  SingleResult({required this.result, required this.exception, required this.stackTrace});
+
+  SingleResult.empty() {
+    exception = Exception('未处理 SingleResult！');
+  }
+
+  T? result;
+  Object? exception;
+  StackTrace? stackTrace;
+
+  bool get hasError => exception != null;
+
+  SingleResult<T> setSuccess({required T? result}) {
+    this.result = result;
+    exception = null;
+    stackTrace = null;
+    return this;
+  }
+
+  SingleResult<T> setError({required Object? exception, required StackTrace? stackTrace}) {
+    result = null;
+    this.exception = exception;
+    this.stackTrace = stackTrace;
+    return this;
+  }
+}
+
 ///
 ///
 ///
@@ -75,28 +125,142 @@ class TransactionMark {
 class SqliteCurd {
   ///
 
-  /// 检查用户通过，则触发 [onSuccess]，否则触发 [onError]。
+  /// 参数除了 connectTransaction，其他的与 db.query 相同
+  static Future<SingleResult<List<Map<String, Object?>>>> queryRowsAsJsons({
+    required Transaction? connectTransaction,
+    required String tableName,
+    bool? distinct,
+    List<String>? columns,
+    String? where,
+    List<Object?>? whereArgs,
+    String? groupBy,
+    String? having,
+    String? orderBy,
+    int? limit,
+    int? offset,
+    TwoId byTwoId()?,
+  }) async {
+    final SingleResult<List<Map<String, Object?>>> result = SingleResult<List<Map<String, Object?>>>.empty();
+    try {
+      if (connectTransaction != null) {
+        result.setSuccess(
+          result: await connectTransaction.query(
+            tableName,
+            distinct: distinct,
+            columns: columns,
+            where: where ?? byTwoId?.call().whereByTwoId,
+            whereArgs: whereArgs ?? byTwoId?.call().whereArgsByTwoId,
+            groupBy: groupBy,
+            having: having,
+            orderBy: orderBy,
+            limit: limit,
+            offset: offset,
+          ),
+        );
+      } else {
+        result.setSuccess(
+          result: await db.query(
+            tableName,
+            distinct: distinct,
+            columns: columns,
+            where: where ?? byTwoId?.call().whereByTwoId,
+            whereArgs: whereArgs ?? byTwoId?.call().whereArgsByTwoId,
+            groupBy: groupBy,
+            having: having,
+            orderBy: orderBy,
+            limit: limit,
+            offset: offset,
+          ),
+        );
+      }
+    } catch (e, st) {
+      result.setError(exception: e, stackTrace: st);
+    }
+    return result;
+  }
+
+  /// [returnWhere]: 对每个 model 进行格外操作。
+  static Future<SingleResult<List<M>>> queryRowsAsModels<M extends ModelBase>({
+    required Transaction? connectTransaction,
+    required String tableName,
+    void Function(M model)? returnWhere,
+    bool? distinct,
+    List<String>? columns,
+    String? where,
+    List<Object?>? whereArgs,
+    String? groupBy,
+    String? having,
+    String? orderBy,
+    int? limit,
+    int? offset,
+    TwoId byTwoId()?,
+  }) async {
+    final SingleResult<List<M>> result = SingleResult<List<M>>.empty();
+    final SingleResult<List<Map<String, Object?>>> queryRowsAsJsonsResult = await queryRowsAsJsons(
+      connectTransaction: connectTransaction,
+      tableName: tableName,
+      distinct: distinct,
+      columns: columns,
+      where: where,
+      whereArgs: whereArgs,
+      groupBy: groupBy,
+      having: having,
+      orderBy: orderBy,
+      limit: limit,
+      offset: offset,
+      byTwoId: byTwoId,
+    );
+    if (!queryRowsAsJsonsResult.hasError) {
+      final List<M> models = <M>[];
+      for (final Map<String, Object?> row in queryRowsAsJsonsResult.result!) {
+        final M newModel = ModelManager.createEmptyModelByTableName<M>(tableName);
+        newModel.getRowJson.addAll(row);
+        models.add(newModel);
+        returnWhere?.call(newModel);
+      }
+      result.setSuccess(result: models);
+    } else {
+      result.setError(exception: queryRowsAsJsonsResult.exception, stackTrace: queryRowsAsJsonsResult.stackTrace);
+    }
+    return result;
+  }
+
+  /// 检查是否存在用户数据、初始化数据是否已被下载。
   ///
-  /// 未通过原因：1. 用户未登录。 2. 初始化数据未下载。 3. 其他异常。
+  /// [onSuccess]：全部检查通过。
+  ///
+  /// [onNotPass]：未通过。
+  ///
+  /// [onError]：发生了异常。
   static Future<void> checkUser({
     required Future<void> onSuccess(),
+    required Future<void> onNotPass(),
     required Future<void> onError(Object? exception, StackTrace? stackTrace),
+    required bool isCheckOnly,
   }) async {
-    try {
-      final List<MUser> users = await ModelManager.queryRowsAsModels<MUser>(connectTransaction: null, tableName: MUser().tableName);
+    final SingleResult<List<MUser>> queryRowsAsModelsResult = await queryRowsAsModels<MUser>(
+      connectTransaction: null,
+      tableName: MUser().tableName,
+    );
+    if (!queryRowsAsModelsResult.hasError) {
+      final List<MUser> users = queryRowsAsModelsResult.result!;
       if (users.isEmpty) {
-        // TODO: 弹出登陆页面引擎。
-        await onError(Exception('Users is empty!'), null);
+        if (!isCheckOnly) {
+          // TODO: 弹出登陆页面引擎。
+        }
+        await onNotPass();
       } else {
         if (users.first.get_is_downloaded_init_data != 1) {
-          // TODO: 弹出初始化数据下载页面引擎。
-          await onError(Exception('初始化数据未下载！'), null);
+          if (!isCheckOnly) {
+            // TODO: 弹出初始化数据下载页面引擎。
+          }
+          await onNotPass();
         } else {
           await onSuccess();
         }
       }
-    } catch (e, st) {
-      await onError(e, st);
+    } else {
+      await onError(queryRowsAsModelsResult.exception, queryRowsAsModelsResult.stackTrace);
     }
   }
 
@@ -225,44 +389,50 @@ class SqliteCurd {
   /// - [return] 返回插入的模型（带有插入后 sqlite 生成的 id），未插入前的 [model] 不带有 id。
   ///
   /// {@endtemplate}
-  static Future<T> _toInsertRow<T extends ModelBase>({required TransactionMark transactionMark, required T model}) async {
+  static Future<T> _toInsertRow<T extends ModelBase>({
+    required TransactionMark transactionMark,
+    required T model,
+  }) async {
     // 插入时只能存在 uuid。
     if (model.get_uuid == null || model.get_aiid != null) {
       throw 'insert uuid/aiid err: ${model.get_uuid}, ${model.get_aiid}';
     }
     // 检查该模型的 uuid 是否已存在。
-    final List<Map<String, Object?>> queryResult = await ModelManager.queryRowsAsJsons(
+    final SingleResult<List<Map<String, Object?>>> queryRowsAsJsonsResult = await queryRowsAsJsons(
+      connectTransaction: transactionMark.transaction,
       tableName: model.tableName,
       where: '${model.uuid} = ?',
       whereArgs: <Object>[model.get_uuid!],
-      connectTransaction: transactionMark.transaction,
     );
+    if (!queryRowsAsJsonsResult.hasError) {
+      if (queryRowsAsJsonsResult.result!.isNotEmpty) {
+        throw 'The model already exits.';
+      }
 
-    if (queryResult.isNotEmpty) {
-      throw 'The model already exits.';
+      // 插入当前 model ，获取并设置 id。
+      final int rowId = await transactionMark.transaction.insert(model.tableName, model.getRowJson);
+      model.getRowJson['id'] = rowId;
+
+      // 创建 MUpload 模型。
+      final MUpload upload = MUpload.createModel(
+        id: null,
+        aiid: null,
+        uuid: null,
+        created_at: SbHelper.newTimestamp,
+        updated_at: SbHelper.newTimestamp,
+        for_table_name: model.tableName,
+        for_row_id: rowId,
+        for_aiid: null,
+        updated_columns: null,
+        curd_status: CurdStatus.C.index,
+        upload_status: UploadStatus.notUploaded.index,
+        mark: transactionMark.mark,
+      );
+      await transactionMark.transaction.insert(upload.tableName, upload.getRowJson);
+      return model;
+    } else {
+      throw queryRowsAsJsonsResult.exception!;
     }
-
-    // 插入当前 model ，获取并设置 id。
-    final int rowId = await transactionMark.transaction.insert(model.tableName, model.getRowJson);
-    model.getRowJson['id'] = rowId;
-
-    // 创建 MUpload 模型。
-    final MUpload upload = MUpload.createModel(
-      id: null,
-      aiid: null,
-      uuid: null,
-      created_at: SbHelper.newTimestamp,
-      updated_at: SbHelper.newTimestamp,
-      for_table_name: model.tableName,
-      for_row_id: rowId,
-      for_aiid: null,
-      updated_columns: null,
-      curd_status: CurdStatus.C.index,
-      upload_status: UploadStatus.notUploaded.index,
-      mark: transactionMark.mark,
-    );
-    await transactionMark.transaction.insert(upload.tableName, upload.getRowJson);
-    return model;
   }
 
   /// {@template RSqliteCurd.updateRow}
@@ -315,13 +485,18 @@ class SqliteCurd {
     // 更新 model
     await transactionMark.transaction.update(modelTableName, updateContent, where: 'id = ?', whereArgs: <Object?>[modelId]);
 
-    final T newModel = (await ModelManager.queryRowsAsModels<T>(
+    final SingleResult<List<T>> queryRowsAsModelsResult = await queryRowsAsModels<T>(
       tableName: modelTableName,
       where: 'id = ?',
       whereArgs: <Object?>[modelId],
       connectTransaction: transactionMark.transaction,
-    ))
-        .first;
+    );
+    late final T newModel;
+    if (!queryRowsAsModelsResult.hasError) {
+      newModel = queryRowsAsModelsResult.result!.first;
+    } else {
+      throw queryRowsAsModelsResult.exception!;
+    }
 
     // R
     if (checkResult == CheckResult.uploadModelIsNotExist) {
@@ -469,12 +644,19 @@ class SqliteCurd {
     }
 
     // 获取要更新的 model
-    final List<T> queryResult = await ModelManager.queryRowsAsModels(
+    final SingleResult<List<T>> ofModelResult = await queryRowsAsModels<T>(
       tableName: modelTableName,
       where: 'id = ?',
       whereArgs: <Object?>[modelId],
       connectTransaction: transactionMark.transaction,
     );
+
+    late final List<T> queryResult;
+    if (!ofModelResult.hasError) {
+      queryResult = ofModelResult.result!;
+    } else {
+      throw ofModelResult.exception!;
+    }
 
     if (queryResult.isEmpty) {
       return CheckResult.modelIsNotExist;
@@ -493,22 +675,25 @@ class SqliteCurd {
     // 获取 upload model。
     // 必须新建一个 MUpload 来获取 key，因为变量 uploadModel 还未被赋值。
     final MUpload forKey = MUpload();
-    final List<MUpload> uploadModels = await ModelManager.queryRowsAsModels<MUpload>(
+    final SingleResult<List<MUpload>> ofUploadModelResult = await queryRowsAsModels<MUpload>(
       tableName: forKey.tableName,
       where: '${forKey.for_row_id} = ? AND ${forKey.for_table_name} = ?',
       whereArgs: <Object?>[modelId, modelTableName],
       connectTransaction: transactionMark.transaction,
     );
-
-    if (uploadModels.isNotEmpty) {
-      getUploadModel(uploadModels.first);
-      // 若为 uploading 状态，则需要先判断是否已经 upload 成功，成功则修改成 uploaded 后才能继续。
-      if (uploadModels.first.get_upload_status == UploadStatus.uploading.index) {
-        //TODO: 从 mysql 中对照是否 upload 成功过，若成功过则设为 uploaded，若未成功过则进行 upload 后再设为 uploaded
-        throw 'TODO...';
+    if (!ofUploadModelResult.hasError) {
+      if (ofUploadModelResult.result!.isNotEmpty) {
+        getUploadModel(ofUploadModelResult.result!.first);
+        // 若为 uploading 状态，则需要先判断是否已经 upload 成功，成功则修改成 uploaded 后才能继续。
+        if (ofUploadModelResult.result!.first.get_upload_status == UploadStatus.uploading.index) {
+          //TODO: 从 mysql 中对照是否 upload 成功过，若成功过则设为 uploaded，若未成功过则进行 upload 后再设为 uploaded
+          throw 'TODO...';
+        }
+      } else {
+        return CheckResult.uploadModelIsNotExist;
       }
     } else {
-      return CheckResult.uploadModelIsNotExist;
+      throw ofUploadModelResult.exception!;
     }
 
     return CheckResult.ok;
@@ -579,21 +764,25 @@ class SqliteCurd {
     required TransactionMark transactionMark,
   }) async {
     // 查询关联该表的对应 row 模型
-    final List<ModelBase> queryResult = await ModelManager.queryRowsAsModels(
+    final SingleResult<List<ModelBase>> queryRowsAsModelsResult = await queryRowsAsModels<ModelBase>(
       tableName: fkTableName,
       where: '$fkColumnName = ?',
       whereArgs: <Object>[fkColumnValue],
       connectTransaction: transactionMark.transaction,
     );
-    // 把查询到的进行递归 delete
-    for (int i = 0; i < queryResult.length; i++) {
-      await SqliteCurd.deleteRow(
-        modelTableName: queryResult[i].tableName,
-        modelId: queryResult[i].get_id!,
-        transactionMark: transactionMark,
-        onSuccess: () async {},
-        onError: (Object? exception, StackTrace? stackTrace) async {},
-      );
+    if (!queryRowsAsModelsResult.hasError) {
+      // 把查询到的进行递归 delete
+      for (int i = 0; i < queryRowsAsModelsResult.result!.length; i++) {
+        await SqliteCurd.deleteRow(
+          modelTableName: queryRowsAsModelsResult.result![i].tableName,
+          modelId: queryRowsAsModelsResult.result![i].get_id!,
+          transactionMark: transactionMark,
+          onSuccess: () async {},
+          onError: (Object? exception, StackTrace? stackTrace) async {},
+        );
+      }
+    } else {
+      throw queryRowsAsModelsResult.exception!;
     }
   }
 }

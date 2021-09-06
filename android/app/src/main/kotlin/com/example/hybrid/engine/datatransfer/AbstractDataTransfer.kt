@@ -123,12 +123,14 @@ abstract class AbstractDataTransfer(flutterEnginer: FlutterEnginer) {
                     }
                 }
 
+                val setWhichEngineView: String = dataMap["set_which_engine_view"].checkType()
                 val startViewParams: ViewParams? = setViewParams("start_view_params")
                 val endViewParams: ViewParams? = setViewParams("end_view_params")
-                val closeViewAfterSeconds = dataMap["close_view_after_seconds"].checkType<Int>()
+                val closeViewAfterSeconds: Int? =
+                    dataMap["close_view_after_seconds"].checkType()
 
                 FlutterEngineManager.updateView(
-                    flutterEnginer.entryPointName,
+                    setWhichEngineView,
                     startViewParams,
                     endViewParams,
                     closeViewAfterSeconds

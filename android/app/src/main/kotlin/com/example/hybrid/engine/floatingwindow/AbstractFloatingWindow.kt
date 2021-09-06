@@ -75,7 +75,7 @@ abstract class AbstractFloatingWindow(val flutterEnginer: FlutterEnginer) {
      *
      *      - 一旦 [startViewParams]，多少秒后关闭 view。
      *
-     *      - 为 -1 时不关闭。
+     *      - 为空或为负数时，保持现状不关闭。
      *
      * - 关于 [flutterView]：
      *
@@ -86,7 +86,7 @@ abstract class AbstractFloatingWindow(val flutterEnginer: FlutterEnginer) {
     fun updateFlutterView(
         startViewParams: ViewParams?,
         endViewParams: ViewParams?,
-        closeViewAfterSeconds: Int
+        closeViewAfterSeconds: Int?
     ) {
 
 
@@ -128,7 +128,8 @@ abstract class AbstractFloatingWindow(val flutterEnginer: FlutterEnginer) {
 
 
             // 多久后立即关闭。
-            if (closeViewAfterSeconds != -1) {
+            // 为空或为负数时，保持现状。
+            if (closeViewAfterSeconds != null && closeViewAfterSeconds >= 0) {
                 Handler(Looper.getMainLooper()).postDelayed({
                     // 当发生并发时，以最后一次请求为准。
                     if (updateFlutterViewConcurrentCount == currentUpdateFlutterViewConcurrentCount) {

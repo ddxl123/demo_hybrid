@@ -88,34 +88,6 @@ class TwoId {
   late List<Object> whereArgsByTwoId;
 }
 
-class SingleResult<T> {
-  SingleResult({required this.result, required this.exception, required this.stackTrace});
-
-  SingleResult.empty() {
-    exception = Exception('未处理 SingleResult！');
-  }
-
-  T? result;
-  Object? exception;
-  StackTrace? stackTrace;
-
-  bool get hasError => exception != null;
-
-  SingleResult<T> setSuccess({required T? result}) {
-    this.result = result;
-    exception = null;
-    stackTrace = null;
-    return this;
-  }
-
-  SingleResult<T> setError({required Object? exception, required StackTrace? stackTrace}) {
-    result = null;
-    this.exception = exception;
-    this.stackTrace = stackTrace;
-    return this;
-  }
-}
-
 ///
 ///
 ///
@@ -264,17 +236,12 @@ class SqliteCurd {
     }
   }
 
-  /// {@macro RSqliteCurd.insertRow}
-  ///
-  /// 当 [transactionMark] 不为空时，内部的异常会 rethrow。
-  ///
-  /// 无论 [transactionMark] 是否为空，[onError] 都会接收到内部的异常。
-  static Future<void> insertRow<T extends ModelBase>({
+  /// 查看 [_toInsertRow] 注释。
+  static Future<SingleResult<T>> insertRow<T extends ModelBase>({
     required T model,
     required TransactionMark? transactionMark,
-    required Future<void> onSuccess(T newModel),
-    required Future<void> onError(Object? exception, StackTrace? stackTrace),
   }) async {
+    final SingleResult<T> insertRowResult = SingleResult<T>.empty();
     try {
       if (transactionMark == null) {
         // 开始事务。
@@ -283,18 +250,20 @@ class SqliteCurd {
             return await _toInsertRow(model: model, transactionMark: TransactionMark(txn));
           },
         );
-        await onSuccess(newModel);
+        insertRowResult.setSuccess(result: newModel);
       } else {
         // 继续事务。
         final T newModel = await _toInsertRow(model: model, transactionMark: transactionMark);
-        await onSuccess(newModel);
+        insertRowResult.setSuccess(result: newModel);
       }
     } catch (e, st) {
-      await onError(e, st);
       if (transactionMark != null) {
         rethrow;
+      } else {
+        insertRowResult.setError(exception: e, stackTrace: st);
       }
     }
+    return insertRowResult;
   }
 
   /// {@macro RSqliteCurd.updateRow}
@@ -302,14 +271,13 @@ class SqliteCurd {
   /// 当 [transactionMark] 不为空时，内部的异常会 rethrow。
   ///
   /// 无论 [transactionMark] 是否为空，[onError] 都会接收到内部的异常。
-  static Future<void> updateRow<T extends ModelBase>({
+  static Future<SingleResult<T>> updateRow<T extends ModelBase>({
     required String modelTableName,
     required int? modelId,
     required Map<String, Object?> updateContent,
     required TransactionMark? transactionMark,
-    required Future<void> onSuccess(T newModel),
-    required Future<void> onError(Object? exception, StackTrace? stackTrace),
   }) async {
+    final SingleResult<T> updateRowResult = SingleResult<T>.empty();
     try {
       if (transactionMark == null) {
         // 开始事务。
@@ -318,18 +286,20 @@ class SqliteCurd {
             return await _toUpdateRow(modelTableName: modelTableName, modelId: modelId, updateContent: updateContent, transactionMark: TransactionMark(txn));
           },
         );
-        await onSuccess(newModel);
+        updateRowResult.setSuccess(result: newModel);
       } else {
         // 继续事务。
         final T newModel = await _toUpdateRow(modelTableName: modelTableName, modelId: modelId, updateContent: updateContent, transactionMark: transactionMark);
-        await onSuccess(newModel);
+        updateRowResult.setSuccess(result: newModel);
       }
     } catch (e, st) {
-      await onError(e, st);
       if (transactionMark != null) {
         rethrow;
+      } else {
+        updateRowResult.setError(exception: e, stackTrace: st);
       }
     }
+    return updateRowResult;
   }
 
   /// {@macro RSqliteCurd.deleteRow}
@@ -337,13 +307,12 @@ class SqliteCurd {
   /// 当 [transactionMark] 不为空时，内部的异常始终会 rethrow。
   ///
   /// 无论 [transactionMark] 是否为空，[onError] 都会接收到内部的异常。
-  static Future<void> deleteRow({
+  static Future<SingleResult<bool>> deleteRow({
     required String modelTableName,
     required int? modelId,
     required TransactionMark? transactionMark,
-    required Future<void> onSuccess(),
-    required Future<void> onError(Object? exception, StackTrace? stackTrace),
   }) async {
+    final SingleResult<bool> deleteRowResult = SingleResult<bool>.empty();
     try {
       if (transactionMark == null) {
         // 开始事务。
@@ -352,18 +321,20 @@ class SqliteCurd {
             await _toDeleteRow(modelTableName: modelTableName, modelId: modelId, transactionMark: TransactionMark(txn));
           },
         );
-        await onSuccess();
+        deleteRowResult.setSuccess(result: true);
       } else {
         // 继续事务。
         await _toDeleteRow(modelTableName: modelTableName, modelId: modelId, transactionMark: transactionMark);
-        await onSuccess();
+        deleteRowResult.setSuccess(result: true);
       }
     } catch (e, st) {
-      await onError(e, st);
       if (transactionMark != null) {
         rethrow;
+      } else {
+        deleteRowResult.setError(exception: e, stackTrace: st);
       }
     }
+    return deleteRowResult;
   }
 
   ///
@@ -372,8 +343,6 @@ class SqliteCurd {
   ///
   ///
 
-  /// {@template RSqliteCurd.insertRow}
-  ///
   /// 对当前 [model] 执行 [insert] 操作。
   ///
   /// 只有需要在 [MUpload] 中 CURD 的表才能使用 [_toInsertRow]。
@@ -387,8 +356,6 @@ class SqliteCurd {
   /// - [T]、[model] 要插入的模型。
   ///
   /// - [return] 返回插入的模型（带有插入后 sqlite 生成的 id），未插入前的 [model] 不带有 id。
-  ///
-  /// {@endtemplate}
   static Future<T> _toInsertRow<T extends ModelBase>({
     required TransactionMark transactionMark,
     required T model,
@@ -550,8 +517,11 @@ class SqliteCurd {
   /// - [modelId] 要删除的模型 id，非 aiid/uuid。
   ///
   /// {@endtemplate}
-  static Future<void> _toDeleteRow<T extends ModelBase>(
-      {required String modelTableName, required int? modelId, required TransactionMark transactionMark}) async {
+  static Future<void> _toDeleteRow<T extends ModelBase>({
+    required String modelTableName,
+    required int? modelId,
+    required TransactionMark transactionMark,
+  }) async {
     // 若为空必然抛异常，因此必然不可空。
     late T model;
     // uploadModel 可空，若不可空不会抛异常，而会做下面的判断。
@@ -773,13 +743,18 @@ class SqliteCurd {
     if (!queryRowsAsModelsResult.hasError) {
       // 把查询到的进行递归 delete
       for (int i = 0; i < queryRowsAsModelsResult.result!.length; i++) {
-        await SqliteCurd.deleteRow(
+        final SingleResult<bool> deleteRowResult = await SqliteCurd.deleteRow(
           modelTableName: queryRowsAsModelsResult.result![i].tableName,
           modelId: queryRowsAsModelsResult.result![i].get_id!,
           transactionMark: transactionMark,
-          onSuccess: () async {},
-          onError: (Object? exception, StackTrace? stackTrace) async {},
         );
+        if (!deleteRowResult.hasError) {
+          if (!deleteRowResult.result!) {
+            throw Exception('result 不为 true！');
+          }
+        } else {
+          throw deleteRowResult.exception!;
+        }
       }
     } else {
       throw queryRowsAsModelsResult.exception!;

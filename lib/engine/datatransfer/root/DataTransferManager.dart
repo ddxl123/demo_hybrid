@@ -1,8 +1,12 @@
 import 'dart:async';
 
+import 'package:hybrid/data/sqlite/mmodel/ModelBase.dart';
+import 'package:hybrid/data/sqlite/mmodel/ModelManager.dart';
+import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
 import 'package:hybrid/engine/constant/EngineEntryName.dart';
 import 'package:hybrid/engine/constant/OExecute.dart';
 import 'package:hybrid/engine/datatransfer/root/BaseDataTransfer.dart';
+import 'package:hybrid/util/SbHelper.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'DataTransferManager.g.dart';
@@ -60,15 +64,12 @@ class DataTransferManager {
   ///
   /// [data] 发送的附带数据。
   ///
-  Future<MessageResult<R>> _sendMessageToOtherEngine<S, R extends Object>({
+  Future<SingleResult<R>> _sendMessageToOtherEngine<S, R extends Object>({
     required String sendToWhichEngine,
     required String operationId,
     required S data,
   }) async {
-    R? result;
-    Object? exception;
-    StackTrace? stackTrace;
-
+    final SingleResult<R> sendResult = SingleResult<R>.empty();
     try {
       final Map<String, Object?> messageMap = <String, Object?>{
         'send_to_which_engine': sendToWhichEngine,
@@ -90,53 +91,43 @@ class DataTransferManager {
             2) 未对 operationId: $operationId 进行处理。
         ''');
       } else {
-        result = resultObj as R;
-        return MessageResult<R>(resultData: result, exception: null, stackTrace: null);
+        sendResult.setSuccess(result: resultObj as R);
       }
     } catch (e, st) {
-      exception = e;
-      stackTrace = st;
-      return MessageResult<R>(resultData: null, exception: exception, stackTrace: stackTrace);
+      sendResult.setError(exception: e, stackTrace: st);
     }
+    return sendResult;
   }
 
   /// 检查对应引擎的第一帧是否已被初始化完成。
-  Future<bool> _isPushedEngineFirstFrameInitialized() async {
-    bool isDone = false;
-
-    final Future<void> Function() send = () async {
-      final MessageResult<bool> messageResult = await _sendMessageToOtherEngine<void, bool>(
+  Future<SingleResult<bool>> _isPushedEngineFirstFrameInitialized() async {
+    final Future<SingleResult<bool>> Function() send = () async {
+      return await _sendMessageToOtherEngine<void, bool>(
         sendToWhichEngine: EngineEntryName.NATIVE,
         operationId: OExecute_FlutterSend.IS_FIRST_FRAME_INITIALIZED,
         data: null,
-      );
-
-      await messageResult.handle(
-        // 返回 true 已被初始化完成，返回 false 未被初始化完成。
-        onSuccess: (bool data) async {
-          isDone = data;
-        },
-        onError: (Object? exception, StackTrace? stackTrace) async {
-          throw Exception(exception);
-        },
       );
     };
 
     // 每0.5s检测一次。
     const Duration delayed = Duration(milliseconds: 500);
     for (int i = 0; i < 20; i++) {
-      await send();
-      if (isDone) {
-        return true;
+      final SingleResult<bool> sendResult = await send();
+      if (sendResult.hasError) {
+        return SingleResult<bool>.empty()..setError(exception: sendResult.exception, stackTrace: sendResult.stackTrace);
       } else {
-        await Future<void>.delayed(delayed);
+        if (sendResult.result!) {
+          return SingleResult<bool>.empty()..setSuccess(result: true);
+        } else {
+          await Future<void>.delayed(delayed);
+        }
       }
     }
-    return false;
+    return SingleResult<bool>.empty()..setSuccess(result: false);
   }
 
   Future<void> _handleViewAndOperation<S, R extends Object>({
-    required MessageResult<R> executeResult,
+    required SingleResult<R> executeResult,
     required String executeForWhichEngine,
     required String? operationIdIfEngineFirstFrameInitialized,
     required S operationData,
@@ -144,7 +135,7 @@ class DataTransferManager {
     required ViewParams? endViewParams,
     required int? closeViewAfterSeconds,
   }) async {
-    final MessageResult<bool> viewResult = await _sendMessageToOtherEngine<Map<String, Object?>, bool>(
+    final SingleResult<bool> viewResult = await _sendMessageToOtherEngine<Map<String, Object?>, bool>(
       sendToWhichEngine: EngineEntryName.NATIVE,
       operationId: OExecute_FlutterSend.SET_VIEW,
       data: <String, Object?>{
@@ -154,28 +145,25 @@ class DataTransferManager {
         'close_view_after_seconds': closeViewAfterSeconds,
       },
     );
-    await viewResult.handle(
-      onSuccess: (bool data) async {
-        // view set 完成。
-        if (data) {
-          if (operationIdIfEngineFirstFrameInitialized != null) {
-            final MessageResult<R> operationResult = await _sendMessageToOtherEngine<S, R>(
-              sendToWhichEngine: executeForWhichEngine,
-              operationId: operationIdIfEngineFirstFrameInitialized,
-              data: operationData,
-            );
-            operationResult.cloneTo(executeResult);
-          } else {
-            executeResult.setAll(resultData: true as R, exception: null, stackTrace: null);
-          }
+    if (!viewResult.hasError) {
+      // view set 完成。
+      if (viewResult.result!) {
+        if (operationIdIfEngineFirstFrameInitialized != null) {
+          final SingleResult<R> operationResult = await _sendMessageToOtherEngine<S, R>(
+            sendToWhichEngine: executeForWhichEngine,
+            operationId: operationIdIfEngineFirstFrameInitialized,
+            data: operationData,
+          );
+          operationResult.cloneTo(executeResult);
         } else {
-          throw Exception('data 不为 true！');
+          executeResult.setSuccess(result: true as R);
         }
-      },
-      onError: (Object? exception, StackTrace? stackTrace) async {
-        executeResult.setAll(resultData: null, exception: exception, stackTrace: stackTrace);
-      },
-    );
+      } else {
+        executeResult.setError(exception: Exception('data 不为 true！'), stackTrace: null);
+      }
+    } else {
+      executeResult.setError(exception: viewResult.exception, stackTrace: viewResult.stackTrace);
+    }
   }
 
   /// 在当前引擎中对其他引擎进行 operation。
@@ -216,7 +204,7 @@ class DataTransferManager {
   ///
   ///   > - 为空或为负数时，保持现状不关闭。
   ///
-  Future<MessageResult<R>> execute<S, R extends Object>({
+  Future<SingleResult<R>> execute<S, R extends Object>({
     required String executeForWhichEngine,
     required String? operationIdIfEngineFirstFrameInitialized,
     required S operationData,
@@ -224,29 +212,25 @@ class DataTransferManager {
     required ViewParams? endViewParams,
     required int? closeViewAfterSeconds,
   }) async {
-    final MessageResult<R> executeResult = MessageResult<R>(resultData: null, exception: Exception('未对初始 executeResult 进行更改！'), stackTrace: null);
+    final SingleResult<R> executeResult = SingleResult<R>.empty();
 
     if (executeForWhichEngine == EngineEntryName.NATIVE || executeForWhichEngine == EngineEntryName.MAIN) {
-      return executeResult.setAll(
-        resultData: null,
-        exception: Exception('executeForWhichEngine 不能为 ${EngineEntryName.NATIVE} 或 ${EngineEntryName.MAIN}！'),
-        stackTrace: null,
-      );
+      return executeResult.setError(exception: 'executeForWhichEngine 不能为 ${EngineEntryName.NATIVE} 或 ${EngineEntryName.MAIN}！', stackTrace: null);
     }
 
     // 检测是否已启动引擎，若未启动，则启动。
-    final MessageResult<bool> messageResult = await _sendMessageToOtherEngine<Map<String, Object?>, bool>(
+    final SingleResult<bool> messageResult = await _sendMessageToOtherEngine<Map<String, Object?>, bool>(
       sendToWhichEngine: EngineEntryName.NATIVE,
       operationId: OExecute_FlutterSend.START_ENGINE,
       data: <String, Object?>{'start_which_engine': executeForWhichEngine},
     );
 
-    await messageResult.handle(
+    if (!messageResult.hasError) {
       // 引擎已启动或已触发启动引擎，则得到 true。
-      onSuccess: (bool data) async {
-        if (data) {
-          final bool isInitialized = await _isPushedEngineFirstFrameInitialized();
-          if (isInitialized) {
+      if (messageResult.result!) {
+        final SingleResult<bool> isInitializedResult = await _isPushedEngineFirstFrameInitialized();
+        if (!isInitializedResult.hasError) {
+          if (isInitializedResult.result!) {
             await _handleViewAndOperation(
               executeResult: executeResult,
               executeForWhichEngine: executeForWhichEngine,
@@ -257,28 +241,65 @@ class DataTransferManager {
               closeViewAfterSeconds: closeViewAfterSeconds,
             );
           } else {
-            throw Exception('启动引擎后的第一帧初始化失败！');
+            executeResult.setError(exception: Exception('启动引擎后的第一帧初始化发生了异常！result 不为 true！'), stackTrace: null);
           }
         } else {
-          throw Exception('启动引擎时响应的 data 不为 true!');
+          executeResult.setError(
+            exception: Exception('启动引擎后的第一帧初始化发生了异常！未知异常！' + isInitializedResult.exception.toString()),
+            stackTrace: isInitializedResult.stackTrace,
+          );
         }
-      },
-      onError: (Object? exception, StackTrace? stackTrace) async {
-        executeResult.setAll(resultData: null, exception: exception, stackTrace: stackTrace);
-      },
-    );
+      } else {
+        executeResult.setError(exception: Exception('启动引擎发生了异常！result 不为 true！'), stackTrace: null);
+      }
+    } else {
+      executeResult.setError(exception: messageResult.exception, stackTrace: messageResult.stackTrace);
+    }
     return executeResult;
   }
 
-  Future<MessageResult<R>> executeToNative<S, R extends Object>({required String operationId, required S data}) async {
+  Future<SingleResult<R>> executeToNative<S, R extends Object>({required String operationId, required S data}) async {
     return await _sendMessageToOtherEngine<S, R>(sendToWhichEngine: EngineEntryName.NATIVE, operationId: operationId, data: data);
   }
 
-  Future<MessageResult<R>> executeToMain<S, R extends Object>({required String operationId, required S data}) async {
+  Future<SingleResult<R>> executeToMain<S, R extends Object>({required String operationId, required S data}) async {
     return await _sendMessageToOtherEngine<S, R>(sendToWhichEngine: EngineEntryName.MAIN, operationId: operationId, data: data);
   }
 
-  Future<void> executeSqliteCurd() async {}
+  final ExecuteSqliteCurd executeSqliteCurd = ExecuteSqliteCurd();
+}
 
-  Future<void> executeSqlite() async {}
+class ExecuteSqliteCurd {
+  ///
+
+  /// 查看 [SqliteCurd.queryRowsAsJsons]
+  Future<SingleResult<T>> queryRowsAsJsons<T extends ModelBase>() async {}
+
+  /// 查看 [SqliteCurd.queryRowsAsModels]
+  Future<SingleResult<T>> queryRowsAsModels<T extends ModelBase>() async {}
+
+  /// 查看 [SqliteCurd.insertRow] 注释。
+  Future<SingleResult<T>> insertRow<T extends ModelBase>(T insertModel) async {
+    final SingleResult<Map<String, Object?>> insertRowResult = await DataTransferManager.instance.execute<Map<String, Object?>, Map<String, Object?>>(
+      executeForWhichEngine: EngineEntryName.DATA_CENTER,
+      operationIdIfEngineFirstFrameInitialized: OExecute_FlutterSend.SQLITE_INSERT_ROW,
+      operationData: <String, Object?>{
+        'table_name': insertModel.tableName,
+        'model_data': insertModel.getRowJson,
+      },
+      startViewParams: null,
+      endViewParams: null,
+      closeViewAfterSeconds: null,
+    );
+    if (!insertRowResult.hasError) {
+      try {
+        return SingleResult<T>.empty()
+            .setSuccess(result: ModelManager.createEmptyModelByTableName<T>(insertModel.tableName)..setRowJson = insertRowResult.result!);
+      } catch (e, st) {
+        return SingleResult<T>.empty().setError(exception: e, stackTrace: st);
+      }
+    } else {
+      return SingleResult<T>.empty().setError(exception: insertRowResult.exception, stackTrace: insertRowResult.stackTrace);
+    }
+  }
 }

@@ -13,6 +13,8 @@
   String get updated_at;
 
   Map<String, Object?> get getRowJson;
+  
+  set setRowJson(Map<String,Object?> json);
 
   int? get get_id;
 

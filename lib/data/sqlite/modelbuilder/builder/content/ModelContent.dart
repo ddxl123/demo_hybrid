@@ -63,6 +63,12 @@ ${insertDbContent()}
   
   @override
   Map<String, Object?> get getRowJson => _rowJson;
+  
+  @override
+  set setRowJson(Map<String,Object?> json){
+    _rowJson.clear();
+    _rowJson.addAll(json);
+  }
     ''';
   }
 

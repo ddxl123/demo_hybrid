@@ -55,6 +55,12 @@ class MUser implements ModelBase{
   
   @override
   Map<String, Object?> get getRowJson => _rowJson;
+  
+  @override
+  set setRowJson(Map<String,Object?> json){
+    _rowJson.clear();
+    _rowJson.addAll(json);
+  }
     
       int? get get_id => _rowJson['id'] as int?;
             int? get get_aiid => _rowJson['aiid'] as int?;

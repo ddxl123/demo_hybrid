@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:hybrid/data/mysql/httpstore/handler/HttpStore.dart';
 import 'package:hybrid/data/sqlite/mmodel/MUser.dart';
 import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
+import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
 import '../../../Config.dart';
@@ -59,8 +60,16 @@ class HttpCurd {
       }
 
       // 检测本地是否存在账号信息？
-      final List<MUser> mUsers = await SqliteCurd.queryRowsAsModels(connectTransaction: null, tableName: MUser().tableName);
-      if (mUsers.isEmpty) {
+      final SingleResult<List<MUser>> usersResult = await SqliteCurd.queryRowsAsModels<MUser>(connectTransaction: null, tableName: MUser().tableName);
+      if (usersResult.hasError) {
+        return await httpStore.setCancel(
+          viewMessage: '检查账号时发生了异常！',
+          description: Description('查询数据库时发生了异常！'),
+          exception: usersResult.exception,
+          stackTrace: usersResult.stackTrace,
+        ) as HS;
+      }
+      if (usersResult.result!.isEmpty) {
         //TODO: 弹出【登陆界面引擎】
         return await httpStore.setCancel(viewMessage: '未登录！', description: Description('本地不存在账号信息！'), exception: null, stackTrace: null) as HS;
       }
@@ -91,7 +100,7 @@ class HttpCurd {
       // 说明 token 刷新成功，即验证用户身份成功。
       if (response.headers.map['authorization'] != null) {
         // 检测本地初始化数据是否已下载？
-        if (mUsers.first.get_is_downloaded_init_data != 1) {
+        if (usersResult.result!.first.get_is_downloaded_init_data != 1) {
           //TODO: 未下载，则弹出下载的相关页面，下载前删除除了 user 数据外的其他全部数据。
           return await httpStore.setCancel(viewMessage: '数据未下载！', description: Description('Token 刷新成功，但未下载初始化数据！'), exception: null, stackTrace: null) as HS;
         }

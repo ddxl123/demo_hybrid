@@ -11,6 +11,21 @@ class OExecute_FlutterSend {
 
   /// set view。
   static const String SET_VIEW = 'set_view';
+
+  /// sqlite query row - queryRowsAsJsons
+  static const String SQLITE_QUERY_ROW_AS_JSONS = 'sqlite_query_row_as_jsons';
+
+  /// sqlite query row - queryRowsAsModels
+  static const String SQLITE_QUERY_ROW_AS_MODELS = 'sqlite_query_row_as_models';
+
+  /// sqlite insert row。
+  static const String SQLITE_INSERT_ROW = 'sqlite_insert_row';
+
+  /// sqlite update row。
+  static const String SQLITE_UPDATE_ROW = 'sqlite_update_row';
+
+  /// sqlite delete row。
+  static const String SQLITE_DELETE_ROW = 'sqlite_delete_row';
 }
 
 class OExecute_FlutterListen {}

@@ -5,6 +5,47 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:uuid/uuid.dart';
 
+class SingleResult<T> {
+  SingleResult({required this.result, required this.exception, required this.stackTrace});
+
+  SingleResult.empty() {
+    exception = Exception('未处理 SingleResult！');
+  }
+
+  /// 当 [hasError] 为 false 时，[result] 必须不为 null。
+  T? result;
+  Object? exception;
+  StackTrace? stackTrace;
+
+  bool get hasError => exception != null;
+
+  /// 当 [setSuccess] 时，传入的 result 不能为空。
+  SingleResult<T> setSuccess({required T result}) {
+    this.result = result;
+    exception = null;
+    stackTrace = null;
+    return this;
+  }
+
+  SingleResult<T> setError({required Object? exception, required StackTrace? stackTrace}) {
+    result = null;
+    this.exception = exception;
+    this.stackTrace = stackTrace;
+    return this;
+  }
+
+  void _setAll({required T? result, required Object? exception, required StackTrace? stackTrace}) {
+    this.result = result;
+    this.exception = exception;
+    this.stackTrace = stackTrace;
+  }
+
+  /// 将当前对象克隆到指定对象上。
+  void cloneTo(SingleResult<T> otherResult) {
+    otherResult._setAll(result: result, exception: exception, stackTrace: stackTrace);
+  }
+}
+
 class SbHelper {
   /// 生成随机小数点后 1 位的正 double 值。
   ///

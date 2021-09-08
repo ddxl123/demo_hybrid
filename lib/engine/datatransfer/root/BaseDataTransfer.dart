@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
-
 /// 需在引擎入口执行前创建该 [BaseDataTransfer] 实例，之后使用 [DataTransferManager.instance] 对该实例进行操作。
 abstract class BaseDataTransfer {
   BaseDataTransfer() {
@@ -49,5 +48,7 @@ abstract class BaseDataTransfer {
   }
 
   /// {@macro BaseDataTransfer._listenerMessageFromOtherEngine}
+  ///
+  /// 内部异常已交给 [_listenerMessageFromOtherFlutterEngine] 处理。
   Future<Object?> listenerMessageFormOtherFlutterEngine(String operationId, Object? data);
 }

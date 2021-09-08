@@ -4,39 +4,58 @@ import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
 import 'package:hybrid/engine/constant/OExecute.dart';
 import 'package:hybrid/engine/datatransfer/root/BaseDataTransfer.dart';
 import 'package:hybrid/util/SbHelper.dart';
-import 'package:hybrid/util/sblogger/SbLogger.dart';
 
 class DataCenterDataTransfer extends BaseDataTransfer {
   @override
   Future<Object?> listenerMessageFormOtherFlutterEngine(String operationId, Object? data) async {
-    if (operationId == OExecute_FlutterSend.SQLITE_INSERT_ROW) {
-      if (data is Map<String, Object?>) {
+    switch (operationId) {
+      case OExecute_FlutterSend.SQLITE_QUERY_ROW_AS_JSONS:
+        final Map<String, Object?> dataMap = data! as Map<String, Object?>;
+        final SingleResult<List<Map<String, Object?>>> queryResult = await SqliteCurd.queryRowsAsJsons(
+          queryWrapper: QueryWrapper.fromJson(dataMap),
+          connectTransaction: null,
+        );
+        if (!queryResult.hasError) {
+          return queryResult.result!;
+        } else {
+          throw queryResult.exception!;
+        }
+      case OExecute_FlutterSend.SQLITE_INSERT_ROW:
+        final Map<String, Object?> dataMap = data! as Map<String, Object?>;
         final SingleResult<ModelBase> insertRowResult = await SqliteCurd.insertRow(
-          model: ModelManager.createEmptyModelByTableName(data['table_name']! as String)..setRowJson = data['model_data']! as Map<String, Object?>,
+          model: ModelManager.createEmptyModelByTableName(dataMap['table_name']! as String)..setRowJson = dataMap['model_data']! as Map<String, Object?>,
           transactionMark: null,
         );
         if (!insertRowResult.hasError) {
           return insertRowResult.result!.getRowJson;
         } else {
-          SbLogger(
-            code: null,
-            viewMessage: '插入数据异常！',
-            data: data,
-            description: Description('insert row 时发生了异常！'),
-            exception: insertRowResult.exception,
-            stackTrace: insertRowResult.stackTrace,
-          );
+          throw insertRowResult.exception!;
         }
-      } else {
-        SbLogger(
-          code: null,
-          viewMessage: '插入时解析数据异常！',
-          data: data,
-          description: Description('insert row 时，传来的 data 类型异常：${data.runtimeType}'),
-          exception: null,
-          stackTrace: null,
+      case OExecute_FlutterSend.SQLITE_UPDATE_ROW:
+        final Map<String, Object?> dataMap = data! as Map<String, Object?>;
+        final SingleResult<ModelBase> updateRowResult = await SqliteCurd.updateRow(
+          modelTableName: dataMap['model_table_name']! as String,
+          modelId: dataMap['model_id']! as int,
+          updateContent: dataMap['update_content']! as Map<String, Object?>,
+          transactionMark: null,
         );
-      }
+        if (!updateRowResult.hasError) {
+          return updateRowResult.result!.getRowJson;
+        } else {
+          throw updateRowResult.exception!;
+        }
+      case OExecute_FlutterSend.SQLITE_DELETE_ROW:
+        final Map<String, Object?> dataMap = data! as Map<String, Object?>;
+        final SingleResult<bool> deleteRowResult = await SqliteCurd.deleteRow(
+          modelTableName: dataMap['model_table_name']! as String,
+          modelId: dataMap['model_id']! as int,
+          transactionMark: null,
+        );
+        if (!deleteRowResult.hasError) {
+          return deleteRowResult.result!;
+        } else {
+          throw deleteRowResult.exception!;
+        }
     }
   }
 }

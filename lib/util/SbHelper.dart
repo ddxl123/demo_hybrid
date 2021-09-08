@@ -17,19 +17,23 @@ class SingleResult<T> {
   Object? exception;
   StackTrace? stackTrace;
 
-  bool get hasError => exception != null;
+  bool get hasError => exception != null || result == null;
 
   /// 当 [setSuccess] 时，传入的 result 不能为空。
-  SingleResult<T> setSuccess({required T result}) {
-    this.result = result;
-    exception = null;
-    stackTrace = null;
-    return this;
+  Future<SingleResult<T>> setSuccess({required Future<T> setResult()}) async {
+    try {
+      result = await setResult();
+      exception = null;
+      stackTrace = null;
+      return this;
+    } catch (e, st) {
+      return setError(exception: e, stackTrace: st);
+    }
   }
 
   SingleResult<T> setError({required Object? exception, required StackTrace? stackTrace}) {
     result = null;
-    this.exception = exception;
+    this.exception = exception ?? Exception('result 不能为 null！');
     this.stackTrace = stackTrace;
     return this;
   }

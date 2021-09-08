@@ -12,8 +12,6 @@ class MainDataTransfer extends BaseDataTransfer {
       //   singleGetController.any['is_ok'] = true;
       // });
       return false;
-    } else {
-      throw throwUnhandledOperationIdException(operationId);
     }
   }
 

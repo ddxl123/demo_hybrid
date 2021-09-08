@@ -91,7 +91,7 @@ class DataTransferManager {
             2) 未对 operationId: $operationId 进行处理。
         ''');
       } else {
-        sendResult.setSuccess(result: resultObj as R);
+        await sendResult.setSuccess(setResult: () async => resultObj as R);
       }
     } catch (e, st) {
       sendResult.setError(exception: e, stackTrace: st);
@@ -114,16 +114,16 @@ class DataTransferManager {
     for (int i = 0; i < 20; i++) {
       final SingleResult<bool> sendResult = await send();
       if (sendResult.hasError) {
-        return SingleResult<bool>.empty()..setError(exception: sendResult.exception, stackTrace: sendResult.stackTrace);
+        return SingleResult<bool>.empty().setError(exception: sendResult.exception, stackTrace: sendResult.stackTrace);
       } else {
         if (sendResult.result!) {
-          return SingleResult<bool>.empty()..setSuccess(result: true);
+          return await SingleResult<bool>.empty().setSuccess(setResult: () async => true);
         } else {
           await Future<void>.delayed(delayed);
         }
       }
     }
-    return SingleResult<bool>.empty()..setSuccess(result: false);
+    return await SingleResult<bool>.empty().setSuccess(setResult: () async => false);
   }
 
   Future<void> _handleViewAndOperation<S, R extends Object>({
@@ -156,7 +156,7 @@ class DataTransferManager {
           );
           operationResult.cloneTo(executeResult);
         } else {
-          executeResult.setSuccess(result: true as R);
+          await executeResult.setSuccess(setResult: () async => true as R);
         }
       } else {
         executeResult.setError(exception: Exception('data 不为 true！'), stackTrace: null);
@@ -273,10 +273,40 @@ class ExecuteSqliteCurd {
   ///
 
   /// 查看 [SqliteCurd.queryRowsAsJsons]
-  Future<SingleResult<T>> queryRowsAsJsons<T extends ModelBase>() async {}
+  Future<SingleResult<List<Map<String, Object?>>>> queryRowsAsJsons<T extends ModelBase>(QueryWrapper queryWrapper) async {
+    final SingleResult<List<Map<String, Object?>>> queryRowResult =
+        await DataTransferManager.instance.execute<Map<String, Object?>, List<Map<String, Object?>>>(
+      executeForWhichEngine: EngineEntryName.DATA_CENTER,
+      operationIdIfEngineFirstFrameInitialized: OExecute_FlutterSend.SQLITE_QUERY_ROW_AS_JSONS,
+      operationData: queryWrapper.toJson(),
+      startViewParams: null,
+      endViewParams: null,
+      closeViewAfterSeconds: null,
+    );
+    if (!queryRowResult.hasError) {
+      return await SingleResult<List<Map<String, Object?>>>.empty().setSuccess(setResult: () async => queryRowResult.result!);
+    } else {
+      return SingleResult<List<Map<String, Object?>>>.empty().setError(exception: queryRowResult.exception, stackTrace: queryRowResult.stackTrace);
+    }
+  }
 
   /// 查看 [SqliteCurd.queryRowsAsModels]
-  Future<SingleResult<T>> queryRowsAsModels<T extends ModelBase>() async {}
+  Future<SingleResult<List<T>>> queryRowsAsModels<T extends ModelBase>(QueryWrapper queryWrapper) async {
+    final SingleResult<List<Map<String, Object?>>> queryRowResult = await queryRowsAsJsons(queryWrapper);
+    if (!queryRowResult.hasError) {
+      return await SingleResult<List<T>>.empty().setSuccess(
+        setResult: () async {
+          final List<T> list = <T>[];
+          for (final Map<String, Object?> item in queryRowResult.result!) {
+            list.add(ModelManager.createEmptyModelByTableName<T>(queryWrapper.tableName)..setRowJson = item);
+          }
+          return list;
+        },
+      );
+    } else {
+      return SingleResult<List<T>>.empty().setError(exception: queryRowResult.exception, stackTrace: queryRowResult.stackTrace);
+    }
+  }
 
   /// 查看 [SqliteCurd.insertRow] 注释。
   Future<SingleResult<T>> insertRow<T extends ModelBase>(T insertModel) async {
@@ -293,13 +323,68 @@ class ExecuteSqliteCurd {
     );
     if (!insertRowResult.hasError) {
       try {
-        return SingleResult<T>.empty()
-            .setSuccess(result: ModelManager.createEmptyModelByTableName<T>(insertModel.tableName)..setRowJson = insertRowResult.result!);
+        return await SingleResult<T>.empty().setSuccess(
+          setResult: () async => ModelManager.createEmptyModelByTableName<T>(insertModel.tableName)..setRowJson = insertRowResult.result!,
+        );
       } catch (e, st) {
         return SingleResult<T>.empty().setError(exception: e, stackTrace: st);
       }
     } else {
       return SingleResult<T>.empty().setError(exception: insertRowResult.exception, stackTrace: insertRowResult.stackTrace);
+    }
+  }
+
+  /// 查看 [SqliteCurd.updateRow] 注释。
+  Future<SingleResult<T>> updateRow<T extends ModelBase>({
+    required String modelTableName,
+    required int modelId,
+    required Map<String, Object?> updateContent,
+  }) async {
+    final SingleResult<Map<String, Object?>> updateRowResult = await DataTransferManager.instance.execute<Map<String, Object?>, Map<String, Object?>>(
+      executeForWhichEngine: EngineEntryName.DATA_CENTER,
+      operationIdIfEngineFirstFrameInitialized: OExecute_FlutterSend.SQLITE_UPDATE_ROW,
+      operationData: <String, Object?>{
+        'model_table_name': modelTableName,
+        'model_id': modelId,
+        'update_content': updateContent,
+      },
+      startViewParams: null,
+      endViewParams: null,
+      closeViewAfterSeconds: null,
+    );
+    if (!updateRowResult.hasError) {
+      return SingleResult<T>.empty().setSuccess(
+        setResult: () async => ModelManager.createEmptyModelByTableName(modelTableName)..setRowJson = updateRowResult.result!,
+      );
+    } else {
+      return SingleResult<T>.empty().setError(exception: updateRowResult.exception, stackTrace: updateRowResult.stackTrace);
+    }
+  }
+
+  /// 查看 [SqliteCurd.deleteRow] 注释
+  Future<SingleResult<bool>> deleteRow({
+    required String modelTableName,
+    required int? modelId,
+  }) async {
+    final SingleResult<bool> deleteRowResult = await DataTransferManager.instance.execute<Map<String, Object?>, bool>(
+      executeForWhichEngine: EngineEntryName.DATA_CENTER,
+      operationIdIfEngineFirstFrameInitialized: OExecute_FlutterSend.SQLITE_DELETE_ROW,
+      operationData: <String, Object?>{
+        'model_table_name': modelTableName,
+        'model_id': modelId,
+      },
+      startViewParams: null,
+      endViewParams: null,
+      closeViewAfterSeconds: null,
+    );
+    if (!deleteRowResult.hasError) {
+      if (deleteRowResult.result!) {
+        return SingleResult<bool>.empty().setSuccess(setResult: () async => deleteRowResult.result!);
+      } else {
+        return SingleResult<bool>.empty().setError(exception: Exception('result 不为 true！'), stackTrace: null);
+      }
+    } else {
+      return SingleResult<bool>.empty().setError(exception: deleteRowResult.exception, stackTrace: deleteRowResult.stackTrace);
     }
   }
 }

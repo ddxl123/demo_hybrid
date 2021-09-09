@@ -22,6 +22,7 @@ abstract class ModelCreator {
         },
       },
     );
+    modelType.addAll(<String, bool>{currentTableName: isLocal});
   }
 
   String get currentTableName {
@@ -39,6 +40,8 @@ abstract class ModelCreator {
     // 去掉多余的前缀下划线。
     return fina.substring(1, fina.length);
   }
+
+  bool get isLocal;
 
   List<FieldCreator> get fields;
 

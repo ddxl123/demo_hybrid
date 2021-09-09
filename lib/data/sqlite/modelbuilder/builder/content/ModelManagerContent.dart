@@ -13,6 +13,7 @@ class ModelManagerContent {
     ${importContent()}
     class ModelManager {
       ${createEmptyModelByTableNameContent()}
+      ${modelTypesContent()}
     }
     ''';
   }
@@ -29,7 +30,6 @@ class ModelManagerContent {
     $all
     ''';
   }
-
 
   // ============================================================================
   String createEmptyModelByTableNameContent() {
@@ -51,4 +51,23 @@ class ModelManagerContent {
     ''';
   }
 
+// ============================================================================
+  String modelTypesContent() {
+    String typeContent = '';
+    for (int i = 0; i < modelType.length; i++) {
+      typeContent += '''
+      case '${modelType.keys.elementAt(i)}':
+        return ${modelType.values.elementAt(i)};
+      ''';
+    }
+    return '''
+  static bool isLocal(String tableName) {
+    switch (tableName) {
+$typeContent
+      default:
+        throw 'unknown tableName: ' + tableName;
+    }
+  }
+    ''';
+  }
 }

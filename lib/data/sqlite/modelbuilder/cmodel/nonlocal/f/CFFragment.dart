@@ -19,4 +19,7 @@ class CFFragment extends ModelCreator {
         ForeignKeyUuidField(fieldName: 'rule_uuid', foreignKey: ForeignKeyCreator(CFRule(), false)),
         NormalField(fieldName: 'title', sqliteTypes: <String>[SqliteType.TEXT], dartType: DartType.STRING), // 20
       ];
+
+  @override
+  bool get isLocal => false;
 }

@@ -15,4 +15,7 @@ class CFRule extends ModelCreator {
         ForeignKeyUuidField(fieldName: 'node_uuid', foreignKey: ForeignKeyCreator(CPnRule(), true)),
         NormalField(fieldName: 'title', sqliteTypes: <String>[SqliteType.TEXT], dartType: DartType.STRING), // 20
       ];
+
+  @override
+  bool get isLocal => false;
 }

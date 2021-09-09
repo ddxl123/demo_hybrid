@@ -1,8 +1,11 @@
 /// 模型名称、字段。eg. {"table_name":{"field1":['TEXT', 'String']}}
-Map<String, Map<String, List<String>>> modelFields =
-    <String, Map<String, List<String>>>{};
+Map<String, Map<String, List<String>>> modelFields = <String, Map<String, List<String>>>{};
 
 // ===============================================================================
+
+/// 模型类型。
+Map<String, bool> modelType = <String, bool>{};
+
 // ===============================================================================
 
 /// 表的外键所指向的外表字段。
@@ -16,8 +19,7 @@ Map<String, Map<String, List<String>>> modelFields =
 /// xx_aiid 和 xx_uuid 会合并成 xx。
 ///
 /// 由于指向的表的 column 始终为 id/uuid/aiid ，因此无需设置 column。
-Map<String, Map<String, String>> foreignKeyBelongsToForTwo =
-    <String, Map<String, String>>{};
+Map<String, Map<String, String>> foreignKeyBelongsToForTwo = <String, Map<String, String>>{};
 
 /// 表的外键所指向的外表字段。
 ///
@@ -30,8 +32,7 @@ Map<String, Map<String, String>> foreignKeyBelongsToForTwo =
 /// xx_id 会被去掉后缀变成 xx。
 ///
 /// 由于指向的表的 column 始终为 id/uuid/aiid ，因此无需设置 column。
-Map<String, Map<String, String>> foreignKeyBelongsToForSingle =
-    <String, Map<String, String>>{};
+Map<String, Map<String, String>> foreignKeyBelongsToForSingle = <String, Map<String, String>>{};
 
 // ===============================================================================
 
@@ -81,5 +82,4 @@ Map<String, Set<String>> deleteManyForTwo = <String, Set<String>>{};
 /// xx_id 会被去掉后缀变成 xx。
 Map<String, Set<String>> deleteManyForSingle = <String, Set<String>>{};
 
-// ===============================================================================
 // ===============================================================================

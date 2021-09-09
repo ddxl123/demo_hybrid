@@ -1,5 +1,3 @@
-
-
 import 'package:hybrid/data/sqlite/modelbuilder/builder/Type.dart';
 import 'package:hybrid/data/sqlite/modelbuilder/builder/creator/FieldCreator.dart';
 import 'package:hybrid/data/sqlite/modelbuilder/builder/creator/ForeignKeyCreator.dart';
@@ -20,4 +18,7 @@ class CFComplete extends ModelCreator {
         ForeignKeyUuidField(fieldName: 'rule_uuid', foreignKey: ForeignKeyCreator(CFRule(), false)),
         NormalField(fieldName: 'title', sqliteTypes: <String>[SqliteType.TEXT], dartType: DartType.STRING), // 20
       ];
+
+  @override
+  bool get isLocal => false;
 }

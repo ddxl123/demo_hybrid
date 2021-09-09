@@ -251,24 +251,36 @@ class SqliteCurd {
   }
 
   /// 查看 [_toInsertRow] 注释。
+  ///
+  /// 会自动根据 [ModelManager.isLocal] 进行判断是使用原生非原生。
   static Future<SingleResult<T>> insertRow<T extends ModelBase>({
     required T model,
     required TransactionMark? transactionMark,
   }) async {
     final SingleResult<T> insertRowResult = SingleResult<T>.empty();
     try {
+      Future<void> handle(TransactionMark txnM) async {
+        if (ModelManager.isLocal(model.tableName)) {
+          // 注意用事务进行插入
+          final int rowId = await txnM.transaction.insert(model.tableName, model.getRowJson);
+          model.getRowJson['id'] = rowId;
+        } else {
+          await _toInsertRow(model: model, transactionMark: txnM);
+        }
+      }
+
       if (transactionMark == null) {
         // 开始事务。
-        final T newModel = await db.transaction<T>(
+        await db.transaction<void>(
           (Transaction txn) async {
-            return await _toInsertRow(model: model, transactionMark: TransactionMark(txn));
+            await handle(TransactionMark(txn));
           },
         );
-        await insertRowResult.setSuccess(setResult: () async => newModel);
+        await insertRowResult.setSuccess(setResult: () async => model);
       } else {
         // 继续事务。
-        final T newModel = await _toInsertRow(model: model, transactionMark: transactionMark);
-        await insertRowResult.setSuccess(setResult: () async => newModel);
+        await handle(transactionMark);
+        await insertRowResult.setSuccess(setResult: () async => model);
       }
     } catch (e, st) {
       if (transactionMark != null) {
@@ -280,7 +292,7 @@ class SqliteCurd {
     return insertRowResult;
   }
 
-  /// {@macro RSqliteCurd.updateRow}
+  /// 查看 [_toUpdateRow] 注释。
   ///
   /// 当 [transactionMark] 不为空时，内部的异常会 rethrow。
   ///
@@ -293,17 +305,34 @@ class SqliteCurd {
   }) async {
     final SingleResult<T> updateRowResult = SingleResult<T>.empty();
     try {
+      Future<T> handle(TransactionMark txnM) async {
+        if (ModelManager.isLocal(modelTableName)) {
+          await txnM.transaction.update(modelTableName, updateContent, where: 'id = ?', whereArgs: <Object?>[modelId]);
+          final SingleResult<List<T>> queryRowsAsModelsResult = await queryRowsAsModels<T>(
+            connectTransaction: txnM.transaction,
+            queryWrapper: QueryWrapper(tableName: modelTableName, where: 'id = ?', whereArgs: <Object?>[modelId]),
+          );
+          if (!queryRowsAsModelsResult.hasError) {
+            return queryRowsAsModelsResult.result!.first;
+          } else {
+            throw queryRowsAsModelsResult.exception!;
+          }
+        } else {
+          return await _toUpdateRow(modelTableName: modelTableName, modelId: modelId, updateContent: updateContent, transactionMark: txnM);
+        }
+      }
+
       if (transactionMark == null) {
         // 开始事务。
         final T newModel = await db.transaction<T>(
           (Transaction txn) async {
-            return await _toUpdateRow(modelTableName: modelTableName, modelId: modelId, updateContent: updateContent, transactionMark: TransactionMark(txn));
+            return await handle(TransactionMark(txn));
           },
         );
         await updateRowResult.setSuccess(setResult: () async => newModel);
       } else {
         // 继续事务。
-        final T newModel = await _toUpdateRow(modelTableName: modelTableName, modelId: modelId, updateContent: updateContent, transactionMark: transactionMark);
+        final T newModel = await handle(transactionMark);
         await updateRowResult.setSuccess(setResult: () async => newModel);
       }
     } catch (e, st) {
@@ -330,17 +359,28 @@ class SqliteCurd {
   }) async {
     final SingleResult<bool> deleteRowResult = SingleResult<bool>.empty();
     try {
+      Future<void> handle(TransactionMark txnM) async {
+        if (ModelManager.isLocal(modelTableName)) {
+          final int deleteCount = await txnM.transaction.delete(modelTableName, where: 'id = ?', whereArgs: <Object?>[modelId]);
+          if (deleteCount != 1) {
+            throw '删除数量异常！$deleteCount';
+          }
+        } else {
+          await _toDeleteRow(modelTableName: modelTableName, modelId: modelId, transactionMark: txnM);
+        }
+      }
+
       if (transactionMark == null) {
         // 开始事务。
         await db.transaction<void>(
           (Transaction txn) async {
-            await _toDeleteRow(modelTableName: modelTableName, modelId: modelId, transactionMark: TransactionMark(txn));
+            await handle(TransactionMark(txn));
           },
         );
         await deleteRowResult.setSuccess(setResult: () async => true);
       } else {
         // 继续事务。
-        await _toDeleteRow(modelTableName: modelTableName, modelId: modelId, transactionMark: transactionMark);
+        await handle(transactionMark);
         await deleteRowResult.setSuccess(setResult: () async => true);
       }
     } catch (e, st) {
@@ -372,6 +412,7 @@ class SqliteCurd {
   /// - [T]、[model] 要插入的模型。
   ///
   /// - [return] 返回插入的模型（带有插入后 sqlite 生成的 id），未插入前的 [model] 不带有 id。
+  /// 要插入的模型与返回的模型是一个对象。
   static Future<T> _toInsertRow<T extends ModelBase>({
     required TransactionMark transactionMark,
     required T model,
@@ -555,7 +596,10 @@ class SqliteCurd {
     }
 
     // 无论 CURD 都需要删除本体
-    await transactionMark.transaction.delete(modelTableName, where: 'id = ?', whereArgs: <Object?>[modelId]);
+    final int deleteCount = await transactionMark.transaction.delete(modelTableName, where: 'id = ?', whereArgs: <Object?>[modelId]);
+    if (deleteCount != 1) {
+      throw '删除数量异常！$deleteCount';
+    }
 
     // R
     if (checkResult == CheckResult.uploadModelIsNotExist) {
@@ -688,7 +732,10 @@ class SqliteCurd {
   ///
 
   /// 筛选出需要同时删除的 关联该表的其他表对应的 row。
-  static Future<void> _toDeleteMany<T extends ModelBase>({required T model, required TransactionMark transactionMark}) async {
+  static Future<void> _toDeleteMany<T extends ModelBase>({
+    required T model,
+    required TransactionMark transactionMark,
+  }) async {
     // for single
     for (int i = 0; i < model.getDeleteManyForSingle().length; i++) {
       final List<String> fk = model.getDeleteManyForSingle().elementAt(i).split('.');

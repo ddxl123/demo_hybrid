@@ -12,4 +12,7 @@ class CUser extends ModelCreator {
         NormalField(fieldName: 'token', sqliteTypes: <String>[SqliteType.TEXT], dartType: DartType.STRING),
         NormalField(fieldName: 'is_downloaded_init_data', sqliteTypes: <String>[SqliteType.INTEGER], dartType: DartType.INT),
       ];
+
+  @override
+  bool get isLocal => false;
 }

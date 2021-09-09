@@ -44,5 +44,35 @@
       }
     }
     
+        static bool isLocal(String tableName) {
+    switch (tableName) {
+      case 'app_version_info':
+        return true;
+            case 'upload':
+        return true;
+            case 'user':
+        return false;
+            case 'pn_rule':
+        return false;
+            case 'f_rule':
+        return false;
+            case 'pn_complete':
+        return false;
+            case 'pn_fragment':
+        return false;
+            case 'f_fragment':
+        return false;
+            case 'f_complete':
+        return false;
+            case 'pn_memory':
+        return false;
+            case 'f_memory':
+        return false;
+      
+      default:
+        throw 'unknown tableName: ' + tableName;
+    }
+  }
+    
     }
     

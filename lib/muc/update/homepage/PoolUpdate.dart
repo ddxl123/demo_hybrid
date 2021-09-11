@@ -1,14 +1,16 @@
-
 import 'package:get/get.dart';
 import 'package:hybrid/data/sqlite/mmodel/MPnComplete.dart';
 import 'package:hybrid/data/sqlite/mmodel/MPnFragment.dart';
 import 'package:hybrid/data/sqlite/mmodel/MPnMemory.dart';
 import 'package:hybrid/data/sqlite/mmodel/MPnRule.dart';
 import 'package:hybrid/data/sqlite/mmodel/ModelBase.dart';
-import 'package:hybrid/data/sqlite/mmodel/ModelManager.dart';
+import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
+import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
 import 'package:hybrid/muc/getcontroller/homepage/HomePageGetController.dart';
 import 'package:hybrid/muc/getcontroller/homepage/PoolGetController.dart';
+import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sbfreebox/SbFreeBoxController.dart';
+import 'package:hybrid/util/sblogger/SbLogger.dart';
 
 import '../UpdateBase.dart';
 
@@ -54,7 +56,21 @@ class PoolUpdate extends UpdateBase<PoolGetController> {
 
   Future<List<PoolNodeModel>> queryAll(PoolType poolType) async {
     Future<List<ModelBase>> query(String tableName) async {
-      return await ModelManager.queryRowsAsModels(connectTransaction: null, tableName: tableName);
+      final SingleResult<List<ModelBase>> queryResult =
+          await DataTransferManager.instance.executeSqliteCurd.queryRowsAsModels(QueryWrapper(tableName: tableName));
+      if (!queryResult.hasError) {
+        return queryResult.result!;
+      } else {
+        SbLogger(
+          code: null,
+          viewMessage: '加载数据失败！',
+          data: null,
+          description: Description('读取数据时发生异常'),
+          exception: queryResult.exception,
+          stackTrace: queryResult.stackTrace,
+        ).withToast(false);
+        return <ModelBase>[];
+      }
     }
 
     @override

@@ -1,10 +1,10 @@
 void main() {
-  a<TestClass>();
+  a();
 }
 
-void a<T>() {
-  print(T.runtimeType);
-  print(T.toString());
+void a() {
+  Object? o = <String,Object?>{};
+  if(o is Map){
+    print(o);
+  }
 }
-
-class TestClass {}

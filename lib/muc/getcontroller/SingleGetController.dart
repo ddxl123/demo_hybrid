@@ -14,5 +14,5 @@ class SingleGetController extends GetControllerBase<SingleGetController, SingleU
 }
 
 class Tag {
-  String MAIN_ENTRY_INIT_FLOATING_WINDOW = 'main_entry_init_floating_window';
+  String MAIN_ENTRY_INIT = 'main_entry_init';
 }

@@ -5,11 +5,42 @@ import 'package:hybrid/engine/constant/OExecute.dart';
 import 'package:hybrid/engine/datatransfer/DataCenterDataTransfer.dart';
 import 'package:hybrid/engine/datatransfer/root/BaseDataTransfer.dart';
 import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
+import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
 import 'engine/datatransfer/MainDataTransfer.dart';
 import 'engine/entry/data_center/DataCenterEntry.dart';
 import 'engine/entry/main/MainEntry.dart';
+
+bool hadSentInitFirstFrame = false;
+
+Future<void> sendInitFirstFrame() async {
+  if (hadSentInitFirstFrame) {
+    return;
+  }
+  hadSentInitFirstFrame = true;
+
+  final SingleResult<bool> result = await DataTransferManager.instance.executeToNative<void, bool>(
+    operationId: OExecute_FlutterSend.SET_FIRST_FRAME_INITIALIZED,
+    data: null,
+    resultDataCast: null,
+  );
+  if (!result.hasError) {
+    if (!result.result!) {
+      throw Exception('data 不为 true！');
+    }
+  } else {
+    // TODO: 失败的时候要如何处理？
+    SbLogger(
+      code: null,
+      viewMessage: '窗口初始化异常！',
+      data: null,
+      description: Description('第一帧初始化异常！'),
+      exception: result.exception,
+      stackTrace: result.stackTrace,
+    ).withRecord();
+  }
+}
 
 void initBeforeRun(String entryName, BaseDataTransfer dataTransfer()) {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,28 +63,7 @@ class _EntryInitWidgetState extends State<EntryInitWidget> {
     super.initState();
     WidgetsBinding.instance!.addPostFrameCallback(
       (Duration timeStamp) async {
-        final MessageResult<bool> result = await DataTransferManager.instance.executeToNative<void, bool>(
-          operationId: OExecute_FlutterSend.SET_FIRST_FRAME_INITIALIZED,
-          data: null,
-        );
-        await result.handle(
-          onSuccess: (bool data) async {
-            if (!data) {
-              throw Exception('data 不为 true！');
-            }
-          },
-          onError: (Object? exception, StackTrace? stackTrace) async {
-            // TODO: 失败的时候要如何处理？
-            SbLogger(
-              code: null,
-              viewMessage: '窗口初始化异常！',
-              data: null,
-              description: Description('第一帧初始化异常！'),
-              exception: exception,
-              stackTrace: stackTrace,
-            ).withRecord();
-          },
-        );
+        sendInitFirstFrame();
       },
     );
   }
@@ -87,5 +97,5 @@ void main() {
 @pragma('vm:entry-point')
 void data_center() {
   initBeforeRun('data_center', () => DataCenterDataTransfer());
-  runApp(EntryInitWidget(DataCenterEntry()));
+  runApp(DataCenterEntry());
 }

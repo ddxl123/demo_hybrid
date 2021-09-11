@@ -141,45 +141,6 @@ class QueryWrapper {
 class SqliteCurd {
   ///
 
-  /// 检查是否存在用户数据、初始化数据是否已被下载。
-  ///
-  /// [onSuccess]：全部检查通过。
-  ///
-  /// [onNotPass]：未通过。
-  ///
-  /// [onError]：发生了异常。
-  static Future<void> checkUser({
-    required Future<void> onSuccess(),
-    required Future<void> onNotPass(),
-    required Future<void> onError(Object? exception, StackTrace? stackTrace),
-    required bool isCheckOnly,
-  }) async {
-    final SingleResult<List<MUser>> queryRowsAsModelsResult = await queryRowsAsModels<MUser>(
-      connectTransaction: null,
-      queryWrapper: QueryWrapper(tableName: MUser().tableName),
-    );
-    if (!queryRowsAsModelsResult.hasError) {
-      final List<MUser> users = queryRowsAsModelsResult.result!;
-      if (users.isEmpty) {
-        if (!isCheckOnly) {
-          // TODO: 弹出登陆页面引擎。
-        }
-        await onNotPass();
-      } else {
-        if (users.first.get_is_downloaded_init_data != 1) {
-          if (!isCheckOnly) {
-            // TODO: 弹出初始化数据下载页面引擎。
-          }
-          await onNotPass();
-        } else {
-          await onSuccess();
-        }
-      }
-    } else {
-      await onError(queryRowsAsModelsResult.exception, queryRowsAsModelsResult.stackTrace);
-    }
-  }
-
   /// 参数除了 connectTransaction，其他的与 db.query 相同
   static Future<SingleResult<List<Map<String, Object?>>>> queryRowsAsJsons({
     required QueryWrapper queryWrapper,

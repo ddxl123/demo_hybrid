@@ -1,9 +1,9 @@
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hybrid/data/sqlite/mmodel/MFRule.dart';
 import 'package:hybrid/data/sqlite/mmodel/MPnRule.dart';
-import 'package:hybrid/data/sqlite/mmodel/ModelManager.dart';
+import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
+import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
 import 'package:hybrid/muc/getcontroller/homepage/PoolGetController.dart';
 import 'package:hybrid/muc/view/homepage/node/nodesheet/longpressedfragment/LongPressedFragment.dart';
 import 'package:hybrid/muc/view/homepage/node/nodesheet/more/AbstractMoreRoute.dart';
@@ -28,19 +28,31 @@ class NodeSheetRouteForRule extends AbstractNodeSheetRoute<MFRule> {
       mark.value = 0;
     }
     final MFRule forKey = MFRule();
-    final List<MFRule> models = await ModelManager.queryRowsAsModels(
-      connectTransaction: null,
-      tableName: forKey.tableName,
-      limit: limit,
-      offset: mark.value,
-      byTwoId: TwoId(
-        uuidKey: forKey.node_uuid,
-        aiidKey: forKey.node_aiid,
-        uuidValue: poolNodeModel.getCurrentNodeModel().get_uuid,
-        aiidValue: poolNodeModel.getCurrentNodeModel().get_aiid,
+    final SingleResult<List<MFRule>> queryResult = await DataTransferManager.instance.executeSqliteCurd.queryRowsAsModels<MFRule>(
+      QueryWrapper(
+        tableName: forKey.tableName,
+        limit: limit,
+        offset: mark.value,
+        byTwoId: TwoId(
+          uuidKey: forKey.node_uuid,
+          aiidKey: forKey.node_aiid,
+          uuidValue: poolNodeModel.getCurrentNodeModel().get_uuid,
+          aiidValue: poolNodeModel.getCurrentNodeModel().get_aiid,
+        ),
       ),
     );
-    bodyData.addAll(models);
+    if (!queryResult.hasError) {
+      bodyData.addAll(queryResult.result!);
+    } else {
+      SbLogger(
+        code: null,
+        viewMessage: '获取失败！',
+        data: null,
+        description: null,
+        exception: queryResult.exception,
+        stackTrace: queryResult.stackTrace,
+      );
+    }
   }
 
   @override

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hybrid/data/sqlite/mmodel/ModelBase.dart';
-import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
+import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
 import 'package:hybrid/muc/view/homepage/node/nodesheet/entry/AbstractNodeSheetRoute.dart';
 import 'package:hybrid/muc/view/homepage/poolentry/AbstractPoolEntry.dart';
 import 'package:hybrid/util/SbHelper.dart';
@@ -53,17 +53,19 @@ abstract class AbstractMoreRoute<FDM extends ModelBase> extends AbstractPoolEntr
       popResult,
       (SbPopResult quickPopResult) async {
         if (quickPopResult.popResultSelect == PopResultSelect.one) {
-          await SqliteCurd.insertRow<FDM>(
-            model: insertModel,
-            transactionMark: null,
-            onSuccess: (FDM newModel) async {
-              fatherRoute.sheetPageController.bodyData.add(newModel);
-            },
-            onError: (Object? exception, StackTrace? stackTrace) async {
-              SbLogger(code: null, viewMessage: '添加失败！', data: null, description: Description('添加失败！'), exception: exception, stackTrace: stackTrace);
-            },
-          );
-
+          final SingleResult<FDM> insertResult = await DataTransferManager.instance.executeSqliteCurd.insertRow(insertModel);
+          if (!insertResult.hasError) {
+            fatherRoute.sheetPageController.bodyData.add(insertResult.result!);
+          } else {
+            SbLogger(
+              code: null,
+              viewMessage: '添加失败！',
+              data: null,
+              description: Description('添加失败！'),
+              exception: insertResult.exception,
+              stackTrace: insertResult.stackTrace,
+            );
+          }
           return true;
         }
         return false;

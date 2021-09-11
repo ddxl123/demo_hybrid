@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hybrid/util/sblogger/SbLogger.dart';
 
 import 'AppInitPage.dart';
 
@@ -9,17 +8,6 @@ class DataCenterEntry extends StatefulWidget {
 }
 
 class _DataCenterEntryState extends State<DataCenterEntry> {
-  @override
-  void initState() {
-    super.initState();
-    SbLogger(code: null, viewMessage: null, data: null, description: Description('DataCenterEntry initState'), exception: null, stackTrace: null);
-    WidgetsBinding.instance!.addPostFrameCallback(
-      (Duration timeStamp) {
-
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

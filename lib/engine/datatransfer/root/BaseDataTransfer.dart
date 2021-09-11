@@ -40,7 +40,7 @@ abstract class BaseDataTransfer {
           final Map<Object?, Object?> messageMap = message! as Map<Object?, Object?>;
           return await listenerMessageFormOtherFlutterEngine(messageMap['operation_id']! as String, messageMap['data']);
         } catch (e, st) {
-          SbLogger(code: null, viewMessage: null, data: null, description: Description('接收者发生了异常！'), exception: e, stackTrace: st);
+          SbLogger(code: null, viewMessage: null, data: null, description: Description('接收的引擎发生了异常！'), exception: e, stackTrace: st);
           return null;
         }
       },

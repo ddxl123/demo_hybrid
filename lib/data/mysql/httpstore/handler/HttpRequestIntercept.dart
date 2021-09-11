@@ -1,6 +1,7 @@
 import 'package:hybrid/data/mysql/constant/PathConstant.dart';
 import 'package:hybrid/data/sqlite/mmodel/MUser.dart';
 import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
+import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
 import 'package:hybrid/util/SbHelper.dart';
 
 import 'HttpRequest.dart';
@@ -18,13 +19,16 @@ class HttpRequestIntercept<REQVO extends RequestDataVO, REQPVO extends RequestPa
     }
     final String must = httpRequest.path.split('/')[0];
     if (must == PathConstant.JWT) {
-      final SingleResult<List<MUser>> usersResult = await SqliteCurd.queryRowsAsModels<MUser>(connectTransaction: null, tableName: MUser().tableName);
-      if (usersResult.hasError) {
+      final SingleResult<List<MUser>> queryResult = await DataTransferManager.instance.executeSqliteCurd.queryRowsAsModels<MUser>(
+        QueryWrapper(tableName: MUser().tableName),
+      );
+      if (!queryResult.hasError) {
+        httpRequest.requestHeaders = <String, Object?>{
+          'authorization': 'bearer ' + (queryResult.result!.isEmpty ? '' : (queryResult.result!.first.get_token ?? ''))
+        };
+      } else {
         throw '查询 user 数据时发生了异常！';
       }
-      httpRequest.requestHeaders = <String, Object?>{
-        'authorization': 'bearer ' + (usersResult.result!.isEmpty ? '' : (usersResult.result!.first.get_token ?? ''))
-      };
     } else if (must == PathConstant.NO_JWT) {
     } else {
       throw 'Path is irregular! "${httpRequest.path}"';

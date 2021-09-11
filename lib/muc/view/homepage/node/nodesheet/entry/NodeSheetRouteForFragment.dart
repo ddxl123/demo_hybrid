@@ -1,8 +1,8 @@
-
 import 'package:flutter/material.dart';
 import 'package:hybrid/data/sqlite/mmodel/MFFragment.dart';
 import 'package:hybrid/data/sqlite/mmodel/MPnFragment.dart';
-import 'package:hybrid/data/sqlite/mmodel/ModelManager.dart';
+import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
+import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
 import 'package:hybrid/muc/getcontroller/homepage/PoolGetController.dart';
 import 'package:hybrid/muc/view/homepage/node/nodesheet/fragment/FragmentPage.dart';
 import 'package:hybrid/muc/view/homepage/node/nodesheet/longpressedfragment/LongPressedFragment.dart';
@@ -29,19 +29,31 @@ class NodeSheetRouteForFragment extends AbstractNodeSheetRoute<MFFragment> {
     }
 
     final MFFragment forKey = MFFragment();
-    final List<MFFragment> models = await ModelManager.queryRowsAsModels(
-      connectTransaction: null,
-      tableName: forKey.tableName,
-      limit: limit,
-      offset: mark.value,
-      byTwoId: TwoId(
-        uuidKey: forKey.node_uuid,
-        aiidKey: forKey.node_aiid,
-        uuidValue: poolNodeModel.getCurrentNodeModel().get_uuid,
-        aiidValue: poolNodeModel.getCurrentNodeModel().get_aiid,
+    final SingleResult<List<MFFragment>> queryResult = await DataTransferManager.instance.executeSqliteCurd.queryRowsAsModels<MFFragment>(
+      QueryWrapper(
+        tableName: forKey.tableName,
+        limit: limit,
+        offset: mark.value,
+        byTwoId: TwoId(
+          uuidKey: forKey.node_uuid,
+          aiidKey: forKey.node_aiid,
+          uuidValue: poolNodeModel.getCurrentNodeModel().get_uuid,
+          aiidValue: poolNodeModel.getCurrentNodeModel().get_aiid,
+        ),
       ),
     );
-    bodyData.addAll(models);
+    if (!queryResult.hasError) {
+      bodyData.addAll(queryResult.result!);
+    } else {
+      SbLogger(
+        code: null,
+        viewMessage: '获取失败！',
+        data: null,
+        description: null,
+        exception: queryResult.exception,
+        stackTrace: queryResult.stackTrace,
+      );
+    }
   }
 
   @override

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:hybrid/data/sqlite/mmodel/MUser.dart';
 import 'package:hybrid/data/sqlite/mmodel/ModelBase.dart';
 import 'package:hybrid/data/sqlite/mmodel/ModelManager.dart';
 import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
@@ -64,10 +65,13 @@ class DataTransferManager {
   ///
   /// [data] 发送的附带数据。
   ///
+  /// [resultDataCast] 将原始类型手动转化为 [R]，若为空，则自动转化。
+  ///
   Future<SingleResult<R>> _sendMessageToOtherEngine<S, R extends Object>({
     required String sendToWhichEngine,
     required String operationId,
     required S data,
+    required R resultDataCast(Object resultData)?,
   }) async {
     final SingleResult<R> sendResult = SingleResult<R>.empty();
     try {
@@ -76,8 +80,8 @@ class DataTransferManager {
         'operation_id': operationId,
         'data': data,
       };
-      final Object? resultObj = await currentDataTransfer.basicMessageChannel.send(messageMap);
-      if (resultObj == null) {
+      final Object? resultData = await currentDataTransfer.basicMessageChannel.send(messageMap);
+      if (resultData == null) {
         throw Exception('''
                 
         来自原生的响应数据为 null！
@@ -91,7 +95,7 @@ class DataTransferManager {
             2) 未对 operationId: $operationId 进行处理。
         ''');
       } else {
-        await sendResult.setSuccess(setResult: () async => resultObj as R);
+        await sendResult.setSuccess(setResult: () async => resultDataCast == null ? resultData as R : resultDataCast(resultData));
       }
     } catch (e, st) {
       sendResult.setError(exception: e, stackTrace: st);
@@ -100,12 +104,13 @@ class DataTransferManager {
   }
 
   /// 检查对应引擎的第一帧是否已被初始化完成。
-  Future<SingleResult<bool>> _isPushedEngineFirstFrameInitialized() async {
+  Future<SingleResult<bool>> _isPushedEngineFirstFrameInitialized(String whichEngine) async {
     final Future<SingleResult<bool>> Function() send = () async {
-      return await _sendMessageToOtherEngine<void, bool>(
+      return await _sendMessageToOtherEngine<String, bool>(
         sendToWhichEngine: EngineEntryName.NATIVE,
         operationId: OExecute_FlutterSend.IS_FIRST_FRAME_INITIALIZED,
-        data: null,
+        data: whichEngine,
+        resultDataCast: null,
       );
     };
 
@@ -113,14 +118,14 @@ class DataTransferManager {
     const Duration delayed = Duration(milliseconds: 500);
     for (int i = 0; i < 20; i++) {
       final SingleResult<bool> sendResult = await send();
-      if (sendResult.hasError) {
-        return SingleResult<bool>.empty().setError(exception: sendResult.exception, stackTrace: sendResult.stackTrace);
-      } else {
+      if (!sendResult.hasError) {
         if (sendResult.result!) {
           return await SingleResult<bool>.empty().setSuccess(setResult: () async => true);
         } else {
           await Future<void>.delayed(delayed);
         }
+      } else {
+        return SingleResult<bool>.empty().setError(exception: sendResult.exception, stackTrace: sendResult.stackTrace);
       }
     }
     return await SingleResult<bool>.empty().setSuccess(setResult: () async => false);
@@ -134,6 +139,7 @@ class DataTransferManager {
     required ViewParams? startViewParams,
     required ViewParams? endViewParams,
     required int? closeViewAfterSeconds,
+    required R resultDataCast(Object resultData)?,
   }) async {
     final SingleResult<bool> viewResult = await _sendMessageToOtherEngine<Map<String, Object?>, bool>(
       sendToWhichEngine: EngineEntryName.NATIVE,
@@ -144,6 +150,7 @@ class DataTransferManager {
         'end_view_params': endViewParams?.toJson(),
         'close_view_after_seconds': closeViewAfterSeconds,
       },
+      resultDataCast: null,
     );
     if (!viewResult.hasError) {
       // view set 完成。
@@ -153,6 +160,7 @@ class DataTransferManager {
             sendToWhichEngine: executeForWhichEngine,
             operationId: operationIdIfEngineFirstFrameInitialized,
             data: operationData,
+            resultDataCast: resultDataCast,
           );
           operationResult.cloneTo(executeResult);
         } else {
@@ -211,6 +219,7 @@ class DataTransferManager {
     required ViewParams? startViewParams,
     required ViewParams? endViewParams,
     required int? closeViewAfterSeconds,
+    required R resultDataCast(Object resultData)?,
   }) async {
     final SingleResult<R> executeResult = SingleResult<R>.empty();
 
@@ -223,15 +232,16 @@ class DataTransferManager {
       sendToWhichEngine: EngineEntryName.NATIVE,
       operationId: OExecute_FlutterSend.START_ENGINE,
       data: <String, Object?>{'start_which_engine': executeForWhichEngine},
+      resultDataCast: null,
     );
 
     if (!messageResult.hasError) {
       // 引擎已启动或已触发启动引擎，则得到 true。
       if (messageResult.result!) {
-        final SingleResult<bool> isInitializedResult = await _isPushedEngineFirstFrameInitialized();
+        final SingleResult<bool> isInitializedResult = await _isPushedEngineFirstFrameInitialized(executeForWhichEngine);
         if (!isInitializedResult.hasError) {
           if (isInitializedResult.result!) {
-            await _handleViewAndOperation(
+            await _handleViewAndOperation<S, R>(
               executeResult: executeResult,
               executeForWhichEngine: executeForWhichEngine,
               operationIdIfEngineFirstFrameInitialized: operationIdIfEngineFirstFrameInitialized,
@@ -239,6 +249,7 @@ class DataTransferManager {
               startViewParams: startViewParams,
               endViewParams: endViewParams,
               closeViewAfterSeconds: closeViewAfterSeconds,
+              resultDataCast: resultDataCast,
             );
           } else {
             executeResult.setError(exception: Exception('启动引擎后的第一帧初始化发生了异常！result 不为 true！'), stackTrace: null);
@@ -258,15 +269,35 @@ class DataTransferManager {
     return executeResult;
   }
 
-  Future<SingleResult<R>> executeToNative<S, R extends Object>({required String operationId, required S data}) async {
-    return await _sendMessageToOtherEngine<S, R>(sendToWhichEngine: EngineEntryName.NATIVE, operationId: operationId, data: data);
+  Future<SingleResult<R>> executeToNative<S, R extends Object>({
+    required String operationId,
+    required S data,
+    required R resultDataCast(Object resultData)?,
+  }) async {
+    return await _sendMessageToOtherEngine<S, R>(
+      sendToWhichEngine: EngineEntryName.NATIVE,
+      operationId: operationId,
+      data: data,
+      resultDataCast: resultDataCast,
+    );
   }
 
-  Future<SingleResult<R>> executeToMain<S, R extends Object>({required String operationId, required S data}) async {
-    return await _sendMessageToOtherEngine<S, R>(sendToWhichEngine: EngineEntryName.MAIN, operationId: operationId, data: data);
+  Future<SingleResult<R>> executeToMain<S, R extends Object>({
+    required String operationId,
+    required S data,
+    required R resultDataCast(Object resultData)?,
+  }) async {
+    return await _sendMessageToOtherEngine<S, R>(
+      sendToWhichEngine: EngineEntryName.MAIN,
+      operationId: operationId,
+      data: data,
+      resultDataCast: resultDataCast,
+    );
   }
 
   final ExecuteSqliteCurd executeSqliteCurd = ExecuteSqliteCurd();
+
+  final ExecuteSomething executeSomething = ExecuteSomething();
 }
 
 class ExecuteSqliteCurd {
@@ -282,9 +313,10 @@ class ExecuteSqliteCurd {
       startViewParams: null,
       endViewParams: null,
       closeViewAfterSeconds: null,
+      resultDataCast: (Object resultData) => (resultData as List<Object?>).cast<Map<String, Object?>>(),
     );
     if (!queryRowResult.hasError) {
-      return await SingleResult<List<Map<String, Object?>>>.empty().setSuccess(setResult: () async => queryRowResult.result!);
+      return await SingleResult<List<Map<String, Object?>>>.empty().setSuccess(setResult: () async => queryRowResult.result!.cast<Map<String, Object?>>());
     } else {
       return SingleResult<List<Map<String, Object?>>>.empty().setError(exception: queryRowResult.exception, stackTrace: queryRowResult.stackTrace);
     }
@@ -320,6 +352,7 @@ class ExecuteSqliteCurd {
       startViewParams: null,
       endViewParams: null,
       closeViewAfterSeconds: null,
+      resultDataCast: (Object resultData) => (resultData as Map<Object?, Object?>).cast<String, Object?>(),
     );
     if (!insertRowResult.hasError) {
       try {
@@ -351,6 +384,7 @@ class ExecuteSqliteCurd {
       startViewParams: null,
       endViewParams: null,
       closeViewAfterSeconds: null,
+      resultDataCast: (Object resultData) => (resultData as Map<Object?, Object?>).cast<String, Object?>(),
     );
     if (!updateRowResult.hasError) {
       return SingleResult<T>.empty().setSuccess(
@@ -376,6 +410,7 @@ class ExecuteSqliteCurd {
       startViewParams: null,
       endViewParams: null,
       closeViewAfterSeconds: null,
+      resultDataCast: null,
     );
     if (!deleteRowResult.hasError) {
       if (deleteRowResult.result!) {
@@ -385,6 +420,48 @@ class ExecuteSqliteCurd {
       }
     } else {
       return SingleResult<bool>.empty().setError(exception: deleteRowResult.exception, stackTrace: deleteRowResult.stackTrace);
+    }
+  }
+}
+
+class ExecuteSomething {
+  /// 检查是否存在用户数据、初始化数据是否已被下载。
+  ///
+  /// [onSuccess]：全部检查通过。
+  ///
+  /// [onNotPass]：未通过。
+  ///
+  /// [onError]：发生了异常。
+  ///
+  /// [isCheckOnly]：是否只检查，而不进行 push。
+  Future<void> checkUser({
+    required Future<void> onSuccess(),
+    required Future<void> onNotPass(),
+    required Future<void> onError(Object? exception, StackTrace? stackTrace),
+    required bool isCheckOnly,
+  }) async {
+    final SingleResult<List<MUser>> queryResult = await DataTransferManager.instance.executeSqliteCurd.queryRowsAsModels<MUser>(
+      QueryWrapper(tableName: MUser().tableName),
+    );
+    if (!queryResult.hasError) {
+      final List<MUser> users = queryResult.result!;
+      if (users.isEmpty) {
+        if (!isCheckOnly) {
+          // TODO: 弹出登陆页面引擎。
+        }
+        await onNotPass();
+      } else {
+        if (users.first.get_is_downloaded_init_data != 1) {
+          if (!isCheckOnly) {
+            // TODO: 弹出初始化数据下载页面引擎。
+          }
+          await onNotPass();
+        } else {
+          await onSuccess();
+        }
+      }
+    } else {
+      await onError(queryResult.exception, queryResult.stackTrace);
     }
   }
 }

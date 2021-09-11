@@ -10,7 +10,7 @@ class DataCenterDataTransfer extends BaseDataTransfer {
   Future<Object?> listenerMessageFormOtherFlutterEngine(String operationId, Object? data) async {
     switch (operationId) {
       case OExecute_FlutterSend.SQLITE_QUERY_ROW_AS_JSONS:
-        final Map<String, Object?> dataMap = data! as Map<String, Object?>;
+        final Map<String, Object?> dataMap = (data! as Map<Object?, Object?>).cast<String, Object?>();
         final SingleResult<List<Map<String, Object?>>> queryResult = await SqliteCurd.queryRowsAsJsons(
           queryWrapper: QueryWrapper.fromJson(dataMap),
           connectTransaction: null,
@@ -21,7 +21,7 @@ class DataCenterDataTransfer extends BaseDataTransfer {
           throw queryResult.exception!;
         }
       case OExecute_FlutterSend.SQLITE_INSERT_ROW:
-        final Map<String, Object?> dataMap = data! as Map<String, Object?>;
+        final Map<String, Object?> dataMap = (data! as Map<Object?, Object?>).cast<String, Object?>();
         final SingleResult<ModelBase> insertRowResult = await SqliteCurd.insertRow(
           model: ModelManager.createEmptyModelByTableName(dataMap['table_name']! as String)..setRowJson = dataMap['model_data']! as Map<String, Object?>,
           transactionMark: null,
@@ -32,7 +32,7 @@ class DataCenterDataTransfer extends BaseDataTransfer {
           throw insertRowResult.exception!;
         }
       case OExecute_FlutterSend.SQLITE_UPDATE_ROW:
-        final Map<String, Object?> dataMap = data! as Map<String, Object?>;
+        final Map<String, Object?> dataMap = (data! as Map<Object?, Object?>).cast<String, Object?>();
         final SingleResult<ModelBase> updateRowResult = await SqliteCurd.updateRow(
           modelTableName: dataMap['model_table_name']! as String,
           modelId: dataMap['model_id']! as int,
@@ -45,7 +45,7 @@ class DataCenterDataTransfer extends BaseDataTransfer {
           throw updateRowResult.exception!;
         }
       case OExecute_FlutterSend.SQLITE_DELETE_ROW:
-        final Map<String, Object?> dataMap = data! as Map<String, Object?>;
+        final Map<String, Object?> dataMap = (data! as Map<Object?, Object?>).cast<String, Object?>();
         final SingleResult<bool> deleteRowResult = await SqliteCurd.deleteRow(
           modelTableName: dataMap['model_table_name']! as String,
           modelId: dataMap['model_id']! as int,

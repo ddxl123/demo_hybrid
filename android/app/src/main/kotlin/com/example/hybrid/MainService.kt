@@ -23,8 +23,16 @@ class MainService : Service() {
     @RequiresApi(Build.VERSION_CODES.O)
     private fun keepForeground() {
         val channelOneId = packageName;
-        NotificationChannel(channelOneId, "Channel One", NotificationManager.IMPORTANCE_HIGH);
         val notification: Notification = Notification.Builder(this, channelOneId).build()
+        val notificationManager: NotificationManager =
+            getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(
+            NotificationChannel(
+                channelOneId,
+                "Channel One",
+                NotificationManager.IMPORTANCE_HIGH
+            )
+        );
         startForeground(1, notification)
     }
 

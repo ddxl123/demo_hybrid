@@ -60,7 +60,10 @@ class HttpCurd {
       }
 
       // 检测本地是否存在账号信息？
-      final SingleResult<List<MUser>> usersResult = await SqliteCurd.queryRowsAsModels<MUser>(connectTransaction: null, tableName: MUser().tableName);
+      final SingleResult<List<MUser>> usersResult = await SqliteCurd.queryRowsAsModels<MUser>(
+        connectTransaction: null,
+        queryWrapper: QueryWrapper(tableName: MUser().tableName),
+      );
       if (usersResult.hasError) {
         return await httpStore.setCancel(
           viewMessage: '检查账号时发生了异常！',

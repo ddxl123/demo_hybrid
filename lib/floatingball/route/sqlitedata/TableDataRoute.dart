@@ -2,8 +2,10 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:hybrid/data/sqlite/mmodel/ModelBase.dart';
-import 'package:hybrid/data/sqlite/mmodel/ModelManager.dart';
+import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
 import 'package:hybrid/data/sqlite/sqliter/SqliteTool.dart';
+import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
+import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sbfreebox/SbFreeBox.dart';
 import 'package:hybrid/util/sbfreebox/SbFreeBoxController.dart';
 import 'package:hybrid/util/sbfreebox/SbFreeBoxWidget.dart';
@@ -109,15 +111,20 @@ class _TableForTableDataState extends State<TableForTableData> {
   late final Future<void> _future = Future<void>(
     () async {
       header.addAll(await SqliteTool().getAllFieldBy(widget.tableName));
-      body.addAll(
-        await ModelManager.queryRowsAsModels(
-          tableName: widget.tableName,
-          where: null,
-          whereArgs: null,
-          connectTransaction: null,
-          returnWhere: (ModelBase model) {},
-        ),
-      );
+      final SingleResult<List<ModelBase>> queryResult =
+          await DataTransferManager.instance.executeSqliteCurd.queryRowsAsModels(QueryWrapper(tableName: widget.tableName));
+      if (!queryResult.hasError) {
+        body.addAll(queryResult.result!);
+      } else {
+        SbLogger(
+          code: null,
+          viewMessage: '获取失败！',
+          data: null,
+          description: null,
+          exception: queryResult.exception,
+          stackTrace: queryResult.stackTrace,
+        );
+      }
     },
   );
 

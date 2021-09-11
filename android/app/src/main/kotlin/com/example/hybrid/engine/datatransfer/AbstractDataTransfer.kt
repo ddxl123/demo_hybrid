@@ -101,7 +101,7 @@ abstract class AbstractDataTransfer(flutterEnginer: FlutterEnginer) {
             // 获取第一帧是否已被初始化完成。
             OExecute_FlutterSend.IS_FIRST_FRAME_INITIALIZED -> {
                 // 返回 true 第一帧已初始化成功，返回 false 第一帧未初始化。
-                flutterEnginer.hadFirstFrameInitialized
+                FlutterEngineManager.getFlutterEnginersByEntryPoint(data.checkType())!!.hadFirstFrameInitialized
             }
             // set view。
             OExecute_FlutterSend.SET_VIEW -> {

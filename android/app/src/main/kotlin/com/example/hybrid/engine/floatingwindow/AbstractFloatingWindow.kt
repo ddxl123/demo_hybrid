@@ -88,10 +88,8 @@ abstract class AbstractFloatingWindow(val flutterEnginer: FlutterEnginer) {
         endViewParams: ViewParams?,
         closeViewAfterSeconds: Int?
     ) {
-
-
         if (CheckPermission.checkFloatingWindow(false)) {
-            if (flutterView == null || !flutterView!!.isAttachedToWindow) {
+            if (flutterView == null) {
                 flutterView = FlutterView(
                     GlobalApplication.context,
                     FlutterSurfaceView(GlobalApplication.context, true)
@@ -106,12 +104,21 @@ abstract class AbstractFloatingWindow(val flutterEnginer: FlutterEnginer) {
                 layoutParams.alpha
             )
 
-            windowManager.addView(
-                flutterView!!,
-                if (startViewParams == null) setViewParams(lastViewParams) else setViewParams(
-                    startViewParams
+            if (flutterView!!.isAttachedToWindow) {
+                windowManager.updateViewLayout(
+                    flutterView!!,
+                    if (startViewParams == null) setViewParams(lastViewParams) else setViewParams(
+                        startViewParams
+                    )
                 )
-            )
+            } else {
+                windowManager.addView(
+                    flutterView!!,
+                    if (startViewParams == null) setViewParams(lastViewParams) else setViewParams(
+                        startViewParams
+                    )
+                )
+            }
 
             // 解决并发问题的处理。
             updateFlutterViewConcurrentCount += 1

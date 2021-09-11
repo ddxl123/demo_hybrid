@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
+import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
 import 'package:hybrid/muc/getcontroller/homepage/PoolGetController.dart';
 import 'package:hybrid/muc/view/homepage/poolentry/AbstractPoolEntry.dart';
 import 'package:hybrid/util/SbHelper.dart';
@@ -49,17 +49,22 @@ abstract class LongPressedNodeRouteBase extends AbstractPoolEntryRoute {
   Future<bool> whenPop(SbPopResult? popResult) async {
     return await quickWhenPop(popResult, (SbPopResult quickPopResult) async {
       if (quickPopResult.popResultSelect == PopResultSelect.one) {
-        await SqliteCurd.deleteRow(
+        final SingleResult<bool> deleteResult = await DataTransferManager.instance.executeSqliteCurd.deleteRow(
           modelTableName: poolNodeModel.getCurrentNodeModel().tableName,
           modelId: poolNodeModel.getCurrentNodeModel().get_id,
-          transactionMark: null,
-          onSuccess: () async {
-            Get.find<PoolGetController>().updateLogic.deleteNode(poolNodeModel);
-          },
-          onError: (Object? exception, StackTrace? stackTrace) async {
-            SbLogger(code: null, viewMessage: '删除失败！', data: null, description: Description('删除失败！'), exception: exception, stackTrace: stackTrace);
-          },
         );
+        if (!deleteResult.hasError) {
+          Get.find<PoolGetController>().updateLogic.deleteNode(poolNodeModel);
+        } else {
+          SbLogger(
+            code: null,
+            viewMessage: '删除失败！',
+            data: null,
+            description: Description('删除失败！'),
+            exception: deleteResult.exception,
+            stackTrace: deleteResult.stackTrace,
+          );
+        }
         return true;
       }
       return false;

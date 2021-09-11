@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hybrid/data/sqlite/mmodel/ModelBase.dart';
-import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
+import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
 import 'package:hybrid/muc/view/homepage/node/nodesheet/entry/AbstractNodeSheetRoute.dart';
 import 'package:hybrid/muc/view/homepage/poolentry/AbstractPoolEntry.dart';
 import 'package:hybrid/util/SbHelper.dart';
@@ -53,17 +53,22 @@ abstract class AbstractLongPressedFragment<FDM extends ModelBase> extends Abstra
       popResult,
       (SbPopResult quickPopResult) async {
         if (quickPopResult.popResultSelect == PopResultSelect.one) {
-          await SqliteCurd.deleteRow(
+          final SingleResult<bool> deleteResult = await DataTransferManager.instance.executeSqliteCurd.deleteRow(
             modelTableName: currentFragmentModel.tableName,
             modelId: currentFragmentModel.get_id,
-            transactionMark: null,
-            onSuccess: () async {
-              fatherRoute.sheetPageController.bodyData.remove(currentFragmentModel);
-            },
-            onError: (Object? exception, StackTrace? stackTrace) async {
-              SbLogger(code: null, viewMessage: '删除失败！', data: null, description: Description('删除失败！'), exception: exception, stackTrace: stackTrace);
-            },
           );
+          if (!deleteResult.hasError) {
+            fatherRoute.sheetPageController.bodyData.remove(currentFragmentModel);
+          } else {
+            SbLogger(
+              code: null,
+              viewMessage: '删除失败！',
+              data: null,
+              description: Description('删除失败！'),
+              exception: deleteResult.exception,
+              stackTrace: deleteResult.stackTrace,
+            );
+          }
           return true;
         }
         return false;

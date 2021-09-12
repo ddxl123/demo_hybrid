@@ -7,6 +7,7 @@ import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
 import 'package:hybrid/engine/constant/EngineEntryName.dart';
 import 'package:hybrid/engine/constant/OExecute.dart';
 import 'package:hybrid/engine/datatransfer/root/BaseDataTransfer.dart';
+import 'package:hybrid/engine/push/PushTo.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -448,6 +449,7 @@ class ExecuteSomething {
       if (users.isEmpty) {
         if (!isCheckOnly) {
           // TODO: 弹出登陆页面引擎。
+          PushTo.loginAndRegister();
         }
         await onNotPass();
       } else {

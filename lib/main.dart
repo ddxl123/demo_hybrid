@@ -5,6 +5,7 @@ import 'package:hybrid/engine/constant/OExecute.dart';
 import 'package:hybrid/engine/datatransfer/DataCenterDataTransfer.dart';
 import 'package:hybrid/engine/datatransfer/root/BaseDataTransfer.dart';
 import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
+import 'package:hybrid/engine/entry/login_and_register/LoginAndRegisterEntry.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
@@ -49,9 +50,10 @@ void initBeforeRun(String entryName, BaseDataTransfer dataTransfer()) {
 }
 
 class EntryInitWidget extends StatefulWidget {
-  const EntryInitWidget(this.child);
+  const EntryInitWidget(this.child, this.isSendImdt);
 
   final Widget child;
+  final bool isSendImdt;
 
   @override
   _EntryInitWidgetState createState() => _EntryInitWidgetState();
@@ -61,6 +63,9 @@ class _EntryInitWidgetState extends State<EntryInitWidget> {
   @override
   void initState() {
     super.initState();
+    if (!widget.isSendImdt) {
+      return;
+    }
     WidgetsBinding.instance!.addPostFrameCallback(
       (Duration timeStamp) async {
         sendInitFirstFrame();
@@ -79,7 +84,7 @@ class _EntryInitWidgetState extends State<EntryInitWidget> {
 /// 当有其他引擎启动时，该入口也可以被销毁。
 void main() {
   initBeforeRun('main', () => MainDataTransfer());
-  runApp(EntryInitWidget(MainEntry()));
+  runApp(EntryInitWidget(MainEntry(), true));
 }
 
 /// android 部分的权限设置入口。
@@ -97,5 +102,11 @@ void main() {
 @pragma('vm:entry-point')
 void data_center() {
   initBeforeRun('data_center', () => DataCenterDataTransfer());
-  runApp(DataCenterEntry());
+  runApp(EntryInitWidget(DataCenterEntry(), false));
+}
+
+@pragma('vm:entry-point')
+void login_and_register() {
+  initBeforeRun('login_and_register', () => DataCenterDataTransfer());
+  runApp(EntryInitWidget(LoginAndRegisterEntry(), true));
 }

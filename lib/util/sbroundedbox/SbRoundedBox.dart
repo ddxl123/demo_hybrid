@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 /// column 类型的圆角框。
 ///
 /// 应用于简单弹出框，或简单的非弹出框。
-class SbRoundedBox extends StatelessWidget {
+class SbRoundedBox extends StatefulWidget {
   const SbRoundedBox({
     this.width,
     this.height,
@@ -33,43 +33,63 @@ class SbRoundedBox extends StatelessWidget {
   final List<Widget> children;
 
   @override
+  _SbRoundedBoxState createState() => _SbRoundedBoxState();
+}
+
+class _SbRoundedBoxState extends State<SbRoundedBox> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance!.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance!.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeMetrics() {}
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       // 如果不 alignment，SingleChildScrollView/Column 宽度默认是展开到父容器那么大，alignment 后会以 children 最大的宽度为准
       alignment: Alignment.center,
       child: Container(
-        width: width,
-        height: height,
+        width: widget.width,
+        height: widget.height,
         constraints: BoxConstraints(
           minWidth: 0,
           maxWidth: MediaQueryData.fromWindow(window).size.width,
           minHeight: 0,
           maxHeight: MediaQueryData.fromWindow(window).size.height,
         ),
-        padding: padding,
+        padding: widget.padding,
         decoration: BoxDecoration(
           color: Colors.yellow,
           borderRadius: BorderRadius.circular(10),
           boxShadow: const <BoxShadow>[
-            BoxShadow(offset: Offset(10, 10), blurRadius: 10, spreadRadius: -10),
+            // BoxShadow(offset: Offset(10, 10), blurRadius: 10, spreadRadius: -10),
           ],
         ),
         child: () {
-          if (isScrollable) {
+          if (widget.isScrollable) {
             return SingleChildScrollView(
               padding: EdgeInsets.zero,
               physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
               child: Column(
-                crossAxisAlignment: crossAxisAlignment,
+                crossAxisAlignment: widget.crossAxisAlignment,
                 mainAxisSize: MainAxisSize.min,
-                children: <Widget>[...children],
+                children: <Widget>[...widget.children],
               ),
             );
           } else {
             return Column(
-              crossAxisAlignment: crossAxisAlignment,
+              crossAxisAlignment: widget.crossAxisAlignment,
               mainAxisSize: MainAxisSize.min,
-              children: <Widget>[...children],
+              children: <Widget>[...widget.children],
             );
           }
         }(),

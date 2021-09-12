@@ -1,10 +1,13 @@
 package com.example.hybrid.engine.floatingwindow
 
+import android.annotation.SuppressLint
 import android.app.Service
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
+import android.view.MotionEvent
+import android.view.View
 import android.view.WindowManager
 import androidx.annotation.RequiresApi
 import com.example.hybrid.GlobalApplication
@@ -15,7 +18,7 @@ import io.flutter.embedding.android.FlutterView
 import java.lang.Exception
 
 
-data class ViewParams(val width: Int, val height: Int, val x: Int, val y: Int, val alpha: Float)
+data class ViewParams(val width: Int, val height: Int, val x: Int, val y: Int, val alpha: Double)
 
 @RequiresApi(Build.VERSION_CODES.O)
 abstract class AbstractFloatingWindow(val flutterEnginer: FlutterEnginer) {
@@ -25,7 +28,27 @@ abstract class AbstractFloatingWindow(val flutterEnginer: FlutterEnginer) {
     private var layoutParams: WindowManager.LayoutParams = WindowManager.LayoutParams()
 
     private var flutterView: FlutterView? = null
+        @SuppressLint("ClickableViewAccessibility")
+        set(value) {
+            field = value
+            setFocus(false)
+            field!!.setOnTouchListener { _: View?, event: MotionEvent? ->
+                if (!isFocus && event!!.action == MotionEvent.ACTION_DOWN) {
+                    setFocus(true)
+                    windowManager.updateViewLayout(flutterView!!, layoutParams)
+                    println("------------------ MotionEvent.ACTION_DOWN")
+                } else if (isFocus && event!!.action == MotionEvent.ACTION_OUTSIDE) {
+                    setFocus(false)
+                    windowManager.updateViewLayout(flutterView!!, layoutParams)
+                    println("------------------ MotionEvent.ACTION_OUTSIDE")
+                }
+                println("---------------------1111111111 $event")
+                // 若为 ture，则下次无法触发，否则当前触发完成后下次仍然会触发。
+                false
+            }
+        }
 
+    private var isFocus: Boolean = false
     private var updateFlutterViewConcurrentCount = 0
 
     /**
@@ -33,16 +56,27 @@ abstract class AbstractFloatingWindow(val flutterEnginer: FlutterEnginer) {
      */
     init {
         layoutParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-        // 可点击非悬浮窗部分。
-        layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-        // 防止其他应用和当前应用返回键失效。
-        layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
         layoutParams.gravity = Gravity.START or Gravity.TOP
 
         // 默认 view 配置。
-        setViewParams(ViewParams(0, 0, 0, 0, 1.0f))
+        setViewParams(ViewParams(0, 0, 0, 0, 1.0))
 
         println("--------- ${flutterEnginer.entryPointName} 入口的 AbstractFloatingWindow 的透明 window 已被创建，但未对其附着 flutterView。")
+    }
+
+    private fun setFocus(isFocus: Boolean) {
+        this.isFocus = isFocus
+        if (isFocus) {
+            layoutParams.alpha = 1.0f
+            // 可点击非悬浮窗部分。
+            layoutParams.flags =
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
+        } else {
+            layoutParams.alpha = 0.5f
+            // 可点击非悬浮窗部分。
+            layoutParams.flags =
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
+        }
     }
 
     private fun setViewParams(viewParams: ViewParams): WindowManager.LayoutParams {
@@ -50,7 +84,7 @@ abstract class AbstractFloatingWindow(val flutterEnginer: FlutterEnginer) {
         layoutParams.height = viewParams.height
         layoutParams.x = viewParams.x
         layoutParams.y = viewParams.y
-        layoutParams.alpha = viewParams.alpha
+        layoutParams.alpha = viewParams.alpha.toFloat()
         return layoutParams
     }
 
@@ -101,7 +135,7 @@ abstract class AbstractFloatingWindow(val flutterEnginer: FlutterEnginer) {
                 layoutParams.height,
                 layoutParams.x,
                 layoutParams.y,
-                layoutParams.alpha
+                layoutParams.alpha.toDouble()
             )
 
             if (flutterView!!.isAttachedToWindow) {

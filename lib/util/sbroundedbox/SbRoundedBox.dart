@@ -37,6 +37,8 @@ class SbRoundedBox extends StatefulWidget {
 }
 
 class _SbRoundedBoxState extends State<SbRoundedBox> with WidgetsBindingObserver {
+  GlobalKey globalKey=GlobalKey(
+  );
   @override
   void initState() {
     super.initState();
@@ -50,10 +52,13 @@ class _SbRoundedBoxState extends State<SbRoundedBox> with WidgetsBindingObserver
   }
 
   @override
-  void didChangeMetrics() {}
+  void didChangeMetrics(){
+  }
 
   @override
   Widget build(BuildContext context) {
+    Future<void>.delayed(Duration(seconds: 2),(){
+      print('------------ ${globalKey.currentContext!.size!*MediaQuery.of(context).devicePixelRatio}');});
     return Container(
       // 如果不 alignment，SingleChildScrollView/Column 宽度默认是展开到父容器那么大，alignment 后会以 children 最大的宽度为准
       alignment: Alignment.center,
@@ -77,6 +82,7 @@ class _SbRoundedBoxState extends State<SbRoundedBox> with WidgetsBindingObserver
         child: () {
           if (widget.isScrollable) {
             return SingleChildScrollView(
+              key: globalKey,
               padding: EdgeInsets.zero,
               physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
               child: Column(

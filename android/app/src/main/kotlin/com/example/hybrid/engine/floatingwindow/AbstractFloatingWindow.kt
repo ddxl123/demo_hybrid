@@ -9,6 +9,7 @@ import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
+import android.widget.Button
 import androidx.annotation.RequiresApi
 import com.example.hybrid.GlobalApplication
 import com.example.hybrid.engine.manager.FlutterEnginer
@@ -18,20 +19,134 @@ import io.flutter.embedding.android.FlutterView
 import java.lang.Exception
 
 
-data class ViewParams(val width: Int, val height: Int, val x: Int, val y: Int, val alpha: Double)
+@RequiresApi(Build.VERSION_CODES.O)
+data class ViewParams(
+    val width: Int,
+    val height: Int,
+    val left: Int?,
+    val right: Int?,
+    val top: Int?,
+    val bottom: Int?,
+    val isFocus: Boolean?
+) {
+    val layoutParams: WindowManager.LayoutParams = WindowManager.LayoutParams()
+    val dragLayoutParams: WindowManager.LayoutParams = WindowManager.LayoutParams()
+    val dragMoveView: View = Button(GlobalApplication.context)
+    val dragLeftView: View = Button(GlobalApplication.context)
+    val dragRightView: View = Button(GlobalApplication.context)
+
+    init {
+        layoutParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+        dragLayoutParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+
+        setLocation(width, height, left, right, top, bottom)
+        setFocus(isFocus)
+    }
+
+    private fun setLocation(
+        nWidth: Int,
+        nHeight: Int,
+        nLeft: Int?,
+        nRight: Int?,
+        nTop: Int?,
+        nBottom: Int?
+    ) {
+        layoutParams.width = nWidth
+        layoutParams.height = nHeight
+
+        dragLayoutParams.width = nWidth / 3
+        dragLayoutParams.height = dragLayoutParams.width / 2
+
+        val isCenterVert = (nTop == null && nBottom == null) || (nTop != null && nBottom != null)
+        val isCenterHorizon = (nLeft == null && nRight == null) || (nLeft != null && nRight != null)
+        if (isCenterVert && !isCenterHorizon) {
+            if (nLeft != null) {
+                layoutParams.gravity = Gravity.CENTER_VERTICAL or Gravity.START
+                layoutParams.x = nLeft
+                layoutParams.y = 0
+
+            } else {
+                layoutParams.gravity = Gravity.CENTER_VERTICAL or Gravity.END
+                layoutParams.x = nRight!!
+                layoutParams.y = 0
+            }
+        } else if (!isCenterVert && isCenterHorizon) {
+            if (nTop != null) {
+                layoutParams.gravity = Gravity.CENTER_HORIZONTAL or Gravity.TOP
+                layoutParams.x = 0
+                layoutParams.y = nTop
+            } else {
+                layoutParams.gravity = Gravity.CENTER_HORIZONTAL or Gravity.BOTTOM
+                layoutParams.x = 0
+                layoutParams.y = nBottom!!
+            }
+        } else if (isCenterVert && isCenterHorizon) {
+            layoutParams.gravity = Gravity.CENTER_HORIZONTAL or Gravity.CENTER_HORIZONTAL
+            layoutParams.x = 0
+            layoutParams.y = 0
+        } else {
+            if (nLeft != null && nTop != null) {
+                layoutParams.gravity = Gravity.START or Gravity.TOP
+                layoutParams.x = nLeft
+                layoutParams.y = nTop
+            } else if (nLeft != null && nTop == null) {
+                layoutParams.gravity = Gravity.START or Gravity.BOTTOM
+                layoutParams.x = nLeft
+                layoutParams.y = nBottom!!
+            } else if (nLeft == null && nTop != null) {
+                layoutParams.gravity = Gravity.END or Gravity.TOP
+                layoutParams.x = nRight!!
+                layoutParams.y = nTop
+            } else {
+                layoutParams.gravity = Gravity.END or Gravity.BOTTOM
+                layoutParams.x = nRight!!
+                layoutParams.y = nBottom!!
+            }
+
+        }
+    }
+
+    /**
+     * 设置是否获取焦点。
+     *
+     * @param nIsFocus 若为 true，则获取焦点；若为 false，则失去焦点；若为 null，则失去焦点但不半透明。
+     */
+    private fun setFocus(nIsFocus: Boolean?) {
+        when (nIsFocus) {
+            true -> {
+                layoutParams.alpha = 1.0f
+                layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
+            }
+            false -> {
+                layoutParams.alpha = 0.5f
+                layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
+            }
+            else -> {
+                layoutParams.alpha = 1.0f
+                layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
+            }
+        }
+    }
+
+}
 
 @RequiresApi(Build.VERSION_CODES.O)
 abstract class AbstractFloatingWindow(val flutterEnginer: FlutterEnginer) {
     private var windowManager: WindowManager =
         GlobalApplication.context.getSystemService(Service.WINDOW_SERVICE) as WindowManager
 
-    private var layoutParams: WindowManager.LayoutParams = WindowManager.LayoutParams()
+    private val viewParams = ViewParams(50, 50, 0, 0, 0, 0, null)
+
 
     private var flutterView: FlutterView? = null
         @SuppressLint("ClickableViewAccessibility")
         set(value) {
             field = value
-            setFocus(false)
             field!!.setOnTouchListener { _: View?, event: MotionEvent? ->
                 if (!isFocus && event!!.action == MotionEvent.ACTION_DOWN) {
                     setFocus(true)
@@ -55,37 +170,7 @@ abstract class AbstractFloatingWindow(val flutterEnginer: FlutterEnginer) {
      * 初始化只创建了一个透明的 window，而未对其附着 flutterView。
      */
     init {
-        layoutParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-        layoutParams.gravity = Gravity.START or Gravity.TOP
-
-        // 默认 view 配置。
-        setViewParams(ViewParams(0, 0, 0, 0, 1.0))
-
-        println("--------- ${flutterEnginer.entryPointName} 入口的 AbstractFloatingWindow 的透明 window 已被创建，但未对其附着 flutterView。")
-    }
-
-    private fun setFocus(isFocus: Boolean) {
-        this.isFocus = isFocus
-        if (isFocus) {
-            layoutParams.alpha = 1.0f
-            // 可点击非悬浮窗部分。
-            layoutParams.flags =
-                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
-        } else {
-            layoutParams.alpha = 0.5f
-            // 可点击非悬浮窗部分。
-            layoutParams.flags =
-                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
-        }
-    }
-
-    private fun setViewParams(viewParams: ViewParams): WindowManager.LayoutParams {
-        layoutParams.width = viewParams.width
-        layoutParams.height = viewParams.height
-        layoutParams.x = viewParams.x
-        layoutParams.y = viewParams.y
-        layoutParams.alpha = viewParams.alpha.toFloat()
-        return layoutParams
+        println("--------- ${flutterEnginer.entryPointName} 入口的 AbstractFloatingWindow 的 window 已被创建，但未对其附着 flutterView。")
     }
 
 

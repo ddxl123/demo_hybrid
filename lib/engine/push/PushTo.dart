@@ -9,8 +9,8 @@ class PushTo {
       executeForWhichEngine: EngineEntryName.LOGIN_AND_REGISTER,
       operationIdIfEngineFirstFrameInitialized: null,
       operationData: null,
-      startViewParams: ViewParams(width: 800, height: 800, x: 100, y: 100, alpha: 1),
-      endViewParams: ViewParams(width: 800, height: 800, x: 150, y: 300, alpha: 1),
+      startViewParams: ViewParams(width: 400, height: 400, x: 100, y: 100, alpha: 1),
+      endViewParams: ViewParams(width: 400, height: 400, x: 150, y: 300, alpha: 1),
       closeViewAfterSeconds: null,
       resultDataCast: null,
     );

@@ -12,9 +12,11 @@ ViewParams _$ViewParamsFromJson(Map<String, dynamic> json) {
   return ViewParams(
     width: json['width'] as int,
     height: json['height'] as int,
-    x: json['x'] as int,
-    y: json['y'] as int,
-    alpha: (json['alpha'] as num).toDouble(),
+    left: json['left'] as int?,
+    right: json['right'] as int?,
+    top: json['top'] as int?,
+    bottom: json['bottom'] as int?,
+    isFocus: json['is_focus'] as bool?,
   );
 }
 
@@ -22,7 +24,9 @@ Map<String, dynamic> _$ViewParamsToJson(ViewParams instance) =>
     <String, dynamic>{
       'width': instance.width,
       'height': instance.height,
-      'x': instance.x,
-      'y': instance.y,
-      'alpha': instance.alpha,
+      'left': instance.left,
+      'right': instance.right,
+      'top': instance.top,
+      'bottom': instance.bottom,
+      'is_focus': instance.isFocus,
     };

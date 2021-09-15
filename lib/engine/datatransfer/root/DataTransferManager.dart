@@ -18,9 +18,11 @@ class ViewParams {
   ViewParams({
     required this.width,
     required this.height,
-    required this.x,
-    required this.y,
-    required this.alpha,
+    required this.left,
+    required this.right,
+    required this.top,
+    required this.bottom,
+    required this.isFocus,
   });
 
   factory ViewParams.fromJson(Map<String, Object?> json) => _$ViewParamsFromJson(json);
@@ -29,9 +31,12 @@ class ViewParams {
 
   final int width;
   final int height;
-  final int x;
-  final int y;
-  final double alpha;
+  final int? left;
+  final int? right;
+  final int? top;
+  final int? bottom;
+  @JsonKey(name: 'is_focus')
+  final bool? isFocus;
 }
 
 class DataTransferManager {

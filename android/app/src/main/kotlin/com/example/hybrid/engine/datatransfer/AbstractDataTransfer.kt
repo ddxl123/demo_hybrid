@@ -109,14 +109,15 @@ abstract class AbstractDataTransfer(flutterEnginer: FlutterEnginer) {
 
                 fun setViewParams(viewParamsKey: String): ViewParams? {
                     return if (dataMap[viewParamsKey] != null) {
-                        val viewParamsMap =
-                            dataMap[viewParamsKey].checkType<Map<String, Any?>>()
+                        val viewParamsMap: Map<String, Any?> = dataMap[viewParamsKey].checkType()
                         ViewParams(
                             width = viewParamsMap["width"].checkType(),
                             height = viewParamsMap["height"].checkType(),
-                            x = viewParamsMap["x"].checkType(),
-                            y = viewParamsMap["y"].checkType(),
-                            alpha = viewParamsMap["alpha"].checkType()
+                            left = viewParamsMap["left"].checkType(),
+                            right = viewParamsMap["right"].checkType(),
+                            top = viewParamsMap["top"].checkType(),
+                            bottom = viewParamsMap["bottom"].checkType(),
+                            isFocus = viewParamsMap["is_focus"].checkType()
                         )
                     } else {
                         null

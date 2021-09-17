@@ -19,6 +19,7 @@ abstract class LongPressedNodeRouteBase extends AbstractPoolEntryRoute {
       AutoPositioned(
         touchPosition: touchPosition,
         child: SbRoundedBox(
+          whenSizeChanged: (Size newSize) {  },
           children: <Widget>[
             TextButton(
               child: const Text('删除节点'),

@@ -10,9 +10,10 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.dart.DartExecutor
 import java.lang.Exception
 import com.example.hybrid.MainActivity
+import io.flutter.embedding.android.FlutterView
 
 /**
- * 只要 [FlutterEnginer] 被创建，就会被添加到 [FlutterEnginerCache] 中，
+ * 只要 [FlutterEnginer] 被创建，就会被添加到 [FlutterEnginerCache] 中。
  */
 class FlutterEnginer {
 

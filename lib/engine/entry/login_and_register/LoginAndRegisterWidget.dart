@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:io';
-import 'dart:isolate';
 
 import 'package:flutter/material.dart';
 import 'package:hybrid/data/mysql/http/HttpCurd.dart';
@@ -9,6 +7,7 @@ import 'package:hybrid/data/mysql/httpstore/store/notjwt/loginandregister/HttpSt
 import 'package:hybrid/data/mysql/httpstore/store/notjwt/loginandregister/HttpStore_login_and_register_by_email_verify_email.dart';
 import 'package:hybrid/data/sqlite/mmodel/MUser.dart';
 import 'package:hybrid/data/sqlite/sqliter/OpenSqlite.dart';
+import 'package:hybrid/engine/push/PushTo.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 import 'package:hybrid/util/sbroundedbox/SbRoundedBox.dart';
@@ -27,12 +26,18 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
   int time = 30;
   String text = '发送';
 
-
   @override
   Widget build(BuildContext context) {
     return SbRoundedBox(
       width: null,
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 5),
+      padding: const EdgeInsets.fromLTRB(20, 5, 20, 5),
+      whenSizeChanged: (Size newSize) {
+        // 每次修改窗口大小：
+        // 1. 获取 native 窗口大小。
+        // 2. 获取 box 大小。
+        // 3. 若 native 大于 box，则调整 native 为 box，否则无操作。
+        PushTo.loginAndRegister(newSize);
+      },
       children: <Widget>[
         const Flexible(
           child: Text(

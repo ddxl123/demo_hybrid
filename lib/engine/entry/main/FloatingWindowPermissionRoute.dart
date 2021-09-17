@@ -100,6 +100,7 @@ class FloatingWindowPermissionRoute extends SbRoute {
   List<Widget> body() {
     return <Widget>[
       SbRoundedBox(
+        whenSizeChanged: (Size newSize) {  },
         children: <Widget>[
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,

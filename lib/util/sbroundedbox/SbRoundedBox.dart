@@ -1,11 +1,9 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
 
-/// column 类型的圆角框。
-///
-/// 应用于简单弹出框，或简单的非弹出框。
-class SbRoundedBox extends StatefulWidget {
+class SbRoundedBox extends StatelessWidget {
   const SbRoundedBox({
     this.width,
     this.height,
@@ -13,6 +11,7 @@ class SbRoundedBox extends StatefulWidget {
     required this.children,
     this.crossAxisAlignment = CrossAxisAlignment.center,
     this.isScrollable = true,
+    required this.whenSizeChanged,
   });
 
   /// [width] 最大值为屏幕宽度值，为 null 时按照子 widget 的宽值。
@@ -32,13 +31,34 @@ class SbRoundedBox extends StatefulWidget {
 
   final List<Widget> children;
 
+  /// 当 [SbRoundedBoxBody] size 发生改变时触发。
+  final Function(Size newSize) whenSizeChanged;
+
   @override
-  _SbRoundedBoxState createState() => _SbRoundedBoxState();
+  Widget build(BuildContext context) {
+    return Container(
+      // 如果不 alignment，SingleChildScrollView/Column 宽度默认是展开到父容器那么大，alignment 后会以 children 最大的宽度为准
+      alignment: Alignment.center,
+      child: SbRoundedBoxBody(this),
+    );
+  }
 }
 
-class _SbRoundedBoxState extends State<SbRoundedBox> with WidgetsBindingObserver {
-  GlobalKey globalKey=GlobalKey(
-  );
+/// column 类型的圆角框。
+///
+/// 应用于简单弹出框，或简单的非弹出框。
+class SbRoundedBoxBody extends StatefulWidget {
+  const SbRoundedBoxBody(this.sbRoundedBox);
+
+  final SbRoundedBox sbRoundedBox;
+
+  @override
+  _SbRoundedBoxBodyState createState() => _SbRoundedBoxBodyState();
+}
+
+class _SbRoundedBoxBodyState extends State<SbRoundedBoxBody> with WidgetsBindingObserver {
+  Size currentSize = const Size(-1, -1);
+
   @override
   void initState() {
     super.initState();
@@ -52,54 +72,56 @@ class _SbRoundedBoxState extends State<SbRoundedBox> with WidgetsBindingObserver
   }
 
   @override
-  void didChangeMetrics(){
+  void didChangeMetrics() {
+    WidgetsBinding.instance!.addPostFrameCallback(
+      (Duration timeStamp) {
+        final Size newSize = context.size! * MediaQuery.of(context).devicePixelRatio;
+        widget.sbRoundedBox.whenSizeChanged(newSize);
+        print(
+          '------------didChangeMetrics ${DataTransferManager.instance.currentEntryPointName} ${context.size! * MediaQuery.of(context).devicePixelRatio}',
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    Future<void>.delayed(Duration(seconds: 2),(){
-      print('------------ ${globalKey.currentContext!.size!*MediaQuery.of(context).devicePixelRatio}');});
     return Container(
-      // 如果不 alignment，SingleChildScrollView/Column 宽度默认是展开到父容器那么大，alignment 后会以 children 最大的宽度为准
-      alignment: Alignment.center,
-      child: Container(
-        width: widget.width,
-        height: widget.height,
-        constraints: BoxConstraints(
-          minWidth: 0,
-          maxWidth: MediaQueryData.fromWindow(window).size.width,
-          minHeight: 0,
-          maxHeight: MediaQueryData.fromWindow(window).size.height,
-        ),
-        padding: widget.padding,
-        decoration: BoxDecoration(
-          color: Colors.yellow,
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: const <BoxShadow>[
-            // BoxShadow(offset: Offset(10, 10), blurRadius: 10, spreadRadius: -10),
-          ],
-        ),
-        child: () {
-          if (widget.isScrollable) {
-            return SingleChildScrollView(
-              key: globalKey,
-              padding: EdgeInsets.zero,
-              physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-              child: Column(
-                crossAxisAlignment: widget.crossAxisAlignment,
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[...widget.children],
-              ),
-            );
-          } else {
-            return Column(
-              crossAxisAlignment: widget.crossAxisAlignment,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[...widget.children],
-            );
-          }
-        }(),
+      width: widget.sbRoundedBox.width,
+      height: widget.sbRoundedBox.height,
+      constraints: BoxConstraints(
+        minWidth: 0,
+        maxWidth: MediaQueryData.fromWindow(window).size.width,
+        minHeight: 0,
+        maxHeight: MediaQueryData.fromWindow(window).size.height,
       ),
+      padding: widget.sbRoundedBox.padding,
+      decoration: BoxDecoration(
+        color: Colors.yellow,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: const <BoxShadow>[
+          // BoxShadow(offset: Offset(10, 10), blurRadius: 10, spreadRadius: -10),
+        ],
+      ),
+      child: () {
+        if (widget.sbRoundedBox.isScrollable) {
+          return SingleChildScrollView(
+            padding: EdgeInsets.zero,
+            physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+            child: Column(
+              crossAxisAlignment: widget.sbRoundedBox.crossAxisAlignment,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[...widget.sbRoundedBox.children],
+            ),
+          );
+        } else {
+          return Column(
+            crossAxisAlignment: widget.sbRoundedBox.crossAxisAlignment,
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[...widget.sbRoundedBox.children],
+          );
+        }
+      }(),
     );
   }
 }

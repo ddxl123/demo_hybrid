@@ -43,11 +43,11 @@ data class ViewParams(
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-class Viewer(private val EntryPointName: String, private val windowManager: WindowManager) {
+class Viewer(private val entryPointName: String, private val windowManager: WindowManager) {
 
 
     @RequiresApi(Build.VERSION_CODES.O)
-    val currentViewParams: ViewParams = ViewParams(200, 200, 50, 0, 50, 0, false)
+    val currentViewParams: ViewParams = ViewParams(100, 100, 50, 0, 50, 0, false)
 
     @RequiresApi(Build.VERSION_CODES.O)
     val layoutParams: WindowManager.LayoutParams = WindowManager.LayoutParams().apply {
@@ -65,24 +65,16 @@ class Viewer(private val EntryPointName: String, private val windowManager: Wind
         set(value) {
             field = value
             field!!.setOnTouchListener { _: View?, event: MotionEvent? ->
-                println("------------------currentViewParams.isFocus ${EntryPointName} ${currentViewParams.isFocus}")
                 if (currentViewParams.isFocus == false && event!!.action == MotionEvent.ACTION_DOWN) {
                     resetAll(currentViewParams.copy(isFocus = true))
                     windowManager.updateViewLayout(flutterView!!, layoutParams)
-                    println("------------------ MotionEvent.ACTION_DOWN $EntryPointName ${currentViewParams}")
                 } else if (currentViewParams.isFocus == true && event!!.action == MotionEvent.ACTION_OUTSIDE) {
                     resetAll(currentViewParams.copy(isFocus = false))
                     windowManager.updateViewLayout(flutterView!!, layoutParams)
-                    println("------------------ MotionEvent.ACTION_OUTSIDE $EntryPointName ${currentViewParams}")
                 }
                 // isFocus 为 null 时不做处理。
 
-                println("---------------------setOnTouchListener $EntryPointName ${currentViewParams.isFocus} $event")
                 // 若为 ture，则下次无法触发，否则当前触发完成后下次仍然会触发。
-                false
-            }
-            field!!.setOnKeyListener { v, keyCode, event ->
-                println(KeyEvent.keyCodeToString(event.keyCode))
                 false
             }
         }
@@ -114,9 +106,11 @@ class Viewer(private val EntryPointName: String, private val windowManager: Wind
         dragLayoutParams.height = dragLayoutParams.width / 2
 
         val isCenterVert =
-            (currentViewParams.top == null && currentViewParams.bottom == null) || (currentViewParams.top != null && currentViewParams.bottom != null)
+            (currentViewParams.top == null && currentViewParams.bottom == null) ||
+                    (currentViewParams.top != null && currentViewParams.bottom != null)
         val isCenterHorizon =
-            (currentViewParams.left == null && currentViewParams.right == null) || (currentViewParams.left != null && currentViewParams.right != null)
+            (currentViewParams.left == null && currentViewParams.right == null) ||
+                    (currentViewParams.left != null && currentViewParams.right != null)
         if (isCenterVert && !isCenterHorizon) {
             if (currentViewParams.left != null) {
                 layoutParams.gravity = Gravity.CENTER_VERTICAL or Gravity.START
@@ -176,7 +170,6 @@ class Viewer(private val EntryPointName: String, private val windowManager: Wind
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun forFocus() {
-        println("---------------- forFocus ${currentViewParams.isFocus}")
         when (currentViewParams.isFocus) {
             true -> {
                 layoutParams.alpha = 1.0f
@@ -259,44 +252,50 @@ abstract class AbstractFloatingWindow(val flutterEnginer: FlutterEnginer) {
         endViewParams: ViewParams?,
         closeViewAfterSeconds: Int?
     ) {
-        println("startViewParams $startViewParams")
-        println("viewer.layoutParams ${viewer.currentViewParams}")
         if (CheckPermission.checkFloatingWindow(false)) {
-            if (viewer.flutterView == null) {
+            // 解决并发问题的处理。
+            updateFlutterViewConcurrentCount += 1
+            val currentUpdateFlutterViewConcurrentCount = updateFlutterViewConcurrentCount
+
+
+            val lastViewParams: ViewParams = viewer.currentViewParams.copy();
+
+            if (viewer.flutterView == null || (viewer.flutterView != null && !viewer.flutterView!!.isAttachedToWindow)) {
                 viewer.flutterView = FlutterView(
                     GlobalApplication.context,
                     FlutterSurfaceView(GlobalApplication.context, true)
                 ).apply { attachToFlutterEngine(flutterEnginer.flutterEngine!!) }
-            }
 
-            if (viewer.flutterView!!.isAttachedToWindow) {
-                windowManager.updateViewLayout(
-                    viewer.flutterView!!,
-                    if (startViewParams == null) viewer.layoutParams
-                    else viewer.resetAll(startViewParams).layoutParams
-                )
-                println("---------------- ${flutterEnginer.entryPointName} 入口的 AbstractFloatingWindow 附着的 FlutterView 已被 update！")
-            } else {
                 windowManager.addView(
                     viewer.flutterView!!,
                     if (startViewParams == null) viewer.layoutParams
                     else viewer.resetAll(startViewParams).layoutParams
                 )
+
+                Handler(Looper.getMainLooper()).postDelayed({
+                    windowManager.updateViewLayout(
+                        viewer.flutterView!!,
+                        if (endViewParams == null) viewer.resetAll(lastViewParams).layoutParams
+                        else viewer.resetAll(endViewParams).layoutParams
+                    )
+                }, 5000)
+
                 println("---------------- ${flutterEnginer.entryPointName} 入口的 AbstractFloatingWindow 已附着 FlutterView！")
+            } else {
+                windowManager.updateViewLayout(
+                    viewer.flutterView!!,
+                    if (startViewParams == null) viewer.layoutParams
+                    else viewer.resetAll(startViewParams).layoutParams
+                )
+                Handler(Looper.getMainLooper()).postDelayed({
+                    windowManager.updateViewLayout(
+                        viewer.flutterView!!,
+                        if (endViewParams == null) viewer.resetAll(lastViewParams).layoutParams
+                        else viewer.resetAll(endViewParams).layoutParams
+                    )
+                }, 0)
+                println("---------------- ${flutterEnginer.entryPointName} 入口的 AbstractFloatingWindow 附着的 FlutterView 已被 update！")
             }
-
-            // 解决并发问题的处理。
-            updateFlutterViewConcurrentCount += 1
-            val currentUpdateFlutterViewConcurrentCount = updateFlutterViewConcurrentCount
-
-//            Handler(Looper.getMainLooper()).postDelayed({
-//                windowManager.updateViewLayout(
-//                    flutterView!!,
-//                    if (endViewParams == null) setViewParams(lastViewParams) else setViewParams(
-//                        endViewParams
-//                    )
-//                )
-//            }, 0)
 
 
             // 多久后立即关闭。

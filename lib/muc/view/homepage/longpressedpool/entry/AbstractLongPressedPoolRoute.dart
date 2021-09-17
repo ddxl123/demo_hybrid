@@ -17,6 +17,7 @@ abstract class AbstractLongPressedPoolRoute extends SbRoute {
       AutoPositioned(
         touchPosition: position,
         child: SbRoundedBox(
+          whenSizeChanged: (Size newSize) {  },
           children: <Widget>[
             TextButton(
               child: const Text('创建节点'),

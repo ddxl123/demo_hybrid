@@ -454,7 +454,7 @@ class ExecuteSomething {
       if (users.isEmpty) {
         if (!isCheckOnly) {
           // TODO: 弹出登陆页面引擎。
-          PushTo.loginAndRegister();
+          PushTo.loginAndRegister(null);
         }
         await onNotPass();
       } else {

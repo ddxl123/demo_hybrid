@@ -90,8 +90,8 @@ class _MainEntryMainState extends State<MainEntryMain> {
           executeForWhichEngine: EngineEntryName.DATA_CENTER,
           operationIdIfEngineFirstFrameInitialized: null,
           operationData: null,
-          startViewParams: null,
-          endViewParams: null,
+          startViewParams: ViewParams(width: 200, height: 200, left: 150, right: 0, top: 150, bottom: 0, isFocus: false),
+          endViewParams: ViewParams(width: 200, height: 200, left: 150, right: 0, top: 150, bottom: 0, isFocus: false),
           closeViewAfterSeconds: null,
           resultDataCast: null,
         );
@@ -158,17 +158,17 @@ class _MainEntryMainState extends State<MainEntryMain> {
           return isPass;
         };
         await checkUser(false);
-        Timer.periodic(
-          const Duration(seconds: 1),
-          (Timer timer) async {
-            final bool timerResult = await checkUser(true);
-            if (timerResult && timer.isActive) {
-              // 成功。
-              (controller.any['set0']! as Function(SingleGetController))(controller);
-              timer.cancel();
-            }
-          },
-        );
+        // Timer.periodic(
+        //   const Duration(seconds: 1),
+        //   (Timer timer) async {
+        //     final bool timerResult = await checkUser(true);
+        //     if (timerResult && timer.isActive) {
+        //       // 成功。
+        //       (controller.any['set0']! as Function(SingleGetController))(controller);
+        //       timer.cancel();
+        //     }
+        //   },
+        // );
       }
     }),
     tag: SingleGetController.tag.MAIN_ENTRY_INIT,

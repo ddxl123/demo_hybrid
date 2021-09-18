@@ -15,22 +15,28 @@ class DataCenterDataTransfer extends BaseDataTransfer {
           queryWrapper: QueryWrapper.fromJson(dataMap),
           connectTransaction: null,
         );
-        if (!queryResult.hasError) {
-          return queryResult.result!;
-        } else {
-          throw queryResult.exception!;
-        }
+        return await queryResult.handle<List<Map<String, Object?>>>(
+          onSuccess: (List<Map<String, Object?>> successResult) async {
+            return successResult;
+          },
+          onError: (Object? exception, StackTrace? stackTrace) async {
+            throw exception!;
+          },
+        );
       case OExecute_FlutterSend.SQLITE_INSERT_ROW:
         final Map<String, Object?> dataMap = (data! as Map<Object?, Object?>).cast<String, Object?>();
         final SingleResult<ModelBase> insertRowResult = await SqliteCurd.insertRow(
           model: ModelManager.createEmptyModelByTableName(dataMap['table_name']! as String)..setRowJson = dataMap['model_data']! as Map<String, Object?>,
           transactionMark: null,
         );
-        if (!insertRowResult.hasError) {
-          return insertRowResult.result!.getRowJson;
-        } else {
-          throw insertRowResult.exception!;
-        }
+        return await insertRowResult.handle<Map<String, Object?>>(
+          onSuccess: (ModelBase successResult) async {
+            return successResult.getRowJson;
+          },
+          onError: (Object? exception, StackTrace? stackTrace) async {
+            throw exception!;
+          },
+        );
       case OExecute_FlutterSend.SQLITE_UPDATE_ROW:
         final Map<String, Object?> dataMap = (data! as Map<Object?, Object?>).cast<String, Object?>();
         final SingleResult<ModelBase> updateRowResult = await SqliteCurd.updateRow(
@@ -39,11 +45,14 @@ class DataCenterDataTransfer extends BaseDataTransfer {
           updateContent: dataMap['update_content']! as Map<String, Object?>,
           transactionMark: null,
         );
-        if (!updateRowResult.hasError) {
-          return updateRowResult.result!.getRowJson;
-        } else {
-          throw updateRowResult.exception!;
-        }
+        return await updateRowResult.handle<Map<String, Object?>>(
+          onSuccess: (ModelBase successResult) async {
+            return successResult.getRowJson;
+          },
+          onError: (Object? exception, StackTrace? stackTrace) async {
+            throw exception!;
+          },
+        );
       case OExecute_FlutterSend.SQLITE_DELETE_ROW:
         final Map<String, Object?> dataMap = (data! as Map<Object?, Object?>).cast<String, Object?>();
         final SingleResult<bool> deleteRowResult = await SqliteCurd.deleteRow(
@@ -51,11 +60,14 @@ class DataCenterDataTransfer extends BaseDataTransfer {
           modelId: dataMap['model_id']! as int,
           transactionMark: null,
         );
-        if (!deleteRowResult.hasError) {
-          return deleteRowResult.result!;
-        } else {
-          throw deleteRowResult.exception!;
-        }
+        return await deleteRowResult.handle<bool>(
+          onSuccess: (bool successResult) async {
+            return successResult;
+          },
+          onError: (Object? exception, StackTrace? stackTrace) async {
+            throw exception!;
+          },
+        );
     }
   }
 }

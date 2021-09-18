@@ -20,7 +20,7 @@ abstract class AbstractMoreRoute<FDM extends ModelBase> extends AbstractPoolEntr
     return <Widget>[
       AutoPositioned(
         child: SbRoundedBox(
-          whenSizeChanged: (Size newSize) {  },
+          whenSizeChanged: (Size newSize) {},
           children: <Widget>[
             TextButton(
               child: const Text('添加碎片'),
@@ -55,18 +55,21 @@ abstract class AbstractMoreRoute<FDM extends ModelBase> extends AbstractPoolEntr
       (SbPopResult quickPopResult) async {
         if (quickPopResult.popResultSelect == PopResultSelect.one) {
           final SingleResult<FDM> insertResult = await DataTransferManager.instance.executeSqliteCurd.insertRow(insertModel);
-          if (!insertResult.hasError) {
-            fatherRoute.sheetPageController.bodyData.add(insertResult.result!);
-          } else {
-            SbLogger(
-              code: null,
-              viewMessage: '添加失败！',
-              data: null,
-              description: Description('添加失败！'),
-              exception: insertResult.exception,
-              stackTrace: insertResult.stackTrace,
-            );
-          }
+          await insertResult.handle<void>(
+            onSuccess: (FDM successResult) async {
+              fatherRoute.sheetPageController.bodyData.add(successResult);
+            },
+            onError: (Object? exception, StackTrace? stackTrace) async {
+              SbLogger(
+                code: null,
+                viewMessage: '添加失败！',
+                data: null,
+                description: Description('添加失败！'),
+                exception: insertResult.exception,
+                stackTrace: insertResult.stackTrace,
+              );
+            },
+          );
           return true;
         }
         return false;

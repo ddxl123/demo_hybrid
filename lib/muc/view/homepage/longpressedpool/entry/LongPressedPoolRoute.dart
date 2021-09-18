@@ -25,19 +25,22 @@ class LongPressedPoolRouteForFragment extends AbstractLongPressedPoolRoute {
     );
     MPnFragment? newModel;
     final SingleResult<MPnFragment> insertResult = await DataTransferManager.instance.executeSqliteCurd.insertRow<MPnFragment>(pnFragment);
-    if (!insertResult.hasError) {
-      newModel = insertResult.result!;
-    } else {
-      SbLogger(
-        code: null,
-        viewMessage: '添加失败！',
-        data: null,
-        description: null,
-        exception: insertResult.exception,
-        stackTrace: insertResult.stackTrace,
-      );
-    }
-    return newModel == null ? null : PoolNodeModel.from(newModel);
+    await insertResult.handle<void>(
+      onSuccess: (MPnFragment successResult) async {
+        newModel = successResult;
+      },
+      onError: (Object? exception, StackTrace? stackTrace) async {
+        SbLogger(
+          code: null,
+          viewMessage: '添加失败！',
+          data: null,
+          description: null,
+          exception: insertResult.exception,
+          stackTrace: insertResult.stackTrace,
+        );
+      },
+    );
+    return newModel == null ? null : PoolNodeModel.from(newModel!);
   }
 }
 
@@ -58,19 +61,22 @@ class LongPressedPoolRouteForMemory extends AbstractLongPressedPoolRoute {
 
     MPnMemory? newModel;
     final SingleResult<MPnMemory> insertResult = await DataTransferManager.instance.executeSqliteCurd.insertRow<MPnMemory>(pnMemory);
-    if (!insertResult.hasError) {
-      newModel = insertResult.result!;
-    } else {
-      SbLogger(
-        code: null,
-        viewMessage: '添加失败！',
-        data: null,
-        description: null,
-        exception: insertResult.exception,
-        stackTrace: insertResult.stackTrace,
-      );
-    }
-    return newModel == null ? null : PoolNodeModel.from(newModel);
+    await insertResult.handle<void>(
+      onSuccess: (MPnMemory successResult) async {
+        newModel = successResult;
+      },
+      onError: (Object? exception, StackTrace? stackTrace) async {
+        SbLogger(
+          code: null,
+          viewMessage: '添加失败！',
+          data: null,
+          description: null,
+          exception: exception,
+          stackTrace: stackTrace,
+        );
+      },
+    );
+    return newModel == null ? null : PoolNodeModel.from(newModel!);
   }
 }
 
@@ -91,19 +97,22 @@ class LongPressedPoolRouteForComplete extends AbstractLongPressedPoolRoute {
 
     MPnComplete? newModel;
     final SingleResult<MPnComplete> insertResult = await DataTransferManager.instance.executeSqliteCurd.insertRow<MPnComplete>(pnComplete);
-    if (!insertResult.hasError) {
-      newModel = insertResult.result!;
-    } else {
-      SbLogger(
-        code: null,
-        viewMessage: '添加失败！',
-        data: null,
-        description: null,
-        exception: insertResult.exception,
-        stackTrace: insertResult.stackTrace,
-      );
-    }
-    return newModel == null ? null : PoolNodeModel.from(newModel);
+    await insertResult.handle<void>(
+      onSuccess: (MPnComplete successResult) async {
+        newModel = successResult;
+      },
+      onError: (Object? exception, StackTrace? stackTrace) async {
+        SbLogger(
+          code: null,
+          viewMessage: '添加失败！',
+          data: null,
+          description: null,
+          exception: exception,
+          stackTrace: stackTrace,
+        );
+      },
+    );
+    return newModel == null ? null : PoolNodeModel.from(newModel!);
   }
 }
 
@@ -122,18 +131,21 @@ class LongPressedPoolRouteForRule extends AbstractLongPressedPoolRoute {
 
     MPnRule? newModel;
     final SingleResult<MPnRule> insertResult = await DataTransferManager.instance.executeSqliteCurd.insertRow<MPnRule>(pnRule);
-    if (!insertResult.hasError) {
-      newModel = insertResult.result!;
-    } else {
-      SbLogger(
-        code: null,
-        viewMessage: '添加失败！',
-        data: null,
-        description: null,
-        exception: insertResult.exception,
-        stackTrace: insertResult.stackTrace,
-      );
-    }
-    return newModel == null ? null : PoolNodeModel.from(newModel);
+    await insertResult.handle<void>(
+      onSuccess: (MPnRule successResult) async {
+        newModel = successResult;
+      },
+      onError: (Object? exception, StackTrace? stackTrace) async {
+        SbLogger(
+          code: null,
+          viewMessage: '添加失败！',
+          data: null,
+          description: null,
+          exception: exception,
+          stackTrace: stackTrace,
+        );
+      },
+    );
+    return newModel == null ? null : PoolNodeModel.from(newModel!);
   }
 }

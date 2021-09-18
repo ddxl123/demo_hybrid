@@ -39,7 +39,7 @@ class TableDataRoute extends SbRoute {
             width: width,
             height: height,
             isScrollable: false,
-            whenSizeChanged: (Size newSize) {  },
+            whenSizeChanged: (Size newSize) {},
             children: <Widget>[
               SbFreeBox(
                 boxSize: Size(width, height),
@@ -114,18 +114,21 @@ class _TableForTableDataState extends State<TableForTableData> {
       header.addAll(await SqliteTool().getAllFieldBy(widget.tableName));
       final SingleResult<List<ModelBase>> queryResult =
           await DataTransferManager.instance.executeSqliteCurd.queryRowsAsModels(QueryWrapper(tableName: widget.tableName));
-      if (!queryResult.hasError) {
-        body.addAll(queryResult.result!);
-      } else {
-        SbLogger(
-          code: null,
-          viewMessage: '获取失败！',
-          data: null,
-          description: null,
-          exception: queryResult.exception,
-          stackTrace: queryResult.stackTrace,
-        );
-      }
+      await queryResult.handle<void>(
+        onSuccess: (List<ModelBase> successResult) async {
+          body.addAll(successResult);
+        },
+        onError: (Object? exception, StackTrace? stackTrace) async {
+          SbLogger(
+            code: null,
+            viewMessage: '获取失败！',
+            data: null,
+            description: null,
+            exception: queryResult.exception,
+            stackTrace: queryResult.stackTrace,
+          );
+        },
+      );
     },
   );
 

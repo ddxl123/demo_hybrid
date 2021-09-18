@@ -26,6 +26,9 @@ class OExecute_FlutterSend {
 
   /// sqlite delete row。
   static const String SQLITE_DELETE_ROW = 'sqlite_delete_row';
+
+  /// 获取当前引擎的 window 大小(非 flutter 实际大小)
+  static const String GET_NATIVE_WINDOW_SIZE_OF_CURRENT_ENGINE = 'get_native_window_size_of_current_engine';
 }
 
 class OExecute_FlutterListen {}

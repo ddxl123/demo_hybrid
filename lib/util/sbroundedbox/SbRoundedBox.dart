@@ -1,7 +1,6 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
 
 class SbRoundedBox extends StatelessWidget {
   const SbRoundedBox({
@@ -76,10 +75,10 @@ class _SbRoundedBoxBodyState extends State<SbRoundedBoxBody> with WidgetsBinding
     WidgetsBinding.instance!.addPostFrameCallback(
       (Duration timeStamp) {
         final Size newSize = context.size! * MediaQuery.of(context).devicePixelRatio;
-        widget.sbRoundedBox.whenSizeChanged(newSize);
-        print(
-          '------------didChangeMetrics ${DataTransferManager.instance.currentEntryPointName} ${context.size! * MediaQuery.of(context).devicePixelRatio}',
-        );
+        if (currentSize != newSize) {
+          currentSize = newSize;
+          widget.sbRoundedBox.whenSizeChanged(newSize);
+        }
       },
     );
   }

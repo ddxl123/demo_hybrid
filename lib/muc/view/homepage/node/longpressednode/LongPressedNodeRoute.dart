@@ -19,7 +19,7 @@ abstract class LongPressedNodeRouteBase extends AbstractPoolEntryRoute {
       AutoPositioned(
         touchPosition: touchPosition,
         child: SbRoundedBox(
-          whenSizeChanged: (Size newSize) {  },
+          whenSizeChanged: (Size newSize) {},
           children: <Widget>[
             TextButton(
               child: const Text('删除节点'),
@@ -54,18 +54,21 @@ abstract class LongPressedNodeRouteBase extends AbstractPoolEntryRoute {
           modelTableName: poolNodeModel.getCurrentNodeModel().tableName,
           modelId: poolNodeModel.getCurrentNodeModel().get_id,
         );
-        if (!deleteResult.hasError) {
-          Get.find<PoolGetController>().updateLogic.deleteNode(poolNodeModel);
-        } else {
-          SbLogger(
-            code: null,
-            viewMessage: '删除失败！',
-            data: null,
-            description: Description('删除失败！'),
-            exception: deleteResult.exception,
-            stackTrace: deleteResult.stackTrace,
-          );
-        }
+        await deleteResult.handle<void>(
+          onSuccess: (bool successResult) async {
+            Get.find<PoolGetController>().updateLogic.deleteNode(poolNodeModel);
+          },
+          onError: (Object? exception, StackTrace? stackTrace) async {
+            SbLogger(
+              code: null,
+              viewMessage: '删除失败！',
+              data: null,
+              description: Description('删除失败！'),
+              exception: deleteResult.exception,
+              stackTrace: deleteResult.stackTrace,
+            );
+          },
+        );
         return true;
       }
       return false;

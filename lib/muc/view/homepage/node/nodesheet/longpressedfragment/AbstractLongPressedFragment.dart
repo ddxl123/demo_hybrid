@@ -21,8 +21,7 @@ abstract class AbstractLongPressedFragment<FDM extends ModelBase> extends Abstra
   List<Widget> body() {
     return <Widget>[
       AutoPositioned(
-        child: SbRoundedBox(whenSizeChanged: (Size newSize) {  },
-        children: <Widget>[
+        child: SbRoundedBox(whenSizeChanged: (Size newSize) {}, children: <Widget>[
           TextButton(
             child: const Text('删除碎片'),
             onPressed: () {
@@ -58,18 +57,21 @@ abstract class AbstractLongPressedFragment<FDM extends ModelBase> extends Abstra
             modelTableName: currentFragmentModel.tableName,
             modelId: currentFragmentModel.get_id,
           );
-          if (!deleteResult.hasError) {
-            fatherRoute.sheetPageController.bodyData.remove(currentFragmentModel);
-          } else {
-            SbLogger(
-              code: null,
-              viewMessage: '删除失败！',
-              data: null,
-              description: Description('删除失败！'),
-              exception: deleteResult.exception,
-              stackTrace: deleteResult.stackTrace,
-            );
-          }
+          await deleteResult.handle<void>(
+            onSuccess: (bool successResult) async {
+              fatherRoute.sheetPageController.bodyData.remove(currentFragmentModel);
+            },
+            onError: (Object? exception, StackTrace? stackTrace) async {
+              SbLogger(
+                code: null,
+                viewMessage: '删除失败！',
+                data: null,
+                description: Description('删除失败！'),
+                exception: deleteResult.exception,
+                stackTrace: deleteResult.stackTrace,
+              );
+            },
+          );
           return true;
         }
         return false;

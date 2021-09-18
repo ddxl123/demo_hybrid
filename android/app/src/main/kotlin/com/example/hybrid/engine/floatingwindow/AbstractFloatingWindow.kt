@@ -210,7 +210,7 @@ abstract class AbstractFloatingWindow(val flutterEnginer: FlutterEnginer) {
     private var windowManager: WindowManager =
         GlobalApplication.context.getSystemService(Service.WINDOW_SERVICE) as WindowManager
 
-    private val viewer: Viewer = Viewer(flutterEnginer.entryPointName, windowManager)
+    val viewer: Viewer = Viewer(flutterEnginer.entryPointName, windowManager)
 
     private var updateFlutterViewConcurrentCount = 0
 

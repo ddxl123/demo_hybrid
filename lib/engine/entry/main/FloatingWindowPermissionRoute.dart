@@ -41,32 +41,35 @@ class FloatingWindowPermissionRoute extends SbRoute {
         if (!timer.isActive) {
           return;
         }
-        if (!checkResult.hasError) {
-          if (checkResult.result!) {
-            timer.cancel();
-            isAllowed = true;
+        await checkResult.handle<void>(
+          onSuccess: (bool successResult) async {
+            if (successResult) {
+              timer.cancel();
+              isAllowed = true;
+              sbRouteSetState();
+              // 触发 已允许悬浮窗权限，并进行应用数据初始化。
+              final SingleGetController singleGetController = Get.find<SingleGetController>(tag: SingleGetController.tag.MAIN_ENTRY_INIT);
+              (singleGetController.any['set2']! as Function(SingleGetController))(singleGetController);
+              SbHelper.getNavigator!.pop(SbPopResult(popResultSelect: PopResultSelect.one, value: null));
+            } else {
+              isAllowed = false;
+              sbRouteSetState();
+            }
+          },
+          onError: (Object? exception, StackTrace? stackTrace) async {
+            // 该错误提示最多存在一秒，因为 timer 每秒一次。
+            isAllowed = null;
             sbRouteSetState();
-            // 触发 已允许悬浮窗权限，并进行应用数据初始化。
-            final SingleGetController singleGetController = Get.find<SingleGetController>(tag: SingleGetController.tag.MAIN_ENTRY_INIT);
-            (singleGetController.any['set2']! as Function(SingleGetController))(singleGetController);
-            SbHelper.getNavigator!.pop(SbPopResult(popResultSelect: PopResultSelect.one, value: null));
-          } else {
-            isAllowed = false;
-            sbRouteSetState();
-          }
-        } else {
-          // 该错误提示最多存在一秒，因为 timer 每秒一次。
-          isAllowed = null;
-          sbRouteSetState();
-          SbLogger(
-            code: null,
-            viewMessage: null,
-            data: null,
-            description: Description('检查悬浮窗时发生了异常！'),
-            exception: checkResult.exception,
-            stackTrace: checkResult.stackTrace,
-          );
-        }
+            SbLogger(
+              code: null,
+              viewMessage: null,
+              data: null,
+              description: Description('检查悬浮窗时发生了异常！'),
+              exception: exception,
+              stackTrace: stackTrace,
+            );
+          },
+        );
       },
     );
   }
@@ -78,29 +81,31 @@ class FloatingWindowPermissionRoute extends SbRoute {
       data: null,
       resultDataCast: null,
     );
-
-    if (!checkAndPushResult.hasError) {
-      // 无论 true 或 false，都不进行处理，都已经交付给 timer 处理了。
-    } else {
-      // 该错误提示最多存在一秒，因为 timer 每秒一次。
-      isAllowed = null;
-      sbRouteSetState();
-      SbLogger(
-        code: null,
-        viewMessage: null,
-        data: null,
-        description: Description('检查是否已允许悬浮窗权限（若未允许则弹出权限设置页面）发生异常！'),
-        exception: checkAndPushResult.exception,
-        stackTrace: checkAndPushResult.stackTrace,
-      ).withRecord();
-    }
+    await checkAndPushResult.handle<void>(
+      onSuccess: (bool successResult) async {
+        // 无论 true 或 false，都不进行处理，都已经交付给 timer 处理了。
+      },
+      onError: (Object? exception, StackTrace? stackTrace) async {
+        // 该错误提示最多存在一秒，因为 timer 每秒一次。
+        isAllowed = null;
+        sbRouteSetState();
+        SbLogger(
+          code: null,
+          viewMessage: null,
+          data: null,
+          description: Description('检查是否已允许悬浮窗权限（若未允许则弹出权限设置页面）发生异常！'),
+          exception: checkAndPushResult.exception,
+          stackTrace: checkAndPushResult.stackTrace,
+        ).withRecord();
+      },
+    );
   }
 
   @override
   List<Widget> body() {
     return <Widget>[
       SbRoundedBox(
-        whenSizeChanged: (Size newSize) {  },
+        whenSizeChanged: (Size newSize) {},
         children: <Widget>[
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,

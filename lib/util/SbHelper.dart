@@ -12,12 +12,12 @@ class SingleResult<T> {
     exception = Exception('未处理 SingleResult！');
   }
 
-  /// 当 [hasError] 为 false 时，[result] 必须不为 null。
+  /// 当 [_hasError] 为 false 时，[result] 必须不为 null。
   T? result;
   Object? exception;
   StackTrace? stackTrace;
 
-  bool get hasError => exception != null || result == null;
+  bool get _hasError => exception != null || result == null;
 
   /// 当 [setSuccess] 时，传入的 result 不能为空。
   Future<SingleResult<T>> setSuccess({required Future<T> setResult()}) async {
@@ -36,6 +36,18 @@ class SingleResult<T> {
     this.exception = exception ?? Exception('result 不能为 null！');
     this.stackTrace = stackTrace;
     return this;
+  }
+
+  /// 可以在 [onError] 内部进行 throw。
+  Future<HR> handle<HR>({required Future<HR> onSuccess(T successResult), required Future<HR> onError(Object? exception, StackTrace? stackTrace)}) async {
+    if (_hasError) {
+      return await onError(exception, stackTrace);
+    }
+    try {
+      return await onSuccess(result as T);
+    } catch (e, st) {
+      return await onError(e, st);
+    }
   }
 
   void _setAll({required T? result, required Object? exception, required StackTrace? stackTrace}) {

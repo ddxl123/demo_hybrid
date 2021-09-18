@@ -28,21 +28,24 @@ Future<void> sendInitFirstFrame() async {
     data: null,
     resultDataCast: null,
   );
-  if (!result.hasError) {
-    if (!result.result!) {
-      throw Exception('data 不为 true！');
-    }
-  } else {
-    // TODO: 失败的时候要如何处理？
-    SbLogger(
-      code: null,
-      viewMessage: '窗口初始化异常！',
-      data: null,
-      description: Description('第一帧初始化异常！'),
-      exception: result.exception,
-      stackTrace: result.stackTrace,
-    ).withRecord();
-  }
+  await result.handle<void>(
+    onSuccess: (bool successResult) async {
+      if (!successResult) {
+        throw Exception('data 不为 true！');
+      }
+    },
+    onError: (Object? exception, StackTrace? stackTrace) async {
+      // TODO: 失败的时候要如何处理？
+      SbLogger(
+        code: null,
+        viewMessage: '窗口初始化异常！',
+        data: null,
+        description: Description('第一帧初始化异常！'),
+        exception: exception,
+        stackTrace: stackTrace,
+      ).withRecord();
+    },
+  );
 }
 
 void initBeforeRun(String entryName, BaseDataTransfer dataTransfer()) {

@@ -124,14 +124,20 @@ class DataTransferManager {
     const Duration delayed = Duration(milliseconds: 500);
     for (int i = 0; i < 20; i++) {
       final SingleResult<bool> sendResult = await send();
-      if (!sendResult.hasError) {
-        if (sendResult.result!) {
-          return await SingleResult<bool>.empty().setSuccess(setResult: () async => true);
-        } else {
-          await Future<void>.delayed(delayed);
-        }
-      } else {
-        return SingleResult<bool>.empty().setError(exception: sendResult.exception, stackTrace: sendResult.stackTrace);
+      final SingleResult<bool>? singleResultBool = await sendResult.handle<SingleResult<bool>?>(
+        onSuccess: (bool successResult) async {
+          if (successResult) {
+            return await SingleResult<bool>.empty().setSuccess(setResult: () async => true);
+          } else {
+            await Future<void>.delayed(delayed);
+          }
+        },
+        onError: (Object? exception, StackTrace? stackTrace) async {
+          return SingleResult<bool>.empty().setError(exception: exception, stackTrace: stackTrace);
+        },
+      );
+      if (singleResultBool != null) {
+        return singleResultBool;
       }
     }
     return await SingleResult<bool>.empty().setSuccess(setResult: () async => false);
@@ -158,26 +164,29 @@ class DataTransferManager {
       },
       resultDataCast: null,
     );
-    if (!viewResult.hasError) {
-      // view set 完成。
-      if (viewResult.result!) {
-        if (operationIdIfEngineFirstFrameInitialized != null) {
-          final SingleResult<R> operationResult = await _sendMessageToOtherEngine<S, R>(
-            sendToWhichEngine: executeForWhichEngine,
-            operationId: operationIdIfEngineFirstFrameInitialized,
-            data: operationData,
-            resultDataCast: resultDataCast,
-          );
-          operationResult.cloneTo(executeResult);
+    await viewResult.handle<void>(
+      onSuccess: (bool successResult) async {
+        // view set 完成。
+        if (successResult) {
+          if (operationIdIfEngineFirstFrameInitialized != null) {
+            final SingleResult<R> operationResult = await _sendMessageToOtherEngine<S, R>(
+              sendToWhichEngine: executeForWhichEngine,
+              operationId: operationIdIfEngineFirstFrameInitialized,
+              data: operationData,
+              resultDataCast: resultDataCast,
+            );
+            operationResult.cloneTo(executeResult);
+          } else {
+            await executeResult.setSuccess(setResult: () async => true as R);
+          }
         } else {
-          await executeResult.setSuccess(setResult: () async => true as R);
+          executeResult.setError(exception: Exception('data 不为 true！'), stackTrace: null);
         }
-      } else {
-        executeResult.setError(exception: Exception('data 不为 true！'), stackTrace: null);
-      }
-    } else {
-      executeResult.setError(exception: viewResult.exception, stackTrace: viewResult.stackTrace);
-    }
+      },
+      onError: (Object? exception, StackTrace? stackTrace) async {
+        executeResult.setError(exception: exception, stackTrace: stackTrace);
+      },
+    );
   }
 
   /// 在当前引擎中对其他引擎进行 operation。
@@ -240,38 +249,43 @@ class DataTransferManager {
       data: <String, Object?>{'start_which_engine': executeForWhichEngine},
       resultDataCast: null,
     );
-
-    if (!messageResult.hasError) {
-      // 引擎已启动或已触发启动引擎，则得到 true。
-      if (messageResult.result!) {
-        final SingleResult<bool> isInitializedResult = await _isPushedEngineFirstFrameInitialized(executeForWhichEngine);
-        if (!isInitializedResult.hasError) {
-          if (isInitializedResult.result!) {
-            await _handleViewAndOperation<S, R>(
-              executeResult: executeResult,
-              executeForWhichEngine: executeForWhichEngine,
-              operationIdIfEngineFirstFrameInitialized: operationIdIfEngineFirstFrameInitialized,
-              operationData: operationData,
-              startViewParams: startViewParams,
-              endViewParams: endViewParams,
-              closeViewAfterSeconds: closeViewAfterSeconds,
-              resultDataCast: resultDataCast,
-            );
-          } else {
-            executeResult.setError(exception: Exception('启动引擎后的第一帧初始化发生了异常！result 不为 true！'), stackTrace: null);
-          }
-        } else {
-          executeResult.setError(
-            exception: Exception('启动引擎后的第一帧初始化发生了异常！未知异常！' + isInitializedResult.exception.toString()),
-            stackTrace: isInitializedResult.stackTrace,
+    await messageResult.handle<void>(
+      onSuccess: (bool successResult) async {
+        // 引擎已启动或已触发启动引擎，则得到 true。
+        if (successResult) {
+          final SingleResult<bool> isInitializedResult = await _isPushedEngineFirstFrameInitialized(executeForWhichEngine);
+          await isInitializedResult.handle<void>(
+            onSuccess: (bool successResult) async {
+              if (successResult) {
+                await _handleViewAndOperation<S, R>(
+                  executeResult: executeResult,
+                  executeForWhichEngine: executeForWhichEngine,
+                  operationIdIfEngineFirstFrameInitialized: operationIdIfEngineFirstFrameInitialized,
+                  operationData: operationData,
+                  startViewParams: startViewParams,
+                  endViewParams: endViewParams,
+                  closeViewAfterSeconds: closeViewAfterSeconds,
+                  resultDataCast: resultDataCast,
+                );
+              } else {
+                executeResult.setError(exception: Exception('启动引擎后的第一帧初始化发生了异常！result 不为 true！'), stackTrace: null);
+              }
+            },
+            onError: (Object? exception, StackTrace? stackTrace) async {
+              executeResult.setError(
+                exception: Exception('启动引擎后的第一帧初始化发生了异常！未知异常！' + exception.toString()),
+                stackTrace: stackTrace,
+              );
+            },
           );
+        } else {
+          executeResult.setError(exception: Exception('启动引擎发生了异常！result 不为 true！'), stackTrace: null);
         }
-      } else {
-        executeResult.setError(exception: Exception('启动引擎发生了异常！result 不为 true！'), stackTrace: null);
-      }
-    } else {
-      executeResult.setError(exception: messageResult.exception, stackTrace: messageResult.stackTrace);
-    }
+      },
+      onError: (Object? exception, StackTrace? stackTrace) async {
+        executeResult.setError(exception: exception, stackTrace: stackTrace);
+      },
+    );
     return executeResult;
   }
 
@@ -321,29 +335,35 @@ class ExecuteSqliteCurd {
       closeViewAfterSeconds: null,
       resultDataCast: (Object resultData) => (resultData as List<Object?>).cast<Map<String, Object?>>(),
     );
-    if (!queryRowResult.hasError) {
-      return await SingleResult<List<Map<String, Object?>>>.empty().setSuccess(setResult: () async => queryRowResult.result!.cast<Map<String, Object?>>());
-    } else {
-      return SingleResult<List<Map<String, Object?>>>.empty().setError(exception: queryRowResult.exception, stackTrace: queryRowResult.stackTrace);
-    }
+    return await queryRowResult.handle<SingleResult<List<Map<String, Object?>>>>(
+      onSuccess: (List<Map<String, Object?>> successResult) async {
+        return await SingleResult<List<Map<String, Object?>>>.empty().setSuccess(setResult: () async => successResult.cast<Map<String, Object?>>());
+      },
+      onError: (Object? exception, StackTrace? stackTrace) async {
+        return SingleResult<List<Map<String, Object?>>>.empty().setError(exception: exception, stackTrace: stackTrace);
+      },
+    );
   }
 
   /// 查看 [SqliteCurd.queryRowsAsModels]
   Future<SingleResult<List<T>>> queryRowsAsModels<T extends ModelBase>(QueryWrapper queryWrapper) async {
     final SingleResult<List<Map<String, Object?>>> queryRowResult = await queryRowsAsJsons(queryWrapper);
-    if (!queryRowResult.hasError) {
-      return await SingleResult<List<T>>.empty().setSuccess(
-        setResult: () async {
-          final List<T> list = <T>[];
-          for (final Map<String, Object?> item in queryRowResult.result!) {
-            list.add(ModelManager.createEmptyModelByTableName<T>(queryWrapper.tableName)..setRowJson = item);
-          }
-          return list;
-        },
-      );
-    } else {
-      return SingleResult<List<T>>.empty().setError(exception: queryRowResult.exception, stackTrace: queryRowResult.stackTrace);
-    }
+    return await queryRowResult.handle<SingleResult<List<T>>>(
+      onSuccess: (List<Map<String, Object?>> successResult) async {
+        return await SingleResult<List<T>>.empty().setSuccess(
+          setResult: () async {
+            final List<T> list = <T>[];
+            for (final Map<String, Object?> item in successResult) {
+              list.add(ModelManager.createEmptyModelByTableName<T>(queryWrapper.tableName)..setRowJson = item);
+            }
+            return list;
+          },
+        );
+      },
+      onError: (Object? exception, StackTrace? stackTrace) async {
+        return SingleResult<List<T>>.empty().setError(exception: exception, stackTrace: stackTrace);
+      },
+    );
   }
 
   /// 查看 [SqliteCurd.insertRow] 注释。
@@ -360,17 +380,20 @@ class ExecuteSqliteCurd {
       closeViewAfterSeconds: null,
       resultDataCast: (Object resultData) => (resultData as Map<Object?, Object?>).cast<String, Object?>(),
     );
-    if (!insertRowResult.hasError) {
-      try {
-        return await SingleResult<T>.empty().setSuccess(
-          setResult: () async => ModelManager.createEmptyModelByTableName<T>(insertModel.tableName)..setRowJson = insertRowResult.result!,
-        );
-      } catch (e, st) {
-        return SingleResult<T>.empty().setError(exception: e, stackTrace: st);
-      }
-    } else {
-      return SingleResult<T>.empty().setError(exception: insertRowResult.exception, stackTrace: insertRowResult.stackTrace);
-    }
+    return await insertRowResult.handle<SingleResult<T>>(
+      onSuccess: (Map<String, Object?> successResult) async {
+        try {
+          return await SingleResult<T>.empty().setSuccess(
+            setResult: () async => ModelManager.createEmptyModelByTableName<T>(insertModel.tableName)..setRowJson = successResult,
+          );
+        } catch (e, st) {
+          return SingleResult<T>.empty().setError(exception: e, stackTrace: st);
+        }
+      },
+      onError: (Object? exception, StackTrace? stackTrace) async {
+        return SingleResult<T>.empty().setError(exception: exception, stackTrace: stackTrace);
+      },
+    );
   }
 
   /// 查看 [SqliteCurd.updateRow] 注释。
@@ -392,13 +415,16 @@ class ExecuteSqliteCurd {
       closeViewAfterSeconds: null,
       resultDataCast: (Object resultData) => (resultData as Map<Object?, Object?>).cast<String, Object?>(),
     );
-    if (!updateRowResult.hasError) {
-      return SingleResult<T>.empty().setSuccess(
-        setResult: () async => ModelManager.createEmptyModelByTableName(modelTableName)..setRowJson = updateRowResult.result!,
-      );
-    } else {
-      return SingleResult<T>.empty().setError(exception: updateRowResult.exception, stackTrace: updateRowResult.stackTrace);
-    }
+    return await updateRowResult.handle<SingleResult<T>>(
+      onSuccess: (Map<String, Object?> successResult) async {
+        return SingleResult<T>.empty().setSuccess(
+          setResult: () async => ModelManager.createEmptyModelByTableName(modelTableName)..setRowJson = successResult,
+        );
+      },
+      onError: (Object? exception, StackTrace? stackTrace) async {
+        return SingleResult<T>.empty().setError(exception: exception, stackTrace: stackTrace);
+      },
+    );
   }
 
   /// 查看 [SqliteCurd.deleteRow] 注释
@@ -418,15 +444,18 @@ class ExecuteSqliteCurd {
       closeViewAfterSeconds: null,
       resultDataCast: null,
     );
-    if (!deleteRowResult.hasError) {
-      if (deleteRowResult.result!) {
-        return SingleResult<bool>.empty().setSuccess(setResult: () async => deleteRowResult.result!);
-      } else {
-        return SingleResult<bool>.empty().setError(exception: Exception('result 不为 true！'), stackTrace: null);
-      }
-    } else {
-      return SingleResult<bool>.empty().setError(exception: deleteRowResult.exception, stackTrace: deleteRowResult.stackTrace);
-    }
+    return await deleteRowResult.handle<SingleResult<bool>>(
+      onSuccess: (bool successResult) async {
+        if (deleteRowResult.result!) {
+          return SingleResult<bool>.empty().setSuccess(setResult: () async => deleteRowResult.result!);
+        } else {
+          return SingleResult<bool>.empty().setError(exception: Exception('result 不为 true！'), stackTrace: null);
+        }
+      },
+      onError: (Object? exception, StackTrace? stackTrace) async {
+        return SingleResult<bool>.empty().setError(exception: deleteRowResult.exception, stackTrace: deleteRowResult.stackTrace);
+      },
+    );
   }
 }
 
@@ -449,26 +478,38 @@ class ExecuteSomething {
     final SingleResult<List<MUser>> queryResult = await DataTransferManager.instance.executeSqliteCurd.queryRowsAsModels<MUser>(
       QueryWrapper(tableName: MUser().tableName),
     );
-    if (!queryResult.hasError) {
-      final List<MUser> users = queryResult.result!;
-      if (users.isEmpty) {
-        if (!isCheckOnly) {
-          // TODO: 弹出登陆页面引擎。
-          PushTo.loginAndRegister(null);
-        }
-        await onNotPass();
-      } else {
-        if (users.first.get_is_downloaded_init_data != 1) {
+    await queryResult.handle<void>(
+      onSuccess: (List<MUser> successResult) async {
+        if (successResult.isEmpty) {
           if (!isCheckOnly) {
-            // TODO: 弹出初始化数据下载页面引擎。
+            // TODO: 弹出登陆页面引擎。
+            PushTo.loginAndRegister(null);
           }
           await onNotPass();
         } else {
-          await onSuccess();
+          if (successResult.first.get_is_downloaded_init_data != 1) {
+            if (!isCheckOnly) {
+              // TODO: 弹出初始化数据下载页面引擎。
+            }
+            await onNotPass();
+          } else {
+            await onSuccess();
+          }
         }
-      }
-    } else {
-      await onError(queryResult.exception, queryResult.stackTrace);
-    }
+      },
+      onError: (Object? exception, StackTrace? stackTrace) async {
+        await onError(queryResult.exception, queryResult.stackTrace);
+      },
+    );
+  }
+
+  /// 获取当前引擎的 window 大小(非 flutter 实际大小)
+  Future<SingleResult<List<int>>> getNativeWindowSizeOfCurrentEngine() async {
+    final SingleResult<List<int>> getResult = await DataTransferManager.instance.executeToNative<void, List<int>>(
+      operationId: OExecute_FlutterSend.GET_NATIVE_WINDOW_SIZE_OF_CURRENT_ENGINE,
+      data: null,
+      resultDataCast: null,
+    );
+    return getResult;
   }
 }

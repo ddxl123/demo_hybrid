@@ -41,18 +41,21 @@ class NodeSheetRouteForMemory extends AbstractNodeSheetRoute<MFMemory> {
         ),
       ),
     );
-    if (!queryResult.hasError) {
-      bodyData.addAll(queryResult.result!);
-    } else {
-      SbLogger(
-        code: null,
-        viewMessage: '获取失败！',
-        data: null,
-        description: null,
-        exception: queryResult.exception,
-        stackTrace: queryResult.stackTrace,
-      );
-    }
+    await queryResult.handle<void>(
+      onSuccess: (List<MFMemory> successResult) async {
+        bodyData.addAll(successResult);
+      },
+      onError: (Object? exception, StackTrace? stackTrace) async {
+        SbLogger(
+          code: null,
+          viewMessage: '获取失败！',
+          data: null,
+          description: null,
+          exception: exception,
+          stackTrace: stackTrace,
+        );
+      },
+    );
   }
 
   @override

@@ -19,8 +19,20 @@ class PushTo {
       closeViewAfterSeconds: null,
       resultDataCast: null,
     );
-    if (!startResult.hasError) {
-      if (!startResult.result!) {
+    await startResult.handle<void>(
+      onSuccess: (bool successResult) async {
+        if (!successResult) {
+          SbLogger(
+            code: null,
+            viewMessage: '登陆页面弹出失败！',
+            data: startResult.result,
+            description: null,
+            exception: startResult.exception,
+            stackTrace: startResult.stackTrace,
+          );
+        }
+      },
+      onError: (Object? exception, StackTrace? stackTrace) async {
         SbLogger(
           code: null,
           viewMessage: '登陆页面弹出失败！',
@@ -29,16 +41,7 @@ class PushTo {
           exception: startResult.exception,
           stackTrace: startResult.stackTrace,
         );
-      }
-    } else {
-      SbLogger(
-        code: null,
-        viewMessage: '登陆页面弹出失败！',
-        data: startResult.result,
-        description: null,
-        exception: startResult.exception,
-        stackTrace: startResult.stackTrace,
-      );
-    }
+      },
+    );
   }
 }

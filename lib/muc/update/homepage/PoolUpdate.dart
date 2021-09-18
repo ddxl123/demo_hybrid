@@ -58,19 +58,22 @@ class PoolUpdate extends UpdateBase<PoolGetController> {
     Future<List<ModelBase>> query(String tableName) async {
       final SingleResult<List<ModelBase>> queryResult =
           await DataTransferManager.instance.executeSqliteCurd.queryRowsAsModels(QueryWrapper(tableName: tableName));
-      if (!queryResult.hasError) {
-        return queryResult.result!;
-      } else {
-        SbLogger(
-          code: null,
-          viewMessage: '加载数据失败！',
-          data: null,
-          description: Description('读取数据时发生异常'),
-          exception: queryResult.exception,
-          stackTrace: queryResult.stackTrace,
-        ).withToast(false);
-        return <ModelBase>[];
-      }
+      return await queryResult.handle<List<ModelBase>>(
+        onSuccess: (List<ModelBase> successResult) async {
+          return successResult;
+        },
+        onError: (Object? exception, StackTrace? stackTrace) async {
+          SbLogger(
+            code: null,
+            viewMessage: '加载数据失败！',
+            data: null,
+            description: Description('读取数据时发生异常'),
+            exception: queryResult.exception,
+            stackTrace: queryResult.stackTrace,
+          ).withToast(false);
+          return <ModelBase>[];
+        },
+      );
     }
 
     @override

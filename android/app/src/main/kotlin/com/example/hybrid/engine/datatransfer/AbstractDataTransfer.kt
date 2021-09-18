@@ -72,6 +72,7 @@ abstract class AbstractDataTransfer(flutterEnginer: FlutterEnginer) {
     ): Any {
         return startEngineInterception(flutterEnginer, operationId, data)
             ?: androidPermissionInterception(operationId)
+            ?: otherInterception(flutterEnginer, operationId)
             ?: listenFromFlutterEngineToNative(operationId, data)
     }
 
@@ -161,6 +162,19 @@ abstract class AbstractDataTransfer(flutterEnginer: FlutterEnginer) {
         }
     }
 
+    /**
+     *
+     */
+    private fun otherInterception(flutterEnginer: FlutterEnginer, operationId: String): Any? {
+        return when (operationId) {
+            OExecute_FlutterSend.GET_NATIVE_WINDOW_SIZE_OF_CURRENT_ENGINE -> {
+                val viewParams =
+                    FlutterEngineManager.getFlutterEnginersByEntryPoint(flutterEnginer.entryPointName)!!.floatingWindow!!.viewer.currentViewParams
+                return mutableListOf(viewParams.width, viewParams.height)
+            }
+            else -> null
+        }
+    }
 
     /**
      * 监听来自不同的 [FlutterEnginer] 的传输数据。

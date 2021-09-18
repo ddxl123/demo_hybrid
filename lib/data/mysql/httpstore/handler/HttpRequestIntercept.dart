@@ -22,13 +22,14 @@ class HttpRequestIntercept<REQVO extends RequestDataVO, REQPVO extends RequestPa
       final SingleResult<List<MUser>> queryResult = await DataTransferManager.instance.executeSqliteCurd.queryRowsAsModels<MUser>(
         QueryWrapper(tableName: MUser().tableName),
       );
-      if (!queryResult.hasError) {
-        httpRequest.requestHeaders = <String, Object?>{
-          'authorization': 'bearer ' + (queryResult.result!.isEmpty ? '' : (queryResult.result!.first.get_token ?? ''))
-        };
-      } else {
-        throw '查询 user 数据时发生了异常！';
-      }
+      await queryResult.handle(
+        onSuccess: (List<MUser> result) async {
+          httpRequest.requestHeaders = <String, Object?>{'authorization': 'bearer ' + (result.isEmpty ? '' : (result.first.get_token ?? ''))};
+        },
+        onError: (Object? exception, StackTrace? stackTrace) async {
+          throw '查询 user 数据时发生了异常！$exception';
+        },
+      );
     } else if (must == PathConstant.NO_JWT) {
     } else {
       throw 'Path is irregular! "${httpRequest.path}"';

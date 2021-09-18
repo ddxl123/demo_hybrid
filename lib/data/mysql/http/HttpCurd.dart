@@ -64,17 +64,32 @@ class HttpCurd {
         connectTransaction: null,
         queryWrapper: QueryWrapper(tableName: MUser().tableName),
       );
-      if (usersResult.hasError) {
-        return await httpStore.setCancel(
-          viewMessage: '检查账号时发生了异常！',
-          description: Description('查询数据库时发生了异常！'),
-          exception: usersResult.exception,
-          stackTrace: usersResult.stackTrace,
-        ) as HS;
-      }
-      if (usersResult.result!.isEmpty) {
-        //TODO: 弹出【登陆界面引擎】
-        return await httpStore.setCancel(viewMessage: '未登录！', description: Description('本地不存在账号信息！'), exception: null, stackTrace: null) as HS;
+
+      final HS? usersResultHandleResult = await usersResult.handle<HS?>(
+        onSuccess: (List<MUser> result) async {
+          if (result.isEmpty) {
+            //TODO: 弹出【登陆界面引擎】
+            return await httpStore.setCancel(
+              viewMessage: '未登录！',
+              description: Description('本地不存在账号信息！'),
+              exception: null,
+              stackTrace: null,
+            ) as HS;
+          }
+          return null;
+        },
+        onError: (Object? exception, StackTrace? stackTrace) async {
+          return await httpStore.setCancel(
+            viewMessage: '检查账号时发生了异常！',
+            description: Description('查询数据库时发生了异常！'),
+            exception: usersResult.exception,
+            stackTrace: usersResult.stackTrace,
+          ) as HS;
+        },
+      );
+
+      if (usersResultHandleResult != null) {
+        return usersResultHandleResult;
       }
 
       SbLogger(

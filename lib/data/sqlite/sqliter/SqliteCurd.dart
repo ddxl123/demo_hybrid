@@ -1,5 +1,4 @@
 import 'package:hybrid/data/sqlite/mmodel/MUpload.dart';
-import 'package:hybrid/data/sqlite/mmodel/MUser.dart';
 import 'package:hybrid/data/sqlite/mmodel/ModelBase.dart';
 import 'package:hybrid/data/sqlite/mmodel/ModelManager.dart';
 import 'package:hybrid/util/SbHelper.dart';
@@ -196,18 +195,21 @@ class SqliteCurd {
       connectTransaction: connectTransaction,
       queryWrapper: queryWrapper,
     );
-    if (!queryRowsAsJsonsResult.hasError) {
-      final List<M> models = <M>[];
-      for (final Map<String, Object?> row in queryRowsAsJsonsResult.result!) {
-        final M newModel = ModelManager.createEmptyModelByTableName<M>(queryWrapper.tableName);
-        newModel.getRowJson.addAll(row);
-        models.add(newModel);
-        returnWhere?.call(newModel);
-      }
-      await result.setSuccess(setResult: () async => models);
-    } else {
-      result.setError(exception: queryRowsAsJsonsResult.exception, stackTrace: queryRowsAsJsonsResult.stackTrace);
-    }
+    await queryRowsAsJsonsResult.handle(
+      onSuccess: (List<Map<String, Object?>> successResult) async {
+        final List<M> models = <M>[];
+        for (final Map<String, Object?> row in queryRowsAsJsonsResult.result!) {
+          final M newModel = ModelManager.createEmptyModelByTableName<M>(queryWrapper.tableName);
+          newModel.getRowJson.addAll(row);
+          models.add(newModel);
+          returnWhere?.call(newModel);
+        }
+        await result.setSuccess(setResult: () async => models);
+      },
+      onError: (Object? exception, StackTrace? stackTrace) async {
+        result.setError(exception: queryRowsAsJsonsResult.exception, stackTrace: queryRowsAsJsonsResult.stackTrace);
+      },
+    );
     return result;
   }
 
@@ -273,11 +275,14 @@ class SqliteCurd {
             connectTransaction: txnM.transaction,
             queryWrapper: QueryWrapper(tableName: modelTableName, where: 'id = ?', whereArgs: <Object?>[modelId]),
           );
-          if (!queryRowsAsModelsResult.hasError) {
-            return queryRowsAsModelsResult.result!.first;
-          } else {
-            throw queryRowsAsModelsResult.exception!;
-          }
+          return await queryRowsAsModelsResult.handle<T>(
+            onSuccess: (List<T> successResult) async {
+              return successResult!.first;
+            },
+            onError: (Object? exception, StackTrace? stackTrace) async {
+              throw exception!;
+            },
+          );
         } else {
           return await _toUpdateRow(modelTableName: modelTableName, modelId: modelId, updateContent: updateContent, transactionMark: txnM);
         }
@@ -387,35 +392,37 @@ class SqliteCurd {
       connectTransaction: transactionMark.transaction,
       queryWrapper: QueryWrapper(tableName: model.tableName, where: '${model.uuid} = ?', whereArgs: <Object>[model.get_uuid!]),
     );
-    if (!queryRowsAsJsonsResult.hasError) {
-      if (queryRowsAsJsonsResult.result!.isNotEmpty) {
-        throw 'The model already exits.';
-      }
+    return await queryRowsAsJsonsResult.handle<T>(
+      onSuccess: (List<Map<String, Object?>> successResult) async {
+        if (successResult.isNotEmpty) {
+          throw 'The model already exits.';
+        }
+        // 插入当前 model ，获取并设置 id。
+        final int rowId = await transactionMark.transaction.insert(model.tableName, model.getRowJson);
+        model.getRowJson['id'] = rowId;
 
-      // 插入当前 model ，获取并设置 id。
-      final int rowId = await transactionMark.transaction.insert(model.tableName, model.getRowJson);
-      model.getRowJson['id'] = rowId;
-
-      // 创建 MUpload 模型。
-      final MUpload upload = MUpload.createModel(
-        id: null,
-        aiid: null,
-        uuid: null,
-        created_at: SbHelper.newTimestamp,
-        updated_at: SbHelper.newTimestamp,
-        for_table_name: model.tableName,
-        for_row_id: rowId,
-        for_aiid: null,
-        updated_columns: null,
-        curd_status: CurdStatus.C.index,
-        upload_status: UploadStatus.notUploaded.index,
-        mark: transactionMark.mark,
-      );
-      await transactionMark.transaction.insert(upload.tableName, upload.getRowJson);
-      return model;
-    } else {
-      throw queryRowsAsJsonsResult.exception!;
-    }
+        // 创建 MUpload 模型。
+        final MUpload upload = MUpload.createModel(
+          id: null,
+          aiid: null,
+          uuid: null,
+          created_at: SbHelper.newTimestamp,
+          updated_at: SbHelper.newTimestamp,
+          for_table_name: model.tableName,
+          for_row_id: rowId,
+          for_aiid: null,
+          updated_columns: null,
+          curd_status: CurdStatus.C.index,
+          upload_status: UploadStatus.notUploaded.index,
+          mark: transactionMark.mark,
+        );
+        await transactionMark.transaction.insert(upload.tableName, upload.getRowJson);
+        return model;
+      },
+      onError: (Object? exception, StackTrace? stackTrace) async {
+        throw exception!;
+      },
+    );
   }
 
   /// {@template RSqliteCurd.updateRow}
@@ -472,12 +479,15 @@ class SqliteCurd {
       connectTransaction: transactionMark.transaction,
       queryWrapper: QueryWrapper(tableName: modelTableName, where: 'id = ?', whereArgs: <Object?>[modelId]),
     );
-    late final T newModel;
-    if (!queryRowsAsModelsResult.hasError) {
-      newModel = queryRowsAsModelsResult.result!.first;
-    } else {
-      throw queryRowsAsModelsResult.exception!;
-    }
+
+    final T newModel = await queryRowsAsModelsResult.handle<T>(
+      onSuccess: (List<T> successResult) async {
+        return successResult.first;
+      },
+      onError: (Object? exception, StackTrace? stackTrace) async {
+        throw exception!;
+      },
+    );
 
     // R
     if (checkResult == CheckResult.uploadModelIsNotExist) {
@@ -636,12 +646,14 @@ class SqliteCurd {
       queryWrapper: QueryWrapper(tableName: modelTableName, where: 'id = ?', whereArgs: <Object?>[modelId]),
     );
 
-    late final List<T> queryResult;
-    if (!ofModelResult.hasError) {
-      queryResult = ofModelResult.result!;
-    } else {
-      throw ofModelResult.exception!;
-    }
+    final List<T> queryResult = await ofModelResult.handle(
+      onSuccess: (List<T> successResult) async {
+        return successResult;
+      },
+      onError: (Object? exception, StackTrace? stackTrace) async {
+        throw exception!;
+      },
+    );
 
     if (queryResult.isEmpty) {
       return CheckResult.modelIsNotExist;
@@ -668,19 +680,26 @@ class SqliteCurd {
         whereArgs: <Object?>[modelId, modelTableName],
       ),
     );
-    if (!ofUploadModelResult.hasError) {
-      if (ofUploadModelResult.result!.isNotEmpty) {
-        getUploadModel(ofUploadModelResult.result!.first);
-        // 若为 uploading 状态，则需要先判断是否已经 upload 成功，成功则修改成 uploaded 后才能继续。
-        if (ofUploadModelResult.result!.first.get_upload_status == UploadStatus.uploading.index) {
-          //TODO: 从 mysql 中对照是否 upload 成功过，若成功过则设为 uploaded，若未成功过则进行 upload 后再设为 uploaded
-          throw 'TODO...';
+    final CheckResult? checkResult = await ofUploadModelResult.handle<CheckResult?>(
+      onSuccess: (List<MUpload> successResult) async {
+        if (successResult.isNotEmpty) {
+          getUploadModel(successResult.first);
+          // 若为 uploading 状态，则需要先判断是否已经 upload 成功，成功则修改成 uploaded 后才能继续。
+          if (successResult.first.get_upload_status == UploadStatus.uploading.index) {
+            //TODO: 从 mysql 中对照是否 upload 成功过，若成功过则设为 uploaded，若未成功过则进行 upload 后再设为 uploaded
+            throw 'TODO...';
+          }
+        } else {
+          return CheckResult.uploadModelIsNotExist;
         }
-      } else {
-        return CheckResult.uploadModelIsNotExist;
-      }
-    } else {
-      throw ofUploadModelResult.exception!;
+      },
+      onError: (Object? exception, StackTrace? stackTrace) async {
+        throw exception!;
+      },
+    );
+
+    if (checkResult != null) {
+      return checkResult;
     }
 
     return CheckResult.ok;
@@ -762,24 +781,30 @@ class SqliteCurd {
         whereArgs: <Object>[fkColumnValue],
       ),
     );
-    if (!queryRowsAsModelsResult.hasError) {
-      // 把查询到的进行递归 delete
-      for (int i = 0; i < queryRowsAsModelsResult.result!.length; i++) {
-        final SingleResult<bool> deleteRowResult = await SqliteCurd.deleteRow(
-          modelTableName: queryRowsAsModelsResult.result![i].tableName,
-          modelId: queryRowsAsModelsResult.result![i].get_id!,
-          transactionMark: transactionMark,
-        );
-        if (!deleteRowResult.hasError) {
-          if (!deleteRowResult.result!) {
-            throw Exception('result 不为 true！');
-          }
-        } else {
-          throw deleteRowResult.exception!;
+    await queryRowsAsModelsResult.handle(
+      onSuccess: (List<ModelBase> successResult) async {
+        // 把查询到的进行递归 delete
+        for (int i = 0; i < successResult.length; i++) {
+          final SingleResult<bool> deleteRowResult = await SqliteCurd.deleteRow(
+            modelTableName: successResult[i].tableName,
+            modelId: successResult[i].get_id!,
+            transactionMark: transactionMark,
+          );
+          await deleteRowResult.handle(
+            onSuccess: (bool successResult) async {
+              if (!successResult) {
+                throw Exception('result 不为 true！');
+              }
+            },
+            onError: (Object? exception, StackTrace? stackTrace) async {
+              throw exception!;
+            },
+          );
         }
-      }
-    } else {
-      throw queryRowsAsModelsResult.exception!;
-    }
+      },
+      onError: (Object? exception, StackTrace? stackTrace) async {
+        throw exception!;
+      },
+    );
   }
 }

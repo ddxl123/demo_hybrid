@@ -61,25 +61,28 @@ class _MainEntryMainState extends State<MainEntryMain> {
           data: null,
           resultDataCast: null,
         );
-        if (!checkResult.hasError) {
-          if (checkResult.result!) {
-            // 触发 已允许悬浮窗权限，并进行应用数据初始化。
-            (controller.any['set2']! as Function(SingleGetController))(controller);
-          } else {
-            SbHelper.getNavigator!.push(FloatingWindowPermissionRoute());
-          }
-        } else {
-          // 触发 初始化失败。
-          (controller.any['setError']! as Function(SingleGetController, String))(controller, '检查悬浮窗权限时发生了异常！');
-          SbLogger(
-            code: null,
-            viewMessage: null,
-            data: null,
-            description: Description('main entry 初始化时 检测悬浮窗权限是否开启 发生异常！'),
-            exception: checkResult.exception,
-            stackTrace: checkResult.stackTrace,
-          ).withRecord();
-        }
+        await checkResult.handle<void>(
+          onSuccess: (bool successResult) async {
+            if (successResult) {
+              // 触发 已允许悬浮窗权限，并进行应用数据初始化。
+              (controller.any['set2']! as Function(SingleGetController))(controller);
+            } else {
+              SbHelper.getNavigator!.push(FloatingWindowPermissionRoute());
+            }
+          },
+          onError: (Object? exception, StackTrace? stackTrace) async {
+            // 触发 初始化失败。
+            (controller.any['setError']! as Function(SingleGetController, String))(controller, '检查悬浮窗权限时发生了异常！');
+            SbLogger(
+              code: null,
+              viewMessage: null,
+              data: null,
+              description: Description('main entry 初始化时 检测悬浮窗权限是否开启 发生异常！'),
+              exception: exception,
+              stackTrace: stackTrace,
+            ).withRecord();
+          },
+        );
       },
       // 触发 正在初始化应用数据。（启动数据中心引擎）
       'set2': (SingleGetController controller) async {
@@ -95,35 +98,37 @@ class _MainEntryMainState extends State<MainEntryMain> {
           closeViewAfterSeconds: null,
           resultDataCast: null,
         );
-
-        if (!startDataCenterResult.hasError) {
-          if (startDataCenterResult.result!) {
-            // 启动成功。
-            (controller.any['set3']! as Function(SingleGetController))(controller);
-          } else {
+        await startDataCenterResult.handle<void>(
+          onSuccess: (bool successResult) async {
+            if (successResult) {
+              // 启动成功。
+              (controller.any['set3']! as Function(SingleGetController))(controller);
+            } else {
+              // 触发 初始化失败。
+              (controller.any['setError']! as Function(SingleGetController, String))(controller, '启动 data_center 引擎时发生了异常！');
+              SbLogger(
+                code: null,
+                viewMessage: null,
+                data: successResult,
+                description: Description('main entry 初始化时 启动 data_center 引擎 发生异常！result 不为 true。'),
+                exception: null,
+                stackTrace: null,
+              ).withRecord();
+            }
+          },
+          onError: (Object? exception, StackTrace? stackTrace) async {
             // 触发 初始化失败。
-            (controller.any['setError']! as Function(SingleGetController, String))(controller, '启动 data_center 引擎时发生了异常！');
+            (controller.any['setError']! as Function(SingleGetController, String))(controller, '初始化应用数据发生了异常！');
             SbLogger(
               code: null,
               viewMessage: null,
-              data: startDataCenterResult.result,
-              description: Description('main entry 初始化时 启动 data_center 引擎 发生异常！result 不为 true。'),
-              exception: startDataCenterResult.exception,
-              stackTrace: startDataCenterResult.stackTrace,
+              data: null,
+              description: Description('main entry 初始化时 初始化应用数据 发生异常！'),
+              exception: exception,
+              stackTrace: stackTrace,
             ).withRecord();
-          }
-        } else {
-          // 触发 初始化失败。
-          (controller.any['setError']! as Function(SingleGetController, String))(controller, '初始化应用数据发生了异常！');
-          SbLogger(
-            code: null,
-            viewMessage: null,
-            data: null,
-            description: Description('main entry 初始化时 初始化应用数据 发生异常！'),
-            exception: startDataCenterResult.exception,
-            stackTrace: startDataCenterResult.stackTrace,
-          ).withRecord();
-        }
+          },
+        );
       },
       // 触发 正在初始化用户数据。（是否存在用户、初始化数据是否已下载）
       'set3': (SingleGetController controller) async {

@@ -39,7 +39,7 @@ class TableDataRoute extends SbRoute {
             width: width,
             height: height,
             isScrollable: false,
-            whenSizeChanged: (Size newSize) {},
+            whenSizeChanged: (SizeInt newSizeInt) {},
             children: <Widget>[
               SbFreeBox(
                 boxSize: Size(width, height),

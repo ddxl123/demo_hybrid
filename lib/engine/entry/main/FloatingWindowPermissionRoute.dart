@@ -35,7 +35,7 @@ class FloatingWindowPermissionRoute extends SbRoute {
       (Timer timer) async {
         final SingleResult<bool> checkResult = await DataTransferManager.instance.executeToNative<void, bool>(
           operationId: OAndroidPermission_FlutterSend.check_floating_window_permission,
-          data: null,
+          setSendData: () {},
           resultDataCast: null,
         );
         if (!timer.isActive) {
@@ -78,7 +78,7 @@ class FloatingWindowPermissionRoute extends SbRoute {
   Future<void> _checkAndPush() async {
     final SingleResult<bool> checkAndPushResult = await DataTransferManager.instance.executeToNative<void, bool>(
       operationId: OAndroidPermission_FlutterSend.check_and_push_page_floating_window_permission,
-      data: null,
+      setSendData: () {},
       resultDataCast: null,
     );
     await checkAndPushResult.handle<void>(
@@ -105,7 +105,7 @@ class FloatingWindowPermissionRoute extends SbRoute {
   List<Widget> body() {
     return <Widget>[
       SbRoundedBox(
-        whenSizeChanged: (Size newSize) {},
+        whenSizeChanged: (SizeInt newSizeInt) {},
         children: <Widget>[
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,

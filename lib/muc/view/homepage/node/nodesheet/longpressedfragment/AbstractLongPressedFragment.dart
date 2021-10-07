@@ -21,7 +21,7 @@ abstract class AbstractLongPressedFragment<FDM extends ModelBase> extends Abstra
   List<Widget> body() {
     return <Widget>[
       AutoPositioned(
-        child: SbRoundedBox(whenSizeChanged: (Size newSize) {}, children: <Widget>[
+        child: SbRoundedBox(whenSizeChanged: (SizeInt newSizeInt) {}, children: <Widget>[
           TextButton(
             child: const Text('删除碎片'),
             onPressed: () {

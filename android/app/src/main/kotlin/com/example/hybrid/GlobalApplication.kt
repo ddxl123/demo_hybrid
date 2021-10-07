@@ -23,6 +23,7 @@ class GlobalApplication : Application() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate() {
         super.onCreate()
+        println("---------------- ${resources.displayMetrics.widthPixels}")
         context = this
         startForegroundService(Intent(this, MainService::class.java))
 

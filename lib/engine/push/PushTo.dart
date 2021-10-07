@@ -1,21 +1,22 @@
 import 'dart:async';
+import 'dart:ui';
 
-import 'package:flutter/cupertino.dart';
 import 'package:hybrid/engine/constant/EngineEntryName.dart';
 import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
 class PushTo {
-  static Future<void> loginAndRegister(Size? changeViewSize) async {
+  static Future<void> loginAndRegister({
+    required ViewParams startViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
+    required ViewParams endViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
+  }) async {
     final SingleResult<bool> startResult = await DataTransferManager.instance.execute<void, bool>(
       executeForWhichEngine: EngineEntryName.LOGIN_AND_REGISTER,
       operationIdIfEngineFirstFrameInitialized: null,
-      operationData: null,
-      startViewParams: changeViewSize == null ? ViewParams(width: 300, height: 300, left: 150, right: 0, top: 150, bottom: 0, isFocus: true) : null,
-      endViewParams: changeViewSize == null
-          ? ViewParams(width: 1200, height: 1200, left: 150, right: 0, top: 150, bottom: 0, isFocus: true)
-          : ViewParams(width: changeViewSize.width.toInt(), height: changeViewSize.height.toInt(), left: 150, right: 0, top: 150, bottom: 0, isFocus: true),
+      setOperationData: () {},
+      startViewParams: startViewParams,
+      endViewParams: endViewParams,
       closeViewAfterSeconds: null,
       resultDataCast: null,
     );
@@ -25,10 +26,10 @@ class PushTo {
           SbLogger(
             code: null,
             viewMessage: '登陆页面弹出失败！',
-            data: startResult.result,
+            data: successResult,
             description: null,
-            exception: startResult.exception,
-            stackTrace: startResult.stackTrace,
+            exception: Exception('successResult 不为 true！'),
+            stackTrace: null,
           );
         }
       },
@@ -36,10 +37,10 @@ class PushTo {
         SbLogger(
           code: null,
           viewMessage: '登陆页面弹出失败！',
-          data: startResult.result,
+          data: null,
           description: null,
-          exception: startResult.exception,
-          stackTrace: startResult.stackTrace,
+          exception: exception,
+          stackTrace: stackTrace,
         );
       },
     );

@@ -277,7 +277,7 @@ class SqliteCurd {
           );
           return await queryRowsAsModelsResult.handle<T>(
             onSuccess: (List<T> successResult) async {
-              return successResult!.first;
+              return successResult.first;
             },
             onError: (Object? exception, StackTrace? stackTrace) async {
               throw exception!;

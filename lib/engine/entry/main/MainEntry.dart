@@ -58,7 +58,7 @@ class _MainEntryMainState extends State<MainEntryMain> {
 
         final SingleResult<bool> checkResult = await DataTransferManager.instance.executeToNative<void, bool>(
           operationId: OAndroidPermission_FlutterSend.check_floating_window_permission,
-          data: null,
+          setSendData: () {},
           resultDataCast: null,
         );
         await checkResult.handle<void>(
@@ -92,9 +92,9 @@ class _MainEntryMainState extends State<MainEntryMain> {
         final SingleResult<bool> startDataCenterResult = await DataTransferManager.instance.execute<void, bool>(
           executeForWhichEngine: EngineEntryName.DATA_CENTER,
           operationIdIfEngineFirstFrameInitialized: null,
-          operationData: null,
-          startViewParams: ViewParams(width: 200, height: 200, left: 150, right: 0, top: 150, bottom: 0, isFocus: false),
-          endViewParams: ViewParams(width: 200, height: 200, left: 150, right: 0, top: 150, bottom: 0, isFocus: false),
+          setOperationData: () {},
+          startViewParams:null,
+          endViewParams: null,
           closeViewAfterSeconds: null,
           resultDataCast: null,
         );

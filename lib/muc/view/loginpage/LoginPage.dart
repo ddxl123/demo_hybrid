@@ -29,7 +29,7 @@ class LoginPage extends SbRoute {
       SbRoundedBox(
         width: screenSize.width * 4 / 5,
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 5),
-        whenSizeChanged: (Size newSize) {  },
+        whenSizeChanged: (SizeInt newSizeInt) {},
         children: <Widget>[
           const Flexible(
             child: Text(

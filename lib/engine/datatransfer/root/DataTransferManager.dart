@@ -13,15 +13,14 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'DataTransferManager.g.dart';
 
+/// 若 [left] 与 [right] 都为 null，则居中。
 @JsonSerializable()
 class ViewParams {
   ViewParams({
     required this.width,
     required this.height,
-    required this.left,
-    required this.right,
-    required this.top,
-    required this.bottom,
+    required this.x,
+    required this.y,
     required this.isFocus,
   });
 
@@ -31,12 +30,15 @@ class ViewParams {
 
   final int width;
   final int height;
-  final int? left;
-  final int? right;
-  final int? top;
-  final int? bottom;
+  final int x;
+  final int y;
   @JsonKey(name: 'is_focus')
   final bool? isFocus;
+
+  @override
+  String toString() {
+    return 'ViewParams($width, $height, $x, $y, $isFocus)';
+  }
 }
 
 class DataTransferManager {
@@ -69,14 +71,14 @@ class DataTransferManager {
   ///
   /// [operationId] 操作的唯一标识。
   ///
-  /// [data] 发送的附带数据。
+  /// [setSendData] 发送的附带数据。
   ///
   /// [resultDataCast] 将原始类型手动转化为 [R]，若为空，则自动转化。
   ///
-  Future<SingleResult<R>> _sendMessageToOtherEngine<S, R extends Object>({
+  Future<SingleResult<R>> _sendMessageToOther<S, R extends Object>({
     required String sendToWhichEngine,
     required String operationId,
-    required S data,
+    required S setSendData(),
     required R resultDataCast(Object resultData)?,
   }) async {
     final SingleResult<R> sendResult = SingleResult<R>.empty();
@@ -84,7 +86,7 @@ class DataTransferManager {
       final Map<String, Object?> messageMap = <String, Object?>{
         'send_to_which_engine': sendToWhichEngine,
         'operation_id': operationId,
-        'data': data,
+        'data': setSendData(),
       };
       final Object? resultData = await currentDataTransfer.basicMessageChannel.send(messageMap);
       if (resultData == null) {
@@ -104,7 +106,7 @@ class DataTransferManager {
         await sendResult.setSuccess(setResult: () async => resultDataCast == null ? resultData as R : resultDataCast(resultData));
       }
     } catch (e, st) {
-      sendResult.setError(exception: e, stackTrace: st);
+      sendResult.setError(exception: '_sendMessageToOther 内部异常！$e', stackTrace: st);
     }
     return sendResult;
   }
@@ -112,10 +114,10 @@ class DataTransferManager {
   /// 检查对应引擎的第一帧是否已被初始化完成。
   Future<SingleResult<bool>> _isPushedEngineFirstFrameInitialized(String whichEngine) async {
     final Future<SingleResult<bool>> Function() send = () async {
-      return await _sendMessageToOtherEngine<String, bool>(
+      return await _sendMessageToOther<String, bool>(
         sendToWhichEngine: EngineEntryName.NATIVE,
         operationId: OExecute_FlutterSend.IS_FIRST_FRAME_INITIALIZED,
-        data: whichEngine,
+        setSendData: () => whichEngine,
         resultDataCast: null,
       );
     };
@@ -133,7 +135,7 @@ class DataTransferManager {
           }
         },
         onError: (Object? exception, StackTrace? stackTrace) async {
-          return SingleResult<bool>.empty().setError(exception: exception, stackTrace: stackTrace);
+          return SingleResult<bool>.empty().setError(exception: 'singleResultBool 异常！$exception', stackTrace: stackTrace);
         },
       );
       if (singleResultBool != null) {
@@ -147,19 +149,46 @@ class DataTransferManager {
     required SingleResult<R> executeResult,
     required String executeForWhichEngine,
     required String? operationIdIfEngineFirstFrameInitialized,
-    required S operationData,
-    required ViewParams? startViewParams,
-    required ViewParams? endViewParams,
+    required S setOperationData(),
+    required ViewParams startViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
+    required ViewParams endViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
     required int? closeViewAfterSeconds,
     required R resultDataCast(Object resultData)?,
   }) async {
-    final SingleResult<bool> viewResult = await _sendMessageToOtherEngine<Map<String, Object?>, bool>(
+    ViewParams? lastViewParams;
+    SizeInt? screenSize;
+    if (startViewParams != null || endViewParams != null) {
+      final SingleResult<ViewParams> lastViewParamsResult =
+          await DataTransferManager.instance.executeSomething.getNativeWindowViewParams(executeForWhichEngine);
+      lastViewParams = await lastViewParamsResult.handle<ViewParams?>(
+        onSuccess: (ViewParams successResult) async {
+          return successResult;
+        },
+        onError: (Object? exception, StackTrace? stackTrace) async {
+          executeResult.setError(exception: 'lastViewParamsResult 异常！ $exception', stackTrace: stackTrace);
+          return null;
+        },
+      );
+
+      final SingleResult<SizeInt> screenSizeResult = await DataTransferManager.instance.executeSomething.getScreenSize();
+      screenSize = await screenSizeResult.handle<SizeInt?>(
+        onSuccess: (SizeInt size) async {
+          return size;
+        },
+        onError: (Object? exception, StackTrace? stackTrace) async {
+          executeResult.setError(exception: 'screenSizeResult 异常！ $exception', stackTrace: stackTrace);
+          return null;
+        },
+      );
+    }
+
+    final SingleResult<bool> viewResult = await _sendMessageToOther<Map<String, Object?>, bool>(
       sendToWhichEngine: EngineEntryName.NATIVE,
       operationId: OExecute_FlutterSend.SET_VIEW,
-      data: <String, Object?>{
+      setSendData: () => <String, Object?>{
         'set_which_engine_view': executeForWhichEngine,
-        'start_view_params': startViewParams?.toJson(),
-        'end_view_params': endViewParams?.toJson(),
+        'start_view_params': startViewParams?.call(lastViewParams!, screenSize!).toJson(),
+        'end_view_params': endViewParams?.call(lastViewParams!, screenSize!).toJson(),
         'close_view_after_seconds': closeViewAfterSeconds,
       },
       resultDataCast: null,
@@ -169,10 +198,10 @@ class DataTransferManager {
         // view set 完成。
         if (successResult) {
           if (operationIdIfEngineFirstFrameInitialized != null) {
-            final SingleResult<R> operationResult = await _sendMessageToOtherEngine<S, R>(
+            final SingleResult<R> operationResult = await _sendMessageToOther<S, R>(
               sendToWhichEngine: executeForWhichEngine,
               operationId: operationIdIfEngineFirstFrameInitialized,
-              data: operationData,
+              setSendData: setOperationData,
               resultDataCast: resultDataCast,
             );
             operationResult.cloneTo(executeResult);
@@ -207,7 +236,7 @@ class DataTransferManager {
   ///
   ///   > - 若 [operationIdIfEngineFirstFrameInitialized] 为空，即不传递 operation，则 [R] 必须为 [bool] 类型。
   ///
-  /// 关于 [operationData]：
+  /// 关于 [setOperationData]：
   ///
   ///   > - 当 [operationIdIfEngineFirstFrameInitialized] 不为空时要传递的数据。
   ///
@@ -230,9 +259,9 @@ class DataTransferManager {
   Future<SingleResult<R>> execute<S, R extends Object>({
     required String executeForWhichEngine,
     required String? operationIdIfEngineFirstFrameInitialized,
-    required S operationData,
-    required ViewParams? startViewParams,
-    required ViewParams? endViewParams,
+    required S setOperationData(),
+    required ViewParams startViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
+    required ViewParams endViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
     required int? closeViewAfterSeconds,
     required R resultDataCast(Object resultData)?,
   }) async {
@@ -243,10 +272,10 @@ class DataTransferManager {
     }
 
     // 检测是否已启动引擎，若未启动，则启动。
-    final SingleResult<bool> messageResult = await _sendMessageToOtherEngine<Map<String, Object?>, bool>(
+    final SingleResult<bool> messageResult = await _sendMessageToOther<Map<String, Object?>, bool>(
       sendToWhichEngine: EngineEntryName.NATIVE,
       operationId: OExecute_FlutterSend.START_ENGINE,
-      data: <String, Object?>{'start_which_engine': executeForWhichEngine},
+      setSendData: () => <String, Object?>{'start_which_engine': executeForWhichEngine},
       resultDataCast: null,
     );
     await messageResult.handle<void>(
@@ -261,19 +290,19 @@ class DataTransferManager {
                   executeResult: executeResult,
                   executeForWhichEngine: executeForWhichEngine,
                   operationIdIfEngineFirstFrameInitialized: operationIdIfEngineFirstFrameInitialized,
-                  operationData: operationData,
+                  setOperationData: setOperationData,
                   startViewParams: startViewParams,
                   endViewParams: endViewParams,
                   closeViewAfterSeconds: closeViewAfterSeconds,
                   resultDataCast: resultDataCast,
                 );
               } else {
-                executeResult.setError(exception: Exception('启动引擎后的第一帧初始化发生了异常！result 不为 true！'), stackTrace: null);
+                executeResult.setError(exception: Exception('启动引擎后的检查第一帧是否已被初始化发生了异常：result 不为 true！'), stackTrace: null);
               }
             },
             onError: (Object? exception, StackTrace? stackTrace) async {
               executeResult.setError(
-                exception: Exception('启动引擎后的第一帧初始化发生了异常！未知异常！' + exception.toString()),
+                exception: Exception('启动引擎后的检查第一帧是否已被初始化发生了异常：未知异常！' + exception.toString()),
                 stackTrace: stackTrace,
               );
             },
@@ -291,26 +320,26 @@ class DataTransferManager {
 
   Future<SingleResult<R>> executeToNative<S, R extends Object>({
     required String operationId,
-    required S data,
+    required S setSendData(),
     required R resultDataCast(Object resultData)?,
   }) async {
-    return await _sendMessageToOtherEngine<S, R>(
+    return await _sendMessageToOther<S, R>(
       sendToWhichEngine: EngineEntryName.NATIVE,
       operationId: operationId,
-      data: data,
+      setSendData: setSendData,
       resultDataCast: resultDataCast,
     );
   }
 
   Future<SingleResult<R>> executeToMain<S, R extends Object>({
     required String operationId,
-    required S data,
+    required S setSendData(),
     required R resultDataCast(Object resultData)?,
   }) async {
-    return await _sendMessageToOtherEngine<S, R>(
+    return await _sendMessageToOther<S, R>(
       sendToWhichEngine: EngineEntryName.MAIN,
       operationId: operationId,
-      data: data,
+      setSendData: setSendData,
       resultDataCast: resultDataCast,
     );
   }
@@ -329,7 +358,7 @@ class ExecuteSqliteCurd {
         await DataTransferManager.instance.execute<Map<String, Object?>, List<Map<String, Object?>>>(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
       operationIdIfEngineFirstFrameInitialized: OExecute_FlutterSend.SQLITE_QUERY_ROW_AS_JSONS,
-      operationData: queryWrapper.toJson(),
+      setOperationData: () => queryWrapper.toJson(),
       startViewParams: null,
       endViewParams: null,
       closeViewAfterSeconds: null,
@@ -371,7 +400,7 @@ class ExecuteSqliteCurd {
     final SingleResult<Map<String, Object?>> insertRowResult = await DataTransferManager.instance.execute<Map<String, Object?>, Map<String, Object?>>(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
       operationIdIfEngineFirstFrameInitialized: OExecute_FlutterSend.SQLITE_INSERT_ROW,
-      operationData: <String, Object?>{
+      setOperationData: () => <String, Object?>{
         'table_name': insertModel.tableName,
         'model_data': insertModel.getRowJson,
       },
@@ -405,7 +434,7 @@ class ExecuteSqliteCurd {
     final SingleResult<Map<String, Object?>> updateRowResult = await DataTransferManager.instance.execute<Map<String, Object?>, Map<String, Object?>>(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
       operationIdIfEngineFirstFrameInitialized: OExecute_FlutterSend.SQLITE_UPDATE_ROW,
-      operationData: <String, Object?>{
+      setOperationData: () => <String, Object?>{
         'model_table_name': modelTableName,
         'model_id': modelId,
         'update_content': updateContent,
@@ -435,7 +464,7 @@ class ExecuteSqliteCurd {
     final SingleResult<bool> deleteRowResult = await DataTransferManager.instance.execute<Map<String, Object?>, bool>(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
       operationIdIfEngineFirstFrameInitialized: OExecute_FlutterSend.SQLITE_DELETE_ROW,
-      operationData: <String, Object?>{
+      setOperationData: () => <String, Object?>{
         'model_table_name': modelTableName,
         'model_id': modelId,
       },
@@ -483,7 +512,15 @@ class ExecuteSomething {
         if (successResult.isEmpty) {
           if (!isCheckOnly) {
             // TODO: 弹出登陆页面引擎。
-            PushTo.loginAndRegister(null);
+
+            PushTo.loginAndRegister(
+              startViewParams: (ViewParams lastViewParams, SizeInt screenSize) {
+                return ViewParams(width: 500, height: 1000, x: 200, y: 200, isFocus: true);
+              },
+              endViewParams: (ViewParams lastViewParams, SizeInt screenSize) {
+                return ViewParams(width: 500, height: 1000, x: 200, y: 200, isFocus: true);
+              },
+            );
           }
           await onNotPass();
         } else {
@@ -498,18 +535,29 @@ class ExecuteSomething {
         }
       },
       onError: (Object? exception, StackTrace? stackTrace) async {
-        await onError(queryResult.exception, queryResult.stackTrace);
+        await onError(exception, stackTrace);
       },
     );
   }
 
   /// 获取当前引擎的 window 大小(非 flutter 实际大小)
-  Future<SingleResult<List<int>>> getNativeWindowSizeOfCurrentEngine() async {
-    final SingleResult<List<int>> getResult = await DataTransferManager.instance.executeToNative<void, List<int>>(
-      operationId: OExecute_FlutterSend.GET_NATIVE_WINDOW_SIZE_OF_CURRENT_ENGINE,
-      data: null,
-      resultDataCast: null,
+  Future<SingleResult<ViewParams>> getNativeWindowViewParams(String whichEngine) async {
+    return await DataTransferManager.instance.executeToNative<String, ViewParams>(
+      operationId: OExecute_FlutterSend.GET_NATIVE_WINDOW_VIEW_PARAMS,
+      setSendData: () => whichEngine,
+      resultDataCast: (Object result) => ViewParams.fromJson((result as Map<Object?, Object?>).cast<String, dynamic>()),
     );
-    return getResult;
+  }
+
+  /// 获取屏幕的物理像素大小。
+  Future<SingleResult<SizeInt>> getScreenSize() async {
+    return await DataTransferManager.instance.executeToNative<void, SizeInt>(
+      operationId: OExecute_FlutterSend.GET_SCREEN_SIZE,
+      setSendData: () {},
+      resultDataCast: (Object resultData) {
+        final Map<String, int> castData = (resultData as Map<Object?, Object?>).cast<String, int>();
+        return SizeInt(castData['width']!, castData['height']!);
+      },
+    );
   }
 }

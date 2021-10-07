@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:hybrid/data/sqlite/sqliter/SqliteTool.dart';
+import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 import 'package:hybrid/util/sbroundedbox/SbRoundedBox.dart';
 import 'package:hybrid/util/sbroute/SbPopResult.dart';
@@ -26,7 +27,7 @@ class SqliteDataRoute extends SbRoute {
       return SbRoundedBox(
         width: MediaQueryData.fromWindow(window).size.width * 2 / 3,
         height: MediaQueryData.fromWindow(window).size.height * 2 / 3,
-        whenSizeChanged: (Size newSize) {  },
+        whenSizeChanged: (SizeInt newSizeInt) {  },
         children: children,
       );
     }

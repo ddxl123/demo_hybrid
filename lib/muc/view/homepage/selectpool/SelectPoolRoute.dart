@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hybrid/global/Global.dart';
 import 'package:hybrid/muc/getcontroller/homepage/PoolGetController.dart';
+import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 import 'package:hybrid/util/sbroundedbox/SbRoundedBox.dart';
 import 'package:hybrid/util/sbroute/SbPopResult.dart';
@@ -19,7 +20,7 @@ class SelectPoolRoute extends SbRoute {
         right: 0,
         left: 0,
         child: SbRoundedBox(
-          whenSizeChanged: (Size newSize) {  },
+          whenSizeChanged: (SizeInt newSizeInt) {  },
           children: <Widget>[
             TextButton(
               child: const Text('碎片池'),

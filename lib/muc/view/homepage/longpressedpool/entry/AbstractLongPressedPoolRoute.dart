@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hybrid/muc/getcontroller/homepage/HomePageGetController.dart';
 import 'package:hybrid/muc/getcontroller/homepage/PoolGetController.dart';
+import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sbbutton/Global.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 import 'package:hybrid/util/sbroundedbox/SbRoundedBox.dart';
@@ -17,7 +18,7 @@ abstract class AbstractLongPressedPoolRoute extends SbRoute {
       AutoPositioned(
         touchPosition: position,
         child: SbRoundedBox(
-          whenSizeChanged: (Size newSize) {  },
+          whenSizeChanged: (SizeInt newSizeInt) {  },
           children: <Widget>[
             TextButton(
               child: const Text('创建节点'),

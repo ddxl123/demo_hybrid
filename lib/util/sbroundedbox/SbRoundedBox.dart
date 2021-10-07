@@ -1,6 +1,8 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:hybrid/main.dart';
+import 'package:hybrid/util/SbHelper.dart';
 
 class SbRoundedBox extends StatelessWidget {
   const SbRoundedBox({
@@ -8,6 +10,7 @@ class SbRoundedBox extends StatelessWidget {
     this.height,
     this.padding,
     required this.children,
+    this.mainAxisAlignment = MainAxisAlignment.center,
     this.crossAxisAlignment = CrossAxisAlignment.center,
     this.isScrollable = true,
     required this.whenSizeChanged,
@@ -22,6 +25,9 @@ class SbRoundedBox extends StatelessWidget {
   /// 整个 box 的 padding。
   final EdgeInsetsGeometry? padding;
 
+  /// [mainAxisAlignment]：[children] 整体的纵轴对齐。
+  final MainAxisAlignment mainAxisAlignment;
+
   /// [crossAxisAlignment]：[children] 整体的横轴对齐。
   final CrossAxisAlignment crossAxisAlignment;
 
@@ -31,7 +37,7 @@ class SbRoundedBox extends StatelessWidget {
   final List<Widget> children;
 
   /// 当 [SbRoundedBoxBody] size 发生改变时触发。
-  final Function(Size newSize) whenSizeChanged;
+  final Function(SizeInt newSizeInt) whenSizeChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +62,7 @@ class SbRoundedBoxBody extends StatefulWidget {
 }
 
 class _SbRoundedBoxBodyState extends State<SbRoundedBoxBody> with WidgetsBindingObserver {
-  Size currentSize = const Size(-1, -1);
+  SizeInt currentSize = const SizeInt(-1, -1);
 
   @override
   void initState() {
@@ -74,10 +80,10 @@ class _SbRoundedBoxBodyState extends State<SbRoundedBoxBody> with WidgetsBinding
   void didChangeMetrics() {
     WidgetsBinding.instance!.addPostFrameCallback(
       (Duration timeStamp) {
-        final Size newSize = context.size! * MediaQuery.of(context).devicePixelRatio;
-        if (currentSize != newSize) {
-          currentSize = newSize;
-          widget.sbRoundedBox.whenSizeChanged(newSize);
+        final SizeInt newSizeInt = SizeInt.fromSizeDouble(context.size! * MediaQuery.of(context).devicePixelRatio);
+        if (currentSize != newSizeInt && hadSentSetFirstFrameInitialized) {
+          currentSize = newSizeInt;
+          widget.sbRoundedBox.whenSizeChanged(newSizeInt);
         }
       },
     );
@@ -108,6 +114,7 @@ class _SbRoundedBoxBodyState extends State<SbRoundedBoxBody> with WidgetsBinding
             padding: EdgeInsets.zero,
             physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
             child: Column(
+              mainAxisAlignment: widget.sbRoundedBox.mainAxisAlignment,
               crossAxisAlignment: widget.sbRoundedBox.crossAxisAlignment,
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[...widget.sbRoundedBox.children],
@@ -115,6 +122,7 @@ class _SbRoundedBoxBodyState extends State<SbRoundedBoxBody> with WidgetsBinding
           );
         } else {
           return Column(
+            mainAxisAlignment: widget.sbRoundedBox.mainAxisAlignment,
             crossAxisAlignment: widget.sbRoundedBox.crossAxisAlignment,
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[...widget.sbRoundedBox.children],

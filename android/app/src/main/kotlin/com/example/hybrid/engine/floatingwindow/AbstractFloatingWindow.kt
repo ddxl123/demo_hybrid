@@ -19,10 +19,8 @@ import java.lang.Exception
 data class ViewParams(
     var width: Int,
     var height: Int,
-    var left: Int?,
-    var right: Int?,
-    var top: Int?,
-    var bottom: Int?,
+    var x: Int,
+    var y: Int,
     /**
      * 设置是否获取焦点。
      *
@@ -33,12 +31,20 @@ data class ViewParams(
     fun changeFrom(nViewParams: ViewParams): ViewParams {
         width = nViewParams.width
         height = nViewParams.height
-        left = nViewParams.left
-        right = nViewParams.right
-        top = nViewParams.top
-        bottom = nViewParams.bottom
+        x = nViewParams.x
+        y = nViewParams.y
         isFocus = nViewParams.isFocus
         return this
+    }
+
+    fun toJson(): Map<String, Any?> {
+        return mapOf(
+            "width" to width,
+            "height" to height,
+            "x" to x,
+            "y" to y,
+            "is_focus" to isFocus
+        )
     }
 }
 
@@ -47,7 +53,7 @@ class Viewer(private val entryPointName: String, private val windowManager: Wind
 
 
     @RequiresApi(Build.VERSION_CODES.O)
-    val currentViewParams: ViewParams = ViewParams(100, 100, 50, 0, 50, 0, false)
+    val currentViewParams: ViewParams = ViewParams(100, 100, 100, 100, false)
 
     @RequiresApi(Build.VERSION_CODES.O)
     val layoutParams: WindowManager.LayoutParams = WindowManager.LayoutParams().apply {
@@ -102,70 +108,74 @@ class Viewer(private val entryPointName: String, private val windowManager: Wind
         layoutParams.width = currentViewParams.width
         layoutParams.height = currentViewParams.height
 
+        layoutParams.gravity = Gravity.START or Gravity.TOP
+        layoutParams.x = currentViewParams.x
+        layoutParams.y = currentViewParams.y
+
         dragLayoutParams.width = currentViewParams.width / 3
         dragLayoutParams.height = dragLayoutParams.width / 2
 
-        val isCenterVert =
-            (currentViewParams.top == null && currentViewParams.bottom == null) ||
-                    (currentViewParams.top != null && currentViewParams.bottom != null)
-        val isCenterHorizon =
-            (currentViewParams.left == null && currentViewParams.right == null) ||
-                    (currentViewParams.left != null && currentViewParams.right != null)
-        if (isCenterVert && !isCenterHorizon) {
-            if (currentViewParams.left != null) {
-                layoutParams.gravity = Gravity.CENTER_VERTICAL or Gravity.START
-                layoutParams.x = currentViewParams.left!!
-                layoutParams.y = 0
-                dragLayoutParams.gravity = Gravity.CENTER_VERTICAL or Gravity.START
-                dragLayoutParams.x =
-                    currentViewParams.left!! + layoutParams.width / 2 - dragLayoutParams.width / 2
-            } else {
-                layoutParams.gravity = Gravity.CENTER_VERTICAL or Gravity.END
-                layoutParams.x = currentViewParams.right!!
-                layoutParams.y = 0
-                dragLayoutParams.gravity = Gravity.CENTER_VERTICAL or Gravity.END
-                dragLayoutParams.x =
-                    currentViewParams.right!! + layoutParams.width / 2 - dragLayoutParams.width / 2
-            }
-        } else if (!isCenterVert && isCenterHorizon) {
-            if (currentViewParams.top != null) {
-                layoutParams.gravity = Gravity.CENTER_HORIZONTAL or Gravity.TOP
-                layoutParams.x = 0
-                layoutParams.y = currentViewParams.top!!
-                dragLayoutParams.gravity = Gravity.CENTER_HORIZONTAL or Gravity.TOP
-                dragLayoutParams.y =
-                    currentViewParams.top!! + layoutParams.height / 2 - dragLayoutParams.height / 2
-            } else {
-                layoutParams.gravity = Gravity.CENTER_HORIZONTAL or Gravity.BOTTOM
-                layoutParams.x = 0
-                layoutParams.y = currentViewParams.bottom!!
-                dragLayoutParams.gravity = Gravity.CENTER_HORIZONTAL or Gravity.BOTTOM
-                dragLayoutParams.y =
-                    currentViewParams.bottom!! + layoutParams.height / 2 - dragLayoutParams.height / 2
-            }
-        } else if (isCenterVert && isCenterHorizon) {
-            layoutParams.gravity = Gravity.CENTER_HORIZONTAL or Gravity.CENTER_HORIZONTAL
-            layoutParams.x = 0
-            layoutParams.y = 0
-        } else {
-            if (currentViewParams.left != null && currentViewParams.top != null) {
-                layoutParams.gravity = Gravity.START or Gravity.TOP
-                layoutParams.x = currentViewParams.left!!
-                layoutParams.y = currentViewParams.top!!
-            } else if (currentViewParams.left != null && currentViewParams.top == null) {
-                layoutParams.gravity = Gravity.START or Gravity.BOTTOM
-                layoutParams.x = currentViewParams.left!!
-                layoutParams.y = currentViewParams.bottom!!
-            } else if (currentViewParams.left == null && currentViewParams.top != null) {
-                layoutParams.gravity = Gravity.END or Gravity.TOP
-                layoutParams.x = currentViewParams.right!!
-                layoutParams.y = currentViewParams.top!!
-            } else {
-                layoutParams.gravity = Gravity.END or Gravity.BOTTOM
-                layoutParams.x = currentViewParams.right!!
-                layoutParams.y = currentViewParams.bottom!!
-            }
-        }
+//        val isCenterVert =
+//            (currentViewParams.top == null && currentViewParams.bottom == null) ||
+//                    (currentViewParams.top != null && currentViewParams.bottom != null)
+//        val isCenterHorizon =
+//            (currentViewParams.left == null && currentViewParams.right == null) ||
+//                    (currentViewParams.left != null && currentViewParams.right != null)
+//        if (isCenterVert && !isCenterHorizon) {
+//            if (currentViewParams.left != null) {
+//                layoutParams.gravity = Gravity.CENTER_VERTICAL or Gravity.START
+//                layoutParams.x = currentViewParams.left!!
+//                layoutParams.y = 0
+//                dragLayoutParams.gravity = Gravity.CENTER_VERTICAL or Gravity.START
+//                dragLayoutParams.x =
+//                    currentViewParams.left!! + layoutParams.width / 2 - dragLayoutParams.width / 2
+//            } else {
+//                layoutParams.gravity = Gravity.CENTER_VERTICAL or Gravity.END
+//                layoutParams.x = currentViewParams.right!!
+//                layoutParams.y = 0
+//                dragLayoutParams.gravity = Gravity.CENTER_VERTICAL or Gravity.END
+//                dragLayoutParams.x =
+//                    currentViewParams.right!! + layoutParams.width / 2 - dragLayoutParams.width / 2
+//            }
+//        } else if (!isCenterVert && isCenterHorizon) {
+//            if (currentViewParams.top != null) {
+//                layoutParams.gravity = Gravity.CENTER_HORIZONTAL or Gravity.TOP
+//                layoutParams.x = 0
+//                layoutParams.y = currentViewParams.top!!
+//                dragLayoutParams.gravity = Gravity.CENTER_HORIZONTAL or Gravity.TOP
+//                dragLayoutParams.y =
+//                    currentViewParams.top!! + layoutParams.height / 2 - dragLayoutParams.height / 2
+//            } else {
+//                layoutParams.gravity = Gravity.CENTER_HORIZONTAL or Gravity.BOTTOM
+//                layoutParams.x = 0
+//                layoutParams.y = currentViewParams.bottom!!
+//                dragLayoutParams.gravity = Gravity.CENTER_HORIZONTAL or Gravity.BOTTOM
+//                dragLayoutParams.y =
+//                    currentViewParams.bottom!! + layoutParams.height / 2 - dragLayoutParams.height / 2
+//            }
+//        } else if (isCenterVert && isCenterHorizon) {
+//            layoutParams.gravity = Gravity.CENTER_HORIZONTAL or Gravity.CENTER_HORIZONTAL
+//            layoutParams.x = 0
+//            layoutParams.y = 0
+//        } else {
+//            if (currentViewParams.left != null && currentViewParams.top != null) {
+//                layoutParams.gravity = Gravity.START or Gravity.TOP
+//                layoutParams.x = currentViewParams.left!!
+//                layoutParams.y = currentViewParams.top!!
+//            } else if (currentViewParams.left != null && currentViewParams.top == null) {
+//                layoutParams.gravity = Gravity.START or Gravity.BOTTOM
+//                layoutParams.x = currentViewParams.left!!
+//                layoutParams.y = currentViewParams.bottom!!
+//            } else if (currentViewParams.left == null && currentViewParams.top != null) {
+//                layoutParams.gravity = Gravity.END or Gravity.TOP
+//                layoutParams.x = currentViewParams.right!!
+//                layoutParams.y = currentViewParams.top!!
+//            } else {
+//                layoutParams.gravity = Gravity.END or Gravity.BOTTOM
+//                layoutParams.x = currentViewParams.right!!
+//                layoutParams.y = currentViewParams.bottom!!
+//            }
+//        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -269,7 +279,7 @@ abstract class AbstractFloatingWindow(val flutterEnginer: FlutterEnginer) {
                 windowManager.addView(
                     viewer.flutterView!!,
                     if (startViewParams == null) viewer.layoutParams
-                    else viewer.resetAll(startViewParams).layoutParams
+                    else viewer.resetAll(startViewParams.apply { width -= 1 }).layoutParams
                 )
 
                 Handler(Looper.getMainLooper()).postDelayed({
@@ -278,7 +288,7 @@ abstract class AbstractFloatingWindow(val flutterEnginer: FlutterEnginer) {
                         if (endViewParams == null) viewer.resetAll(lastViewParams).layoutParams
                         else viewer.resetAll(endViewParams).layoutParams
                     )
-                }, 5000)
+                }, 0)
 
                 println("---------------- ${flutterEnginer.entryPointName} 入口的 AbstractFloatingWindow 已附着 FlutterView！")
             } else {

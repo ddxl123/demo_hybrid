@@ -3,6 +3,9 @@ class OExecute_FlutterSend {
   /// 检查引擎是否已被启动，若未启动则启动。
   static const String START_ENGINE = 'start_engine';
 
+  /// 获取屏幕大小。
+  static const String GET_SCREEN_SIZE = 'get_screen_size';
+
   /// 当引擎第一帧被初始化完成时，需要发送消息给原生。
   static const String SET_FIRST_FRAME_INITIALIZED = 'set_first_frame_initialized';
 
@@ -28,7 +31,7 @@ class OExecute_FlutterSend {
   static const String SQLITE_DELETE_ROW = 'sqlite_delete_row';
 
   /// 获取当前引擎的 window 大小(非 flutter 实际大小)
-  static const String GET_NATIVE_WINDOW_SIZE_OF_CURRENT_ENGINE = 'get_native_window_size_of_current_engine';
+  static const String GET_NATIVE_WINDOW_VIEW_PARAMS = 'get_native_window_view_params';
 }
 
 class OExecute_FlutterListen {}

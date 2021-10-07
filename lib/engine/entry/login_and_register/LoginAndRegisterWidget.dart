@@ -1,12 +1,10 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:hybrid/data/mysql/http/HttpCurd.dart';
 import 'package:hybrid/data/mysql/httpstore/handler/HttpResponse.dart';
 import 'package:hybrid/data/mysql/httpstore/store/notjwt/loginandregister/HttpStore_login_and_register_by_email_send_email.dart';
-import 'package:hybrid/data/mysql/httpstore/store/notjwt/loginandregister/HttpStore_login_and_register_by_email_verify_email.dart';
-import 'package:hybrid/data/sqlite/mmodel/MUser.dart';
-import 'package:hybrid/data/sqlite/sqliter/OpenSqlite.dart';
 import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
 import 'package:hybrid/engine/push/PushTo.dart';
 import 'package:hybrid/util/SbHelper.dart';
@@ -27,84 +25,111 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
   int time = 30;
   String text = '发送';
 
+  Size currentSize = Size.zero;
+
   @override
   Widget build(BuildContext context) {
     return SbRoundedBox(
-      width: null,
+      width: MediaQuery.of(context).size.width,
+      height: MediaQuery.of(context).size.height,
       padding: const EdgeInsets.fromLTRB(20, 5, 20, 5),
-      whenSizeChanged: (Size newSize) async {
+      whenSizeChanged: (SizeInt newSizeInt) async {
         // 每次修改窗口大小：
         // 1. 获取 native 窗口大小。
         // 2. 获取 box 大小。
         // 3. 若 native 大于 box，则调整 native 为 box，否则无操作。
-        final SingleResult<List<int>> getResult = await DataTransferManager.instance.executeSomething.getNativeWindowSizeOfCurrentEngine();
-        await getResult.handle<void>(
-          onSuccess: (List<int> successResult) async {
-            if (successResult.length != 2) {}
-          },
-          onError: (Object? exception, StackTrace? stackTrace) async {
-            SbLogger(
-              code: null,
-              viewMessage: '重置窗口失败！',
-              data: null,
-              description: Description('重置窗口失败！未知异常！'),
-              exception: getResult.exception,
-              stackTrace: getResult.stackTrace,
-            );
-          },
-        );
-        PushTo.loginAndRegister(newSize);
+        // final SingleResult<ViewParams> viewParamsResult =
+        //     await DataTransferManager.instance.executeSomething.getNativeWindowViewParams(DataTransferManager.instance.currentEntryPointName);
+        // await viewParamsResult.handle<void>(
+        //   onSuccess: (ViewParams nativeResult) async {
+        //     print('nativeResult $nativeResult');
+        //     print('newSizeInt $newSizeInt');
+        //     if (nativeResult.width == newSizeInt.width && nativeResult.height == newSizeInt.height) {
+        //       return;
+        //     }
+        //     final int willWidth;
+        //     final int willHeight;
+        //     if (nativeResult.width > newSizeInt.width) {
+        //       willWidth = newSizeInt.width < 200 ? 200 : newSizeInt.width;
+        //     } else if (nativeResult.width < newSizeInt.width) {
+        //       willWidth = nativeResult.width < 200 ? 200 : nativeResult.width;
+        //     } else {
+        //       willWidth = newSizeInt.width;
+        //     }
+        //     if (nativeResult.height > newSizeInt.height) {
+        //       willHeight = newSizeInt.height < 200 ? 200 : newSizeInt.height;
+        //     } else if (nativeResult.height < newSizeInt.height) {
+        //       willHeight = nativeResult.height < 200 ? 200 : nativeResult.height;
+        //     } else {
+        //       willHeight = newSizeInt.height;
+        //     }
+        //     print('willWidth $willWidth');
+        //     print('willHeight $willHeight');
+        //     PushTo.loginAndRegister(
+        //       startViewParams: null,
+        //       endViewParams: (ViewParams lastViewParams, SizeInt sizeInt) => ViewParams(
+        //         width: willWidth,
+        //         height: willHeight,
+        //         x: nativeResult.x,
+        //         y: nativeResult.y,
+        //         isFocus: nativeResult.isFocus,
+        //       ),
+        //     );
+        //   },
+        //   onError: (Object? exception, StackTrace? stackTrace) async {
+        //     SbLogger(
+        //       code: null,
+        //       viewMessage: '重置窗口失败！',
+        //       data: null,
+        //       description: Description('重置窗口失败！未知异常！'),
+        //       exception: exception,
+        //       stackTrace: stackTrace,
+        //     );
+        //   },
+        // );
       },
       children: <Widget>[
-        const Flexible(
-          child: Text(
-            '登陆/注册',
-            style: TextStyle(fontSize: 18),
-          ),
+        const Text(
+          '登陆/注册',
+          style: TextStyle(fontSize: 18),
         ),
         _emailInputField(),
-        const Flexible(child: SizedBox(height: 10)),
-        Flexible(
-          child: Row(
-            children: <Widget>[
-              _codeInputField(),
-              _sendEmailButton(),
-            ],
-          ),
+        const SizedBox(height: 10),
+        Row(
+          children: <Widget>[
+            Expanded(flex: 3, child: _codeInputField()),
+            Expanded(child: _sendEmailButton()),
+          ],
         ),
-        const Flexible(child: SizedBox(height: 10)),
+        const SizedBox(height: 10),
         _verifyEmailButton(),
       ],
     );
   }
 
   Widget _emailInputField() {
-    return Flexible(
-      child: TextField(
-        controller: emailTextEditingController,
-        decoration: const InputDecoration(
-          contentPadding: EdgeInsets.zero,
-          icon: Icon(Icons.person),
-          labelText: '邮箱',
-        ),
-        minLines: 1,
-        maxLines: 1,
+    return TextField(
+      controller: emailTextEditingController,
+      decoration: const InputDecoration(
+        contentPadding: EdgeInsets.zero,
+        icon: Icon(Icons.person),
+        labelText: '邮箱',
       ),
+      minLines: 1,
+      maxLines: 1,
     );
   }
 
   Widget _codeInputField() {
-    return Expanded(
-      child: TextField(
-        controller: codeTextEditingController,
-        decoration: const InputDecoration(
-          contentPadding: EdgeInsets.zero,
-          icon: Icon(Icons.lock),
-          labelText: '验证码',
-        ),
-        minLines: 1,
-        maxLines: 1,
+    return TextField(
+      controller: codeTextEditingController,
+      decoration: const InputDecoration(
+        contentPadding: EdgeInsets.zero,
+        icon: Icon(Icons.lock),
+        labelText: '验证码',
       ),
+      minLines: 1,
+      maxLines: 1,
     );
   }
 
@@ -183,99 +208,124 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
   }
 
   Widget _verifyEmailButton() {
-    return Flexible(
-      child: Container(
-        width: double.maxFinite,
-        child: TextButton(
-          style: ButtonStyle(
-            side: MaterialStateProperty.all(const BorderSide(color: Colors.green)),
-          ),
-          child: const Text('登陆/注册'),
-          onPressed: () async {
-            final HttpStore_login_and_register_by_email_verify_email httpStore = await HttpCurd.sendRequest(
-              httpStore: HttpStore_login_and_register_by_email_verify_email(
-                setRequestDataVO_LARBEVE: () => RequestDataVO_LARBEVE(
-                  email: emailTextEditingController.text,
-                  code: int.parse(codeTextEditingController.text),
-                ),
-              ),
-              sameNotConcurrent: null,
-              isBanAllOtherRequest: true,
-            );
-            await httpStore.httpResponse.handle(
-              doCancel: (HttpResponse<ResponseCodeCollect_LARBEVE, ResponseDataVO_LARBEVE> hr) async {
-                // 登陆/注册失败
-                SbLogger(
-                  code: hr.code,
-                  viewMessage: hr.viewMessage,
-                  data: null,
-                  description: hr.description,
-                  exception: hr.exception,
-                  stackTrace: hr.stackTrace,
-                ).withAll(true);
-              },
-              doContinue: (HttpResponse<ResponseCodeCollect_LARBEVE, ResponseDataVO_LARBEVE> hr) async {
-                // 登陆/注册成功
-                if (hr.code == hr.responseCodeCollect.C2_01_02_01 || hr.code == hr.responseCodeCollect.C2_01_02_02) {
-                  // TODO:
-                  // 云端 token 生成成功，存储至本地。
-                  final MUser newToken = MUser.createModel(
-                    id: null,
-                    aiid: null,
-                    uuid: null,
-                    username: null,
-                    password: null,
-                    email: null,
-                    age: null,
-                    // 无论 token 值是否有问题，都进行存储。
-                    token: hr.responseDataVO.token,
-                    is_downloaded_init_data: null,
-                    created_at: SbHelper.newTimestamp,
-                    updated_at: SbHelper.newTimestamp,
-                  );
-
-                  await db.delete(newToken.tableName);
-                  await db.insert(newToken.tableName, newToken.getRowJson);
-
-                  SbLogger(
-                    code: null,
-                    viewMessage: hr.viewMessage,
-                    data: null,
-                    description: null,
-                    exception: null,
-                    stackTrace: null,
-                  ).withToast(false);
-                  return true;
-                }
-                // 邮箱重复异常
-                if (hr.code == hr.responseCodeCollect.C2_01_02_03) {
-                  SbLogger(
-                    code: hr.code,
-                    viewMessage: hr.viewMessage,
-                    data: null,
-                    description: null,
-                    exception: null,
-                    stackTrace: null,
-                  ).withToast(true);
-                  return true;
-                }
-                // 验证码不正确
-                else if (hr.code == hr.responseCodeCollect.C2_01_02_04) {
-                  SbLogger(
-                    code: null,
-                    viewMessage: hr.viewMessage,
-                    data: null,
-                    description: null,
-                    exception: null,
-                    stackTrace: null,
-                  ).withToast(false);
-                  return true;
-                }
-                return false;
-              },
-            );
-          },
+    return Container(
+      width: double.maxFinite,
+      child: TextButton(
+        style: ButtonStyle(
+          side: MaterialStateProperty.all(const BorderSide(color: Colors.green)),
         ),
+        child: const Text('登陆/注册'),
+        onPressed: () async {
+          await PushTo.loginAndRegister(
+            startViewParams: (ViewParams lastViewParams, SizeInt screenSize) {
+              final SizeInt viewSize = screenSize.multi(2 / 3, 1);
+              final SizeInt halfSize = screenSize.multi(1 / 2, 1 / 2);
+              print('$viewSize');
+              return ViewParams(
+                width: viewSize.width,
+                height: viewSize.height,
+                x: halfSize.width - viewSize.width ~/ 2,
+                y: halfSize.height - viewSize.height ~/ 2,
+                isFocus: true,
+              );
+            },
+            endViewParams: (ViewParams lastViewParams, SizeInt screenSize) {
+              final SizeInt viewSize = screenSize.multi(2 / 3, 1);
+              final SizeInt halfSize = screenSize.multi(1 / 2, 1 / 2);
+              print('$viewSize');
+              return ViewParams(
+                width: viewSize.width,
+                height: viewSize.height,
+                x: halfSize.width - viewSize.width ~/ 2,
+                y: halfSize.height - viewSize.height ~/ 2,
+                isFocus: true,
+              );
+            },
+          );
+
+          // final HttpStore_login_and_register_by_email_verify_email httpStore = await HttpCurd.sendRequest(
+          //   httpStore: HttpStore_login_and_register_by_email_verify_email(
+          //     setRequestDataVO_LARBEVE: () => RequestDataVO_LARBEVE(
+          //       email: emailTextEditingController.text,
+          //       code: int.parse(codeTextEditingController.text),
+          //     ),
+          //   ),
+          //   sameNotConcurrent: null,
+          //   isBanAllOtherRequest: true,
+          // );
+          // await httpStore.httpResponse.handle(
+          //   doCancel: (HttpResponse<ResponseCodeCollect_LARBEVE, ResponseDataVO_LARBEVE> hr) async {
+          //     // 登陆/注册失败
+          //     SbLogger(
+          //       code: hr.code,
+          //       viewMessage: hr.viewMessage,
+          //       data: null,
+          //       description: hr.description,
+          //       exception: hr.exception,
+          //       stackTrace: hr.stackTrace,
+          //     ).withAll(true);
+          //   },
+          //   doContinue: (HttpResponse<ResponseCodeCollect_LARBEVE, ResponseDataVO_LARBEVE> hr) async {
+          //     // 登陆/注册成功
+          //     if (hr.code == hr.responseCodeCollect.C2_01_02_01 || hr.code == hr.responseCodeCollect.C2_01_02_02) {
+          //       // TODO:
+          //       // 云端 token 生成成功，存储至本地。
+          //       final MUser newToken = MUser.createModel(
+          //         id: null,
+          //         aiid: null,
+          //         uuid: null,
+          //         username: null,
+          //         password: null,
+          //         email: null,
+          //         age: null,
+          //         // 无论 token 值是否有问题，都进行存储。
+          //         token: hr.responseDataVO.token,
+          //         is_downloaded_init_data: null,
+          //         created_at: SbHelper.newTimestamp,
+          //         updated_at: SbHelper.newTimestamp,
+          //       );
+          //
+          //       await db.delete(newToken.tableName);
+          //       await db.insert(newToken.tableName, newToken.getRowJson);
+          //
+          //       SbLogger(
+          //         code: null,
+          //         viewMessage: hr.viewMessage,
+          //         data: null,
+          //         description: null,
+          //         exception: null,
+          //         stackTrace: null,
+          //       ).withToast(false);
+          //       return true;
+          //     }
+          //     // 邮箱重复异常
+          //     if (hr.code == hr.responseCodeCollect.C2_01_02_03) {
+          //       SbLogger(
+          //         code: hr.code,
+          //         viewMessage: hr.viewMessage,
+          //         data: null,
+          //         description: null,
+          //         exception: null,
+          //         stackTrace: null,
+          //       ).withToast(true);
+          //       return true;
+          //     }
+          //     // 验证码不正确
+          //     else if (hr.code == hr.responseCodeCollect.C2_01_02_04) {
+          //       SbLogger(
+          //         code: null,
+          //         viewMessage: hr.viewMessage,
+          //         data: null,
+          //         description: null,
+          //         exception: null,
+          //         stackTrace: null,
+          //       ).withToast(false);
+          //       return true;
+          //     }
+          //     return false;
+          //   },
+          // );
+        },
       ),
     );
   }

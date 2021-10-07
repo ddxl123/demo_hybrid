@@ -15,24 +15,21 @@ import 'engine/datatransfer/MainDataTransfer.dart';
 import 'engine/entry/data_center/DataCenterEntry.dart';
 import 'engine/entry/main/MainEntry.dart';
 
-bool hadSentInitFirstFrame = false;
+bool hadSentSetFirstFrameInitialized = false;
 
+/// 第一帧被渲染完成后，向原生进行通知。
 Future<void> sendInitFirstFrame() async {
-  if (hadSentInitFirstFrame) {
-    return;
-  }
-  hadSentInitFirstFrame = true;
-
-  final SingleResult<bool> result = await DataTransferManager.instance.executeToNative<void, bool>(
+  final SingleResult<bool> setResult = await DataTransferManager.instance.executeToNative<void, bool>(
     operationId: OExecute_FlutterSend.SET_FIRST_FRAME_INITIALIZED,
-    data: null,
+    setSendData: () {},
     resultDataCast: null,
   );
-  await result.handle<void>(
+  await setResult.handle<void>(
     onSuccess: (bool successResult) async {
       if (!successResult) {
         throw Exception('data 不为 true！');
       }
+      hadSentSetFirstFrameInitialized = true;
     },
     onError: (Object? exception, StackTrace? stackTrace) async {
       // TODO: 失败的时候要如何处理？

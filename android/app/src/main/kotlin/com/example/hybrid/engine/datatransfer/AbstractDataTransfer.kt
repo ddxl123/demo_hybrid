@@ -2,6 +2,7 @@ package com.example.hybrid.engine.datatransfer
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.example.hybrid.GlobalApplication
 import com.example.hybrid.engine.constant.EngineEntryName
 import com.example.hybrid.engine.constant.OAndroidPermission_FlutterSend
 import com.example.hybrid.engine.constant.OExecute_FlutterSend
@@ -72,7 +73,7 @@ abstract class AbstractDataTransfer(flutterEnginer: FlutterEnginer) {
     ): Any {
         return startEngineInterception(flutterEnginer, operationId, data)
             ?: androidPermissionInterception(operationId)
-            ?: otherInterception(flutterEnginer, operationId)
+            ?: otherInterception(operationId, data)
             ?: listenFromFlutterEngineToNative(operationId, data)
     }
 
@@ -114,10 +115,8 @@ abstract class AbstractDataTransfer(flutterEnginer: FlutterEnginer) {
                         ViewParams(
                             width = viewParamsMap["width"].checkType(),
                             height = viewParamsMap["height"].checkType(),
-                            left = viewParamsMap["left"].checkType(),
-                            right = viewParamsMap["right"].checkType(),
-                            top = viewParamsMap["top"].checkType(),
-                            bottom = viewParamsMap["bottom"].checkType(),
+                            x = viewParamsMap["x"].checkType(),
+                            y = viewParamsMap["y"].checkType(),
                             isFocus = viewParamsMap["is_focus"].checkType()
                         )
                     } else {
@@ -165,12 +164,17 @@ abstract class AbstractDataTransfer(flutterEnginer: FlutterEnginer) {
     /**
      *
      */
-    private fun otherInterception(flutterEnginer: FlutterEnginer, operationId: String): Any? {
+    private fun otherInterception(operationId: String, data: Any?): Any? {
         return when (operationId) {
-            OExecute_FlutterSend.GET_NATIVE_WINDOW_SIZE_OF_CURRENT_ENGINE -> {
-                val viewParams =
-                    FlutterEngineManager.getFlutterEnginersByEntryPoint(flutterEnginer.entryPointName)!!.floatingWindow!!.viewer.currentViewParams
-                return mutableListOf(viewParams.width, viewParams.height)
+            OExecute_FlutterSend.GET_NATIVE_WINDOW_VIEW_PARAMS -> {
+                return FlutterEngineManager.getFlutterEnginersByEntryPoint(data.checkType())!!.floatingWindow!!.viewer.currentViewParams.toJson()
+            }
+            OExecute_FlutterSend.GET_SCREEN_SIZE -> {
+                println("GlobalApplication.context.resources.displayMetrics.heightPixels ${GlobalApplication.context.resources.displayMetrics.heightPixels}")
+                return mapOf(
+                    "width" to GlobalApplication.context.resources.displayMetrics.widthPixels,
+                    "height" to GlobalApplication.context.resources.displayMetrics.heightPixels
+                )
             }
             else -> null
         }

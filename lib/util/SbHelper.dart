@@ -27,7 +27,7 @@ class SingleResult<T> {
       stackTrace = null;
       return this;
     } catch (e, st) {
-      return setError(exception: e, stackTrace: st);
+      return setError(exception: Exception('setSuccess 内部异常！$e'), stackTrace: st);
     }
   }
 
@@ -39,6 +39,8 @@ class SingleResult<T> {
   }
 
   /// 可以在 [onError] 内部进行 throw。
+  ///
+  /// [HR]：指定返回类型。
   Future<HR> handle<HR>({required Future<HR> onSuccess(T successResult), required Future<HR> onError(Object? exception, StackTrace? stackTrace)}) async {
     if (_hasError) {
       return await onError(exception, stackTrace);
@@ -46,7 +48,7 @@ class SingleResult<T> {
     try {
       return await onSuccess(result as T);
     } catch (e, st) {
-      return await onError(e, st);
+      return await onError(Exception('onSuccess 内部异常！$e'), st);
     }
   }
 
@@ -59,6 +61,33 @@ class SingleResult<T> {
   /// 将当前对象克隆到指定对象上。
   void cloneTo(SingleResult<T> otherResult) {
     otherResult._setAll(result: result, exception: exception, stackTrace: stackTrace);
+  }
+}
+
+@immutable
+class SizeInt {
+  const SizeInt(this.width, this.height);
+
+  static SizeInt fromSizeDouble(Size sizeDouble) => SizeInt(sizeDouble.width.toInt(), sizeDouble.height.toInt());
+
+  final int width;
+  final int height;
+
+  SizeInt multi(double widthMul, double heightMul) {
+    return SizeInt((width * widthMul).toInt(), (height * heightMul).toInt());
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is SizeInt && width == other.width && height == other.height;
+  }
+
+  @override
+  int get hashCode => hashValues(width, height);
+
+  @override
+  String toString() {
+    return 'SizeInt($width, $height)';
   }
 }
 

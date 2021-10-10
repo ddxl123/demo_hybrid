@@ -20,7 +20,6 @@ abstract class AbstractMoreRoute<FDM extends ModelBase> extends AbstractPoolEntr
     return <Widget>[
       AutoPositioned(
         child: SbRoundedBox(
-          whenSizeChanged: (SizeInt newSizeInt) {},
           children: <Widget>[
             TextButton(
               child: const Text('添加碎片'),

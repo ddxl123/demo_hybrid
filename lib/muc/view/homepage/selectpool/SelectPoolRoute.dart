@@ -20,7 +20,6 @@ class SelectPoolRoute extends SbRoute {
         right: 0,
         left: 0,
         child: SbRoundedBox(
-          whenSizeChanged: (SizeInt newSizeInt) {  },
           children: <Widget>[
             TextButton(
               child: const Text('碎片池'),

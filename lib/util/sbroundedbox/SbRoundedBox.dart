@@ -1,8 +1,6 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:hybrid/main.dart';
-import 'package:hybrid/util/SbHelper.dart';
 
 class SbRoundedBox extends StatelessWidget {
   const SbRoundedBox({
@@ -13,7 +11,6 @@ class SbRoundedBox extends StatelessWidget {
     this.mainAxisAlignment = MainAxisAlignment.center,
     this.crossAxisAlignment = CrossAxisAlignment.center,
     this.isScrollable = true,
-    required this.whenSizeChanged,
   });
 
   /// [width] 最大值为屏幕宽度值，为 null 时按照子 widget 的宽值。
@@ -35,9 +32,6 @@ class SbRoundedBox extends StatelessWidget {
   final bool isScrollable;
 
   final List<Widget> children;
-
-  /// 当 [SbRoundedBoxBody] size 发生改变时触发。
-  final Function(SizeInt newSizeInt) whenSizeChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -61,34 +55,7 @@ class SbRoundedBoxBody extends StatefulWidget {
   _SbRoundedBoxBodyState createState() => _SbRoundedBoxBodyState();
 }
 
-class _SbRoundedBoxBodyState extends State<SbRoundedBoxBody> with WidgetsBindingObserver {
-  SizeInt currentSize = const SizeInt(-1, -1);
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance!.addObserver(this);
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance!.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeMetrics() {
-    WidgetsBinding.instance!.addPostFrameCallback(
-      (Duration timeStamp) {
-        final SizeInt newSizeInt = SizeInt.fromSizeDouble(context.size! * MediaQuery.of(context).devicePixelRatio);
-        if (currentSize != newSizeInt && hadSentSetFirstFrameInitialized) {
-          currentSize = newSizeInt;
-          widget.sbRoundedBox.whenSizeChanged(newSizeInt);
-        }
-      },
-    );
-  }
-
+class _SbRoundedBoxBodyState extends State<SbRoundedBoxBody> {
   @override
   Widget build(BuildContext context) {
     return Container(

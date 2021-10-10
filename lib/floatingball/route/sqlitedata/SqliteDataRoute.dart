@@ -27,7 +27,6 @@ class SqliteDataRoute extends SbRoute {
       return SbRoundedBox(
         width: MediaQueryData.fromWindow(window).size.width * 2 / 3,
         height: MediaQueryData.fromWindow(window).size.height * 2 / 3,
-        whenSizeChanged: (SizeInt newSizeInt) {  },
         children: children,
       );
     }

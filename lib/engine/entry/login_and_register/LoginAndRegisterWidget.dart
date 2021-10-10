@@ -33,61 +33,6 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
       width: MediaQuery.of(context).size.width,
       height: MediaQuery.of(context).size.height,
       padding: const EdgeInsets.fromLTRB(20, 5, 20, 5),
-      whenSizeChanged: (SizeInt newSizeInt) async {
-        // 每次修改窗口大小：
-        // 1. 获取 native 窗口大小。
-        // 2. 获取 box 大小。
-        // 3. 若 native 大于 box，则调整 native 为 box，否则无操作。
-        // final SingleResult<ViewParams> viewParamsResult =
-        //     await DataTransferManager.instance.executeSomething.getNativeWindowViewParams(DataTransferManager.instance.currentEntryPointName);
-        // await viewParamsResult.handle<void>(
-        //   onSuccess: (ViewParams nativeResult) async {
-        //     print('nativeResult $nativeResult');
-        //     print('newSizeInt $newSizeInt');
-        //     if (nativeResult.width == newSizeInt.width && nativeResult.height == newSizeInt.height) {
-        //       return;
-        //     }
-        //     final int willWidth;
-        //     final int willHeight;
-        //     if (nativeResult.width > newSizeInt.width) {
-        //       willWidth = newSizeInt.width < 200 ? 200 : newSizeInt.width;
-        //     } else if (nativeResult.width < newSizeInt.width) {
-        //       willWidth = nativeResult.width < 200 ? 200 : nativeResult.width;
-        //     } else {
-        //       willWidth = newSizeInt.width;
-        //     }
-        //     if (nativeResult.height > newSizeInt.height) {
-        //       willHeight = newSizeInt.height < 200 ? 200 : newSizeInt.height;
-        //     } else if (nativeResult.height < newSizeInt.height) {
-        //       willHeight = nativeResult.height < 200 ? 200 : nativeResult.height;
-        //     } else {
-        //       willHeight = newSizeInt.height;
-        //     }
-        //     print('willWidth $willWidth');
-        //     print('willHeight $willHeight');
-        //     PushTo.loginAndRegister(
-        //       startViewParams: null,
-        //       endViewParams: (ViewParams lastViewParams, SizeInt sizeInt) => ViewParams(
-        //         width: willWidth,
-        //         height: willHeight,
-        //         x: nativeResult.x,
-        //         y: nativeResult.y,
-        //         isFocus: nativeResult.isFocus,
-        //       ),
-        //     );
-        //   },
-        //   onError: (Object? exception, StackTrace? stackTrace) async {
-        //     SbLogger(
-        //       code: null,
-        //       viewMessage: '重置窗口失败！',
-        //       data: null,
-        //       description: Description('重置窗口失败！未知异常！'),
-        //       exception: exception,
-        //       stackTrace: stackTrace,
-        //     );
-        //   },
-        // );
-      },
       children: <Widget>[
         const Text(
           '登陆/注册',

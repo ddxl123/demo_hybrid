@@ -13,7 +13,6 @@ import com.example.hybrid.engine.manager.FlutterEnginer
 import com.example.hybrid.engine.permission.CheckPermission
 import io.flutter.embedding.android.FlutterSurfaceView
 import io.flutter.embedding.android.FlutterView
-import java.lang.Exception
 
 @RequiresApi(Build.VERSION_CODES.O)
 data class ViewParams(
@@ -48,169 +47,232 @@ data class ViewParams(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
-class Viewer(private val entryPointName: String, private val windowManager: WindowManager) {
+object FlagType {
+    // 键盘可弹起、返回键对其他位置无效。
+    const val focusable: Int =
+        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
 
+    // 键盘不可弹起、返回键对其他位置有效。
+    const val notFocusable: Int =
+        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+class Viewer(private val windowManager: WindowManager) {
+
+
+    private var flutterView: FlutterView? = null
+
+    fun getFlutterView(): FlutterView? {
+        return flutterView;
+    }
+
+    var dragMoveView: View? = null
+    var dragRightView: View? = null
 
     @RequiresApi(Build.VERSION_CODES.O)
     val currentViewParams: ViewParams = ViewParams(100, 100, 100, 100, false)
 
+
     @RequiresApi(Build.VERSION_CODES.O)
-    val layoutParams: WindowManager.LayoutParams = WindowManager.LayoutParams().apply {
+    val flutterViewLayoutParams: WindowManager.LayoutParams = WindowManager.LayoutParams().apply {
         type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+        gravity = Gravity.START or Gravity.TOP
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    val dragLayoutParams: WindowManager.LayoutParams = WindowManager.LayoutParams().apply {
+    val dragMoveViewLayoutParams: WindowManager.LayoutParams = WindowManager.LayoutParams().apply {
         type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+        gravity = Gravity.START or Gravity.TOP
+        flags = FlagType.notFocusable
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    val dragRightViewLayoutParams: WindowManager.LayoutParams = WindowManager.LayoutParams().apply {
+        type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+        gravity = Gravity.START or Gravity.TOP
+        flags = FlagType.notFocusable
+    }
 
-    var flutterView: FlutterView? = null
-        @RequiresApi(Build.VERSION_CODES.O) @SuppressLint("ClickableViewAccessibility")
-        set(value) {
-            field = value
-            field!!.setOnTouchListener { _: View?, event: MotionEvent? ->
-                if (currentViewParams.isFocus == false && event!!.action == MotionEvent.ACTION_DOWN) {
-                    resetAll(currentViewParams.copy(isFocus = true))
-                    windowManager.updateViewLayout(flutterView!!, layoutParams)
-                } else if (currentViewParams.isFocus == true && event!!.action == MotionEvent.ACTION_OUTSIDE) {
-                    resetAll(currentViewParams.copy(isFocus = false))
-                    windowManager.updateViewLayout(flutterView!!, layoutParams)
-                }
-                // isFocus 为 null 时不做处理。
+    private var lastRawX: Int = 0
+    private var lastRawY: Int = 0
+    private var currentRawX: Int = 0
+    private var currentRawY: Int = 0
 
-                // 若为 ture，则下次无法触发，否则当前触发完成后下次仍然会触发。
-                false
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun addInitView(flutterView: FlutterView) {
+        this.flutterView = flutterView
+        dragMoveView = Button(GlobalApplication.context)
+        dragRightView = Button(GlobalApplication.context)
+        addOnTouchListener()
+    }
+
+    /**
+     * 在 [flutterView] 中，若把 [clickToTop] 放到 [MotionEvent.ACTION_DOWN] 中，
+     * 则当拖动或 up [flutterView] 时，无法输出事件，同时也会出现 [flutterView] 无法控制的问题。
+     * 因此把 [clickToTop] 放到 [MotionEvent.ACTION_UP] 中，就不会触发 up，即避免了该问题的出现。
+     */
+    @SuppressLint("ClickableViewAccessibility")
+    fun addOnTouchListener() {
+        // 点击外部变半透明，点击内部恢复。
+        this.flutterView!!.setOnTouchListener { _: View?, event: MotionEvent? ->
+            // 点击松开时，内部恢复。
+            if (currentViewParams.isFocus == false && event!!.action == MotionEvent.ACTION_UP) {
+                resetLayoutParams(currentViewParams.copy(isFocus = true))
+                clickToTop()
             }
+            if (currentViewParams.isFocus == true && event!!.action == MotionEvent.ACTION_OUTSIDE) {
+                resetLayoutParams(currentViewParams.copy(isFocus = false))
+                updateViewLayout()
+            }
+
+            // isFocus 为 null 时不做处理。
+
+            // 若为 ture，则下次无法触发，否则当前触发完成后下次仍然会触发。
+            false
         }
+        dragMoveView!!.setOnTouchListener { v, event ->
+            when (event.action) {
+                MotionEvent.ACTION_UP -> {
+                    // 点击松开时，内部恢复。
+                    if (currentViewParams.isFocus == false) {
+                        resetLayoutParams(currentViewParams.copy(isFocus = true))
+//                        updateViewLayout()
+                        clickToTop()
+                    }
+                }
+                MotionEvent.ACTION_DOWN -> {
+                    // rawXY 表示相对于屏幕左上角的位置，XY 表示相对当前 view 左上角的位置。
+                    lastRawX = event.rawX.toInt()
+                    lastRawY = event.rawY.toInt()
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    currentRawX = event.rawX.toInt()
+                    currentRawY = event.rawY.toInt()
+                    // 增量
+                    currentViewParams.x += currentRawX - lastRawX
+                    currentViewParams.y += currentRawY - lastRawY
 
+                    lastRawX = currentRawX
+                    lastRawY = currentRawY
 
-    val dragMoveView: View = Button(GlobalApplication.context)
-    val dragLeftView: View = Button(GlobalApplication.context)
-    val dragRightView: View = Button(GlobalApplication.context)
+                    resetLayoutParams(currentViewParams)
+                    windowManager.updateViewLayout(flutterView, flutterViewLayoutParams)
+                    windowManager.updateViewLayout(dragMoveView, dragMoveViewLayoutParams)
+                    windowManager.updateViewLayout(dragRightView, dragRightViewLayoutParams)
+                }
+            }
+            false
+        }
+        dragRightView!!.setOnTouchListener { v, event ->
+            when (event.action) {
+                MotionEvent.ACTION_UP -> {
+                    // 点击松开时，内部恢复。
+                    if (currentViewParams.isFocus == false) {
+                        resetLayoutParams(currentViewParams.copy(isFocus = true))
+//                        updateViewLayout()
+                        clickToTop()
+                    }
+                }
+                MotionEvent.ACTION_DOWN -> {
+                    lastRawX = event.rawX.toInt()
+                    lastRawY = event.rawY.toInt()
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    currentRawX = event.rawX.toInt()
+                    currentRawY = event.rawY.toInt()
+                    // 增量
+                    currentViewParams.width += currentRawX - lastRawX
+                    currentViewParams.height += currentRawY - lastRawY
 
-    init {
-//        resetAll(currentViewParams)
+                    lastRawX = currentRawX
+                    lastRawY = currentRawY
+
+                    resetLayoutParams(currentViewParams)
+                    windowManager.updateViewLayout(flutterView, flutterViewLayoutParams)
+                    windowManager.updateViewLayout(dragMoveView, dragMoveViewLayoutParams)
+                    windowManager.updateViewLayout(dragRightView, dragRightViewLayoutParams)
+                }
+            }
+            false
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun resetAll(nViewParams: ViewParams): Viewer {
+    fun resetLayoutParams(nViewParams: ViewParams): Viewer {
         currentViewParams.changeFrom(nViewParams)
-        forLocation()
-        forFocus()
+        // 最小限制。
+        if (currentViewParams.width < 600) {
+            currentViewParams.width = 600
+        }
+        if (currentViewParams.height < 300) {
+            currentViewParams.height = 300
+        }
+        setLayoutParamsForLocation()
+        setLayoutParamsForFocus()
         return this
     }
 
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun forLocation() {
-        layoutParams.width = currentViewParams.width
-        layoutParams.height = currentViewParams.height
+    private fun setLayoutParamsForLocation() {
+        flutterViewLayoutParams.width = currentViewParams.width
+        flutterViewLayoutParams.height = currentViewParams.height
+        flutterViewLayoutParams.x = currentViewParams.x
+        flutterViewLayoutParams.y = currentViewParams.y
 
-        layoutParams.gravity = Gravity.START or Gravity.TOP
-        layoutParams.x = currentViewParams.x
-        layoutParams.y = currentViewParams.y
+        dragRightViewLayoutParams.width = flutterViewLayoutParams.width / 3
+        dragRightViewLayoutParams.height = dragRightViewLayoutParams.width / 2
+        dragRightViewLayoutParams.x =
+            flutterViewLayoutParams.x + flutterViewLayoutParams.width - dragRightViewLayoutParams.width
+        dragRightViewLayoutParams.y =
+            flutterViewLayoutParams.y + flutterViewLayoutParams.height - dragRightViewLayoutParams.height
 
-        dragLayoutParams.width = currentViewParams.width / 3
-        dragLayoutParams.height = dragLayoutParams.width / 2
-
-//        val isCenterVert =
-//            (currentViewParams.top == null && currentViewParams.bottom == null) ||
-//                    (currentViewParams.top != null && currentViewParams.bottom != null)
-//        val isCenterHorizon =
-//            (currentViewParams.left == null && currentViewParams.right == null) ||
-//                    (currentViewParams.left != null && currentViewParams.right != null)
-//        if (isCenterVert && !isCenterHorizon) {
-//            if (currentViewParams.left != null) {
-//                layoutParams.gravity = Gravity.CENTER_VERTICAL or Gravity.START
-//                layoutParams.x = currentViewParams.left!!
-//                layoutParams.y = 0
-//                dragLayoutParams.gravity = Gravity.CENTER_VERTICAL or Gravity.START
-//                dragLayoutParams.x =
-//                    currentViewParams.left!! + layoutParams.width / 2 - dragLayoutParams.width / 2
-//            } else {
-//                layoutParams.gravity = Gravity.CENTER_VERTICAL or Gravity.END
-//                layoutParams.x = currentViewParams.right!!
-//                layoutParams.y = 0
-//                dragLayoutParams.gravity = Gravity.CENTER_VERTICAL or Gravity.END
-//                dragLayoutParams.x =
-//                    currentViewParams.right!! + layoutParams.width / 2 - dragLayoutParams.width / 2
-//            }
-//        } else if (!isCenterVert && isCenterHorizon) {
-//            if (currentViewParams.top != null) {
-//                layoutParams.gravity = Gravity.CENTER_HORIZONTAL or Gravity.TOP
-//                layoutParams.x = 0
-//                layoutParams.y = currentViewParams.top!!
-//                dragLayoutParams.gravity = Gravity.CENTER_HORIZONTAL or Gravity.TOP
-//                dragLayoutParams.y =
-//                    currentViewParams.top!! + layoutParams.height / 2 - dragLayoutParams.height / 2
-//            } else {
-//                layoutParams.gravity = Gravity.CENTER_HORIZONTAL or Gravity.BOTTOM
-//                layoutParams.x = 0
-//                layoutParams.y = currentViewParams.bottom!!
-//                dragLayoutParams.gravity = Gravity.CENTER_HORIZONTAL or Gravity.BOTTOM
-//                dragLayoutParams.y =
-//                    currentViewParams.bottom!! + layoutParams.height / 2 - dragLayoutParams.height / 2
-//            }
-//        } else if (isCenterVert && isCenterHorizon) {
-//            layoutParams.gravity = Gravity.CENTER_HORIZONTAL or Gravity.CENTER_HORIZONTAL
-//            layoutParams.x = 0
-//            layoutParams.y = 0
-//        } else {
-//            if (currentViewParams.left != null && currentViewParams.top != null) {
-//                layoutParams.gravity = Gravity.START or Gravity.TOP
-//                layoutParams.x = currentViewParams.left!!
-//                layoutParams.y = currentViewParams.top!!
-//            } else if (currentViewParams.left != null && currentViewParams.top == null) {
-//                layoutParams.gravity = Gravity.START or Gravity.BOTTOM
-//                layoutParams.x = currentViewParams.left!!
-//                layoutParams.y = currentViewParams.bottom!!
-//            } else if (currentViewParams.left == null && currentViewParams.top != null) {
-//                layoutParams.gravity = Gravity.END or Gravity.TOP
-//                layoutParams.x = currentViewParams.right!!
-//                layoutParams.y = currentViewParams.top!!
-//            } else {
-//                layoutParams.gravity = Gravity.END or Gravity.BOTTOM
-//                layoutParams.x = currentViewParams.right!!
-//                layoutParams.y = currentViewParams.bottom!!
-//            }
-//        }
+        dragMoveViewLayoutParams.width = dragRightViewLayoutParams.width
+        dragMoveViewLayoutParams.height = dragRightViewLayoutParams.height
+        dragMoveViewLayoutParams.x = dragRightViewLayoutParams.x - dragRightViewLayoutParams.width
+        dragMoveViewLayoutParams.y = dragRightViewLayoutParams.y
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun forFocus() {
+    private fun setLayoutParamsForFocus() {
         when (currentViewParams.isFocus) {
             true -> {
-                layoutParams.alpha = 1.0f
-                layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
-
-                dragLayoutParams.alpha = 1.0f
-                dragLayoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
+                flutterViewLayoutParams.alpha = 1.0f
+                flutterViewLayoutParams.flags = FlagType.focusable
             }
             false -> {
-                layoutParams.alpha = 0.5f
-                layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
-                dragLayoutParams.alpha = 0.5f
-                dragLayoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
+                flutterViewLayoutParams.alpha = 0.5f
+                flutterViewLayoutParams.flags = FlagType.notFocusable
             }
             else -> {
-                layoutParams.alpha = 1.0f
-                layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
-                dragLayoutParams.alpha = 1.0f
-                dragLayoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
+                flutterViewLayoutParams.alpha = 1.0f
+                flutterViewLayoutParams.flags = FlagType.notFocusable
             }
         }
+        dragMoveViewLayoutParams.alpha = flutterViewLayoutParams.alpha
+        dragRightViewLayoutParams.alpha = flutterViewLayoutParams.alpha
+    }
+
+    private fun updateViewLayout() {
+        windowManager.updateViewLayout(flutterView, flutterViewLayoutParams)
+        windowManager.updateViewLayout(dragRightView, dragRightViewLayoutParams)
+        windowManager.updateViewLayout(dragMoveView, dragMoveViewLayoutParams)
+    }
+
+    /**
+     * 点击当前创建，让当前窗口置顶。
+     */
+    private fun clickToTop() {
+        windowManager.removeView(flutterView)
+        windowManager.removeView(dragRightView)
+        windowManager.removeView(dragMoveView)
+        windowManager.addView(flutterView, flutterViewLayoutParams)
+        windowManager.addView(dragRightView, dragRightViewLayoutParams)
+        windowManager.addView(dragMoveView, dragMoveViewLayoutParams)
     }
 }
 
@@ -220,7 +282,7 @@ abstract class AbstractFloatingWindow(val flutterEnginer: FlutterEnginer) {
     private var windowManager: WindowManager =
         GlobalApplication.context.getSystemService(Service.WINDOW_SERVICE) as WindowManager
 
-    val viewer: Viewer = Viewer(flutterEnginer.entryPointName, windowManager)
+    val viewer: Viewer = Viewer(windowManager)
 
     private var updateFlutterViewConcurrentCount = 0
 
@@ -270,38 +332,65 @@ abstract class AbstractFloatingWindow(val flutterEnginer: FlutterEnginer) {
 
             val lastViewParams: ViewParams = viewer.currentViewParams.copy();
 
-            if (viewer.flutterView == null || (viewer.flutterView != null && !viewer.flutterView!!.isAttachedToWindow)) {
-                viewer.flutterView = FlutterView(
-                    GlobalApplication.context,
-                    FlutterSurfaceView(GlobalApplication.context, true)
-                ).apply { attachToFlutterEngine(flutterEnginer.flutterEngine!!) }
+            if (viewer.getFlutterView() == null || (viewer.getFlutterView() != null && !viewer.getFlutterView()!!.isAttachedToWindow)) {
+                viewer.addInitView(
+                    FlutterView(
+                        GlobalApplication.context,
+                        FlutterSurfaceView(GlobalApplication.context, true)
+                    ).apply { attachToFlutterEngine(flutterEnginer.flutterEngine!!) })
 
                 windowManager.addView(
-                    viewer.flutterView!!,
-                    if (startViewParams == null) viewer.layoutParams
-                    else viewer.resetAll(startViewParams.apply { width -= 1 }).layoutParams
+                    viewer.getFlutterView()!!,
+                    if (startViewParams == null) viewer.flutterViewLayoutParams
+                    // -= 1 防止第一次 addView 后再立即 updateView 时，flutter 渲染的图形是第一次 addView 的大小。
+                    else viewer.resetLayoutParams(startViewParams.apply { width -= 1 }).flutterViewLayoutParams
                 )
+                windowManager.addView(viewer.dragRightView, viewer.dragRightViewLayoutParams)
+                windowManager.addView(viewer.dragMoveView, viewer.dragMoveViewLayoutParams)
 
                 Handler(Looper.getMainLooper()).postDelayed({
                     windowManager.updateViewLayout(
-                        viewer.flutterView!!,
-                        if (endViewParams == null) viewer.resetAll(lastViewParams).layoutParams
-                        else viewer.resetAll(endViewParams).layoutParams
+                        viewer.getFlutterView()!!,
+                        if (endViewParams == null) viewer.resetLayoutParams(lastViewParams).flutterViewLayoutParams
+                        else viewer.resetLayoutParams(endViewParams).flutterViewLayoutParams
                     )
+                    windowManager.updateViewLayout(
+                        viewer.dragRightView,
+                        viewer.dragRightViewLayoutParams
+                    )
+                    windowManager.updateViewLayout(
+                        viewer.dragMoveView,
+                        viewer.dragMoveViewLayoutParams
+                    )
+
                 }, 0)
 
                 println("---------------- ${flutterEnginer.entryPointName} 入口的 AbstractFloatingWindow 已附着 FlutterView！")
             } else {
                 windowManager.updateViewLayout(
-                    viewer.flutterView!!,
-                    if (startViewParams == null) viewer.layoutParams
-                    else viewer.resetAll(startViewParams).layoutParams
+                    viewer.getFlutterView()!!,
+                    if (startViewParams == null) viewer.flutterViewLayoutParams
+                    else viewer.resetLayoutParams(startViewParams).flutterViewLayoutParams
                 )
+                windowManager.updateViewLayout(
+                    viewer.dragRightView,
+                    viewer.dragRightViewLayoutParams
+                )
+                windowManager.updateViewLayout(viewer.dragMoveView, viewer.dragMoveViewLayoutParams)
+
                 Handler(Looper.getMainLooper()).postDelayed({
                     windowManager.updateViewLayout(
-                        viewer.flutterView!!,
-                        if (endViewParams == null) viewer.resetAll(lastViewParams).layoutParams
-                        else viewer.resetAll(endViewParams).layoutParams
+                        viewer.getFlutterView()!!,
+                        if (endViewParams == null) viewer.resetLayoutParams(lastViewParams).flutterViewLayoutParams
+                        else viewer.resetLayoutParams(endViewParams).flutterViewLayoutParams
+                    )
+                    windowManager.updateViewLayout(
+                        viewer.dragRightView,
+                        viewer.dragRightViewLayoutParams
+                    )
+                    windowManager.updateViewLayout(
+                        viewer.dragMoveView,
+                        viewer.dragMoveViewLayoutParams
                     )
                 }, 0)
                 println("---------------- ${flutterEnginer.entryPointName} 入口的 AbstractFloatingWindow 附着的 FlutterView 已被 update！")
@@ -330,12 +419,12 @@ abstract class AbstractFloatingWindow(val flutterEnginer: FlutterEnginer) {
      * 立即移除 view。
      */
     fun removeFlutterViewImmediately() {
-        if (viewer.flutterView == null || (viewer.flutterView != null && !viewer.flutterView!!.isAttachedToWindow)) {
-            viewer.flutterView = null
+        if (viewer.getFlutterView() == null || (viewer.getFlutterView() != null && !viewer.getFlutterView()!!.isAttachedToWindow)) {
+//            viewer.flutterView = null
             return
         }
-        windowManager.removeView(viewer.flutterView)
-        viewer.flutterView = null
+//        windowManager.removeView(viewer.flutterView)
+//        viewer.flutterView = null
 
         println("---------------- ${flutterEnginer.entryPointName} 入口的 AbstractFloatingWindow 附着的 FlutterView 已被移除！")
     }

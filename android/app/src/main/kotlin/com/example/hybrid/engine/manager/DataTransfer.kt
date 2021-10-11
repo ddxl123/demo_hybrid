@@ -1,4 +1,4 @@
-package com.example.hybrid.engine.datatransfer
+package com.example.hybrid.engine.manager
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -6,21 +6,18 @@ import com.example.hybrid.GlobalApplication
 import com.example.hybrid.engine.constant.EngineEntryName
 import com.example.hybrid.engine.constant.OAndroidPermission_FlutterSend
 import com.example.hybrid.engine.constant.OExecute_FlutterSend
-import com.example.hybrid.engine.floatingwindow.ViewParams
-import com.example.hybrid.engine.manager.FlutterEngineManager
-import com.example.hybrid.engine.manager.FlutterEnginer
 import com.example.hybrid.engine.permission.CheckPermission
 import com.example.hybrid.util.checkType
 import io.flutter.plugin.common.BasicMessageChannel
 import io.flutter.plugin.common.StandardMessageCodec
 
 /**
- * 当 [FlutterEngine] 被附着在 [FlutterEnginer] 时会生成 [AbstractDataTransfer]，这时 [AbstractDataTransfer] 会执行自身的构造函数进行初始化。
+ * 当 [FlutterEngine] 被附着在 [FlutterEnginer] 时会生成 [DataTransfer]，这时 [DataTransfer] 会执行自身的构造函数进行初始化。
  *
  * 这里 [context] 使用 val 修饰不清楚到底会不会出现内存泄露。
  */
 @RequiresApi(Build.VERSION_CODES.O)
-abstract class AbstractDataTransfer(flutterEnginer: FlutterEnginer) {
+class DataTransfer(private val flutterEnginer: FlutterEnginer) {
 
     private val basicMessageChannel: BasicMessageChannel<Any?> = BasicMessageChannel(
         flutterEnginer.flutterEngine!!.dartExecutor.binaryMessenger,
@@ -54,11 +51,6 @@ abstract class AbstractDataTransfer(flutterEnginer: FlutterEnginer) {
             }
         }
         println("--------- ${flutterEnginer.entryPointName} 入口的 BaseDataTransfer 已被创建。")
-    }
-
-
-    fun throwUnhandledOperationIdException(currentOperationId: String) {
-        throw Exception("Unhandled $currentOperationId")
     }
 
     /**
@@ -185,5 +177,7 @@ abstract class AbstractDataTransfer(flutterEnginer: FlutterEnginer) {
      *
      * 不能返回空。
      */
-    abstract fun listenFromFlutterEngineToNative(operationId: String, data: Any?): Any
+    private fun listenFromFlutterEngineToNative(operationId: String, data: Any?): Any {
+        throw Exception("Unhandled $operationId")
+    }
 }

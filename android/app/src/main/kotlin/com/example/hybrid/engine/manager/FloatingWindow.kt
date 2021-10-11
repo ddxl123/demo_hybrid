@@ -1,4 +1,4 @@
-package com.example.hybrid.engine.floatingwindow
+package com.example.hybrid.engine.manager
 
 import android.annotation.SuppressLint
 import android.app.Service
@@ -9,7 +9,6 @@ import android.view.*
 import android.widget.Button
 import androidx.annotation.RequiresApi
 import com.example.hybrid.GlobalApplication
-import com.example.hybrid.engine.manager.FlutterEnginer
 import com.example.hybrid.engine.permission.CheckPermission
 import io.flutter.embedding.android.FlutterSurfaceView
 import io.flutter.embedding.android.FlutterView
@@ -278,7 +277,7 @@ class Viewer(private val windowManager: WindowManager) {
 
 
 @RequiresApi(Build.VERSION_CODES.O)
-abstract class AbstractFloatingWindow(val flutterEnginer: FlutterEnginer) {
+class FloatingWindow(private val flutterEnginer: FlutterEnginer) {
     private var windowManager: WindowManager =
         GlobalApplication.context.getSystemService(Service.WINDOW_SERVICE) as WindowManager
 

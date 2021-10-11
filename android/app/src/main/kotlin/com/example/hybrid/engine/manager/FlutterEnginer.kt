@@ -3,14 +3,11 @@ package com.example.hybrid.engine.manager
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.example.hybrid.GlobalApplication
-import com.example.hybrid.engine.datatransfer.AbstractDataTransfer
-import com.example.hybrid.engine.floatingwindow.AbstractFloatingWindow
 import io.flutter.FlutterInjector
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.dart.DartExecutor
 import java.lang.Exception
 import com.example.hybrid.MainActivity
-import io.flutter.embedding.android.FlutterView
 
 /**
  * 只要 [FlutterEnginer] 被创建，就会被添加到 [FlutterEnginerCache] 中。
@@ -25,8 +22,8 @@ class FlutterEnginer {
     @RequiresApi(Build.VERSION_CODES.N)
     constructor(
         entryPointName: String,
-        putDataTransfer: (FlutterEnginer) -> AbstractDataTransfer,
-        putFloatingWindow: (FlutterEnginer) -> AbstractFloatingWindow
+        putDataTransfer: (FlutterEnginer) -> DataTransfer,
+        putFloatingWindow: (FlutterEnginer) -> FloatingWindow
     ) {
         if (FlutterEnginerCache.containsKey(entryPointName)) {
             throw Exception("$entryPointName 入口的 FlutterEnginer 被重复创建！")
@@ -55,7 +52,7 @@ class FlutterEnginer {
     @RequiresApi(Build.VERSION_CODES.N)
     constructor(
         entryPointName: String,
-        putDataTransfer: (FlutterEnginer) -> AbstractDataTransfer,
+        putDataTransfer: (FlutterEnginer) -> DataTransfer,
         flutterEngine: FlutterEngine
     ) {
         if (FlutterEnginerCache.containsKey(entryPointName)) {
@@ -73,8 +70,8 @@ class FlutterEnginer {
     val channelName = "data_channel"
     var entryPointName: String
     var flutterEngine: FlutterEngine?
-    var dataTransfer: AbstractDataTransfer
-    var floatingWindow: AbstractFloatingWindow? = null
+    var dataTransfer: DataTransfer
+    var floatingWindow: FloatingWindow? = null
     var hadFirstFrameInitialized: Boolean = false
 
     /**

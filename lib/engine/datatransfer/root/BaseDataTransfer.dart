@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:hybrid/engine/constant/o/OUniform.dart';
 import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
@@ -38,7 +39,8 @@ abstract class BaseDataTransfer {
       (Object? message) async {
         try {
           final Map<Object?, Object?> messageMap = message! as Map<Object?, Object?>;
-          return await listenerMessageFormOtherFlutterEngine(messageMap['operation_id']! as String, messageMap['data']);
+          SbLogger(code: null, viewMessage: null, data: null, description: Description('listen: $messageMap'), exception: null, stackTrace: null);
+          return await listenerMessageFormOtherFlutterEngineUniform(messageMap['operation_id']! as String, messageMap['data']);
         } catch (e, st) {
           SbLogger(code: null, viewMessage: null, data: null, description: Description('接收的引擎发生了异常！'), exception: e, stackTrace: st);
           return null;
@@ -49,6 +51,13 @@ abstract class BaseDataTransfer {
 
   /// {@macro BaseDataTransfer._listenerMessageFromOtherEngine}
   ///
-  /// 内部异常已交给 [_listenerMessageFromOtherFlutterEngine] 处理。
+  /// 内部异常已交给 [_listenerMessageFromOtherFlutterEngine] 捕获。
+  Future<Object?> listenerMessageFormOtherFlutterEngineUniform(String operationId, Object? data) async {
+    if (operationId == OUniform.IS_ENGINE_ON_READY) {
+      return DataTransferManager.instance.isCurrentFlutterEngineOnReady;
+    }
+    return await listenerMessageFormOtherFlutterEngine(operationId, data);
+  }
+
   Future<Object?> listenerMessageFormOtherFlutterEngine(String operationId, Object? data);
 }

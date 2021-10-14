@@ -1,7 +1,7 @@
 import 'package:hybrid/data/sqlite/mmodel/ModelBase.dart';
 import 'package:hybrid/data/sqlite/mmodel/ModelManager.dart';
 import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
-import 'package:hybrid/engine/constant/OExecute.dart';
+import 'package:hybrid/engine/constant/o/OUniform.dart';
 import 'package:hybrid/engine/datatransfer/root/BaseDataTransfer.dart';
 import 'package:hybrid/util/SbHelper.dart';
 
@@ -9,7 +9,7 @@ class DataCenterDataTransfer extends BaseDataTransfer {
   @override
   Future<Object?> listenerMessageFormOtherFlutterEngine(String operationId, Object? data) async {
     switch (operationId) {
-      case OExecute_FlutterSend.SQLITE_QUERY_ROW_AS_JSONS:
+      case OUniform.SQLITE_QUERY_ROW_AS_JSONS:
         final Map<String, Object?> dataMap = (data! as Map<Object?, Object?>).cast<String, Object?>();
         final SingleResult<List<Map<String, Object?>>> queryResult = await SqliteCurd.queryRowsAsJsons(
           queryWrapper: QueryWrapper.fromJson(dataMap),
@@ -23,7 +23,7 @@ class DataCenterDataTransfer extends BaseDataTransfer {
             throw exception!;
           },
         );
-      case OExecute_FlutterSend.SQLITE_INSERT_ROW:
+      case OUniform.SQLITE_INSERT_ROW:
         final Map<String, Object?> dataMap = (data! as Map<Object?, Object?>).cast<String, Object?>();
         final SingleResult<ModelBase> insertRowResult = await SqliteCurd.insertRow(
           model: ModelManager.createEmptyModelByTableName(dataMap['table_name']! as String)..setRowJson = dataMap['model_data']! as Map<String, Object?>,
@@ -37,7 +37,7 @@ class DataCenterDataTransfer extends BaseDataTransfer {
             throw exception!;
           },
         );
-      case OExecute_FlutterSend.SQLITE_UPDATE_ROW:
+      case OUniform.SQLITE_UPDATE_ROW:
         final Map<String, Object?> dataMap = (data! as Map<Object?, Object?>).cast<String, Object?>();
         final SingleResult<ModelBase> updateRowResult = await SqliteCurd.updateRow(
           modelTableName: dataMap['model_table_name']! as String,
@@ -53,7 +53,7 @@ class DataCenterDataTransfer extends BaseDataTransfer {
             throw exception!;
           },
         );
-      case OExecute_FlutterSend.SQLITE_DELETE_ROW:
+      case OUniform.SQLITE_DELETE_ROW:
         final Map<String, Object?> dataMap = (data! as Map<Object?, Object?>).cast<String, Object?>();
         final SingleResult<bool> deleteRowResult = await SqliteCurd.deleteRow(
           modelTableName: dataMap['model_table_name']! as String,

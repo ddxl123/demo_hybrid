@@ -161,7 +161,8 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
         ),
         child: const Text('登陆/注册'),
         onPressed: () async {
-          await PushTo.loginAndRegister(
+          await PushTo.withEntryName(
+            entryName: 'dddddddddddddd',
             startViewParams: (ViewParams lastViewParams, SizeInt screenSize) {
               final SizeInt viewSize = screenSize.multi(2 / 3, 1);
               final SizeInt halfSize = screenSize.multi(1 / 2, 1 / 2);

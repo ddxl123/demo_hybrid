@@ -2,8 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:hybrid/engine/constant/EngineEntryName.dart';
-import 'package:hybrid/engine/constant/OAndroidPermission.dart';
+import 'package:hybrid/engine/constant/execute/EngineEntryName.dart';
+import 'package:hybrid/engine/constant/execute/OToNative.dart';
+import 'package:hybrid/engine/constant/o/OFromAndroidPermission.dart';
 import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
 import 'package:hybrid/engine/entry/main/FloatingWindowPermissionRoute.dart';
 import 'package:hybrid/muc/getcontroller/SingleGetController.dart';
@@ -57,7 +58,7 @@ class _MainEntryMainState extends State<MainEntryMain> {
         });
 
         final SingleResult<bool> checkResult = await DataTransferManager.instance.executeToNative<void, bool>(
-          operationId: OAndroidPermission_FlutterSend.check_floating_window_permission,
+          operationId: OToNative.check_floating_window_permission,
           setSendData: () {},
           resultDataCast: null,
         );
@@ -91,7 +92,7 @@ class _MainEntryMainState extends State<MainEntryMain> {
         });
         final SingleResult<bool> startDataCenterResult = await DataTransferManager.instance.execute<void, bool>(
           executeForWhichEngine: EngineEntryName.DATA_CENTER,
-          operationIdIfEngineFirstFrameInitialized: null,
+          operationIdWhenEngineOnReady: null,
           setOperationData: () {},
           startViewParams:null,
           endViewParams: null,

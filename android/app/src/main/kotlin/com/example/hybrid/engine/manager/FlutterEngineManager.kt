@@ -4,7 +4,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import io.flutter.embedding.engine.FlutterEngineGroup
 import com.example.hybrid.GlobalApplication
-import com.example.hybrid.engine.constant.EngineEntryName
+import com.example.hybrid.engine.constant.execute.EngineEntryName
 import io.flutter.embedding.engine.FlutterEngine
 
 object FlutterEngineManager {

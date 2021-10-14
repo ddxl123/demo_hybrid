@@ -2,8 +2,8 @@ import 'dart:io';
 
 void main() {
   handle(
-    writeDirectory: Directory(r'D:\project\hybrid\android\app\src\main\kotlin\com\example\hybrid\engine\constant'),
-    writePackage: 'com.example.hybrid.engine.constant',
+    writeDirectory: Directory(r'D:\project\hybrid\android\app\src\main\kotlin\com\example\hybrid\engine\constant\execute'),
+    writePackage: 'com.example.hybrid.engine.constant.execute',
   );
 }
 
@@ -11,13 +11,13 @@ void main() {
 ///
 /// [writePackage] 要写入的项目包名。
 void handle({required Directory writeDirectory, required String writePackage}) {
-  // 读取的文件夹路径。
+  // 读取的 main 文件所在文件夹的路径。
   final String readFilePath = (Platform.script.pathSegments.toList()..removeLast()).join('/');
 
   final List<FileSystemEntity> readFiles = Directory(readFilePath).listSync();
 
   if (writeDirectory.existsSync()) {
-    throw Exception('constant 文件夹已存在！请手动删除！');
+    throw Exception('execute 文件夹已存在！请手动删除！');
   }
   Directory.fromUri(writeDirectory.uri).createSync();
 
@@ -76,27 +76,12 @@ $writeConstantContext}
         sendConstantContent += '    const val ${it.toUpperCase()}: String = "$it"\n';
       }
 
-      // listen 类名。
-      final String listenClass = readConstantContent[1].split('class').last.trim();
-
-      // listen 常量。
-      final List<String> listenConstantList = readConstantContent[2].split('\'')..removeWhere((String element) => element.contains(RegExp('=|;|}')));
-
-      // listen 常量内容。
-      String listenConstantContent = '';
-      for (final String it in listenConstantList) {
-        listenConstantContent += '    const val $it: String = "$it"\n';
-      }
-
       // 写入的完整内容。
       final String writeFileContent = '''
 package $writePackage
 
 object $sendClass {
-$sendConstantContent}
-
-object $listenClass {
-$listenConstantContent}      
+$sendConstantContent} 
 ''';
 
       // 将完整内容写入到的文件。

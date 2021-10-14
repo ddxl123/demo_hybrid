@@ -1,4 +1,4 @@
-package com.example.hybrid.engine.constant
+package com.example.hybrid.engine.constant.execute
 
 object EngineEntryName {
     const val main: String = "main"

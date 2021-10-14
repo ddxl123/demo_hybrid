@@ -3,9 +3,8 @@ package com.example.hybrid.engine.manager
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.example.hybrid.GlobalApplication
-import com.example.hybrid.engine.constant.EngineEntryName
-import com.example.hybrid.engine.constant.OAndroidPermission_FlutterSend
-import com.example.hybrid.engine.constant.OExecute_FlutterSend
+import com.example.hybrid.engine.constant.execute.EngineEntryName
+import com.example.hybrid.engine.constant.execute.OToNative
 import com.example.hybrid.engine.permission.CheckPermission
 import com.example.hybrid.util.checkType
 import io.flutter.plugin.common.BasicMessageChannel
@@ -79,26 +78,15 @@ class DataTransfer(private val flutterEnginer: FlutterEnginer) {
     ): Any? {
         return when (operationId) {
             // 来自引擎A的操作，启动新引擎B。如果引擎已存在，则使用已存在的。
-            OExecute_FlutterSend.START_ENGINE -> {
+            OToNative.START_ENGINE -> {
                 val dataMap = data.checkType<Map<String, Any?>>()
                 val startWhichEngine: String = dataMap["start_which_engine"].checkType()
                 FlutterEngineManager.startFlutterEngine(startWhichEngine)
                 // 返回 true 启动成功。
                 true
             }
-            // 当被启动的引擎第一帧已被初始化完成，则触发这个。
-            OExecute_FlutterSend.SET_FIRST_FRAME_INITIALIZED -> {
-                flutterEnginer.hadFirstFrameInitialized = true
-                // 返回 true 第一帧初始化成功。
-                true
-            }
-            // 获取第一帧是否已被初始化完成。
-            OExecute_FlutterSend.IS_FIRST_FRAME_INITIALIZED -> {
-                // 返回 true 第一帧已初始化成功，返回 false 第一帧未初始化。
-                FlutterEngineManager.getFlutterEnginersByEntryPoint(data.checkType())!!.hadFirstFrameInitialized
-            }
             // set view。
-            OExecute_FlutterSend.SET_VIEW -> {
+            OToNative.SET_VIEW_PARAMS -> {
                 val dataMap = data.checkType<Map<String, Any?>>()
 
                 fun setViewParams(viewParamsKey: String): ViewParams? {
@@ -141,11 +129,11 @@ class DataTransfer(private val flutterEnginer: FlutterEnginer) {
      */
     private fun androidPermissionInterception(operationId: String): Any? {
         return when (operationId) {
-            OAndroidPermission_FlutterSend.CHECK_FLOATING_WINDOW_PERMISSION -> {
+            OToNative.CHECK_FLOATING_WINDOW_PERMISSION -> {
                 // 是否已允许悬浮窗权限。
                 CheckPermission.checkFloatingWindow(false)
             }
-            OAndroidPermission_FlutterSend.CHECK_AND_PUSH_PAGE_FLOATING_WINDOW_PERMISSION -> {
+            OToNative.CHECK_AND_PUSH_PAGE_FLOATING_WINDOW_PERMISSION -> {
                 // 是否已允许悬浮窗权限。（若未允许则打开悬浮窗权限设置页面）
                 CheckPermission.checkFloatingWindow(true)
             }
@@ -158,10 +146,10 @@ class DataTransfer(private val flutterEnginer: FlutterEnginer) {
      */
     private fun otherInterception(operationId: String, data: Any?): Any? {
         return when (operationId) {
-            OExecute_FlutterSend.GET_NATIVE_WINDOW_VIEW_PARAMS -> {
+            OToNative.GET_NATIVE_WINDOW_VIEW_PARAMS -> {
                 return FlutterEngineManager.getFlutterEnginersByEntryPoint(data.checkType())!!.floatingWindow!!.viewer.currentViewParams.toJson()
             }
-            OExecute_FlutterSend.GET_SCREEN_SIZE -> {
+            OToNative.GET_SCREEN_SIZE -> {
                 println("GlobalApplication.context.resources.displayMetrics.heightPixels ${GlobalApplication.context.resources.displayMetrics.heightPixels}")
                 return mapOf(
                     "width" to GlobalApplication.context.resources.displayMetrics.widthPixels,

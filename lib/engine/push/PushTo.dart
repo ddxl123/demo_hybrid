@@ -1,19 +1,18 @@
 import 'dart:async';
-import 'dart:ui';
 
-import 'package:hybrid/engine/constant/EngineEntryName.dart';
 import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
 class PushTo {
-  static Future<void> loginAndRegister({
+  static Future<void> withEntryName({
+    required String entryName,
     required ViewParams startViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
     required ViewParams endViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
   }) async {
     final SingleResult<bool> startResult = await DataTransferManager.instance.execute<void, bool>(
-      executeForWhichEngine: EngineEntryName.LOGIN_AND_REGISTER,
-      operationIdIfEngineFirstFrameInitialized: null,
+      executeForWhichEngine: entryName,
+      operationIdWhenEngineOnReady: null,
       setOperationData: () {},
       startViewParams: startViewParams,
       endViewParams: endViewParams,
@@ -25,7 +24,7 @@ class PushTo {
         if (!successResult) {
           SbLogger(
             code: null,
-            viewMessage: '登陆页面弹出失败！',
+            viewMessage: '新入口弹出失败！',
             data: successResult,
             description: null,
             exception: Exception('successResult 不为 true！'),
@@ -36,7 +35,7 @@ class PushTo {
       onError: (Object? exception, StackTrace? stackTrace) async {
         SbLogger(
           code: null,
-          viewMessage: '登陆页面弹出失败！',
+          viewMessage: '新入口弹出异常！',
           data: null,
           description: null,
           exception: exception,

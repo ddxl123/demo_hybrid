@@ -1,10 +1,6 @@
-import 'package:hybrid/muc/update/homepage/FragmentPageUpdate.dart';
+import 'package:get/get.dart';
 
-import '../GetControllerBase.dart';
-
-class FragmentPageGetController extends GetControllerBase<FragmentPageGetController, FragmentPageUpdate> {
-  FragmentPageGetController() : super(FragmentPageUpdate());
-
+class FragmentPageGetController extends GetxController {
   int? currentFragmentAiid;
   String? currentFragmentUuid;
 }

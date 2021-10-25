@@ -1,38 +1,55 @@
 import 'package:dio/dio.dart';
+import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 import 'HttpResponseIntercept.dart';
 
-abstract class ResponseCodeCollect {}
+part 'HttpResponse.g.dart';
 
-class ResponseNullCodeCollect extends ResponseCodeCollect {}
+abstract class ResponseCodeCollect extends DoSerializable {}
 
-abstract class ResponseDataVO {
-  Map<String, Object?> toJson();
-}
+abstract class ResponseDataVO extends DoSerializable {}
 
-class ResponseNullDataVO extends ResponseDataVO {
-  @override
-  Map<String, Object?> toJson() => <String, Object?>{};
-}
-
-///
-class HttpResponse<RESPCCOL extends ResponseCodeCollect, RESPDVO extends ResponseDataVO> {
+@JsonSerializable()
+@StackTraceConverter()
+class HttpResponse<RESPCCOL extends ResponseCodeCollect, RESPDVO extends ResponseDataVO> extends DoSerializable {
   HttpResponse({
-    required this.responseCodeCollect,
-    required this.setResponseDataVO,
+    this.responseCodeCollect,
+    this.putResponseDataVO,
   });
 
+  factory HttpResponse.fromJson(Map<String, Object?> json) {
+    return _$HttpResponseFromJson(json)
+      ..responseCodeCollect = json['responseCodeCollect'] as RESPCCOL?
+      ..responseDataVO = json['responseDataVO'] as RESPDVO?;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    return _$HttpResponseToJson(this)
+      ..addAll(
+        <String, Object?>{
+          'responseCodeCollect': responseCodeCollect?.toJson(),
+          'responseDataVO': responseDataVO?.toJson(),
+        },
+      );
+  }
+
   /// 响应码集。
-  final RESPCCOL responseCodeCollect;
+  @JsonKey(ignore: true)
+  late final RESPCCOL? responseCodeCollect;
+
+  /// 对 [responseDataVO] 进行预配置。
+  @JsonKey(ignore: true)
+  late final RESPDVO? Function(Map<String, Object?> json)? putResponseDataVO;
 
   /// 响应体 data VO 模型。
-  late final RESPDVO responseDataVO;
-
-  final RESPDVO Function(Map<String, Object?> json) setResponseDataVO;
+  @JsonKey(ignore: true)
+  late final RESPDVO? responseDataVO;
 
   /// 响应头。
-  Headers? responseHeaders;
+  Map<String, Object?>? responseHeaders;
 
   /// 不存在异常时为 true。
   bool isContinue = false;
@@ -50,7 +67,7 @@ class HttpResponse<RESPCCOL extends ResponseCodeCollect, RESPDVO extends Respons
   StackTrace? stackTrace;
 
   void _setAll({
-    required Headers? responseHeaders,
+    required Map<String, Object?>? responseHeaders,
     required bool isContinue,
     required int? code,
     required String? viewMessage,
@@ -80,23 +97,23 @@ class HttpResponse<RESPCCOL extends ResponseCodeCollect, RESPDVO extends Respons
     );
   }
 
-  void setPass(Response<Map<String, dynamic>> response) {
+  void setPass(Response<Map<String, Object?>> response) {
     try {
       // 若失败则直接抛异常，在异常里会进行捕获处理。
       _setAll(
         isContinue: true,
         // 云端响应的 code 不能为空。
-        code: response.data!['code'] as int,
+        code: response.data!['code']! as int,
         // 云端响应的 viewMessage 不能为空。
-        viewMessage: response.data!['message'] as String,
+        viewMessage: response.data!['message']! as String,
         description: Description('描述见云端日志。'),
-        responseHeaders: response.headers,
+        responseHeaders: response.headers.map,
         exception: null,
         stackTrace: null,
       );
-      final Map<String, dynamic>? data = response.data!['data'] as Map<String, dynamic>?;
+      final Map<String, Object?>? data = response.data!['data'] as Map<String, Object?>?;
       if (data != null) {
-        responseDataVO = setResponseDataVO(data);
+        responseDataVO = putResponseDataVO!(data);
       }
     } catch (e, st) {
       _setAll(

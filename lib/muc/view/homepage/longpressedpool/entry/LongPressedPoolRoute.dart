@@ -24,7 +24,7 @@ class LongPressedPoolRouteForFragment extends AbstractLongPressedPoolRoute {
       rule_uuid: null,
     );
     MPnFragment? newModel;
-    final SingleResult<MPnFragment> insertResult = await DataTransferManager.instance.executeSqliteCurd.insertRow<MPnFragment>(pnFragment);
+    final SingleResult<MPnFragment> insertResult = await DataTransferManager.instance.transfer.executeSqliteCurd.insertRow<MPnFragment>(pnFragment);
     await insertResult.handle<void>(
       onSuccess: (MPnFragment successResult) async {
         newModel = successResult;
@@ -60,7 +60,7 @@ class LongPressedPoolRouteForMemory extends AbstractLongPressedPoolRoute {
     );
 
     MPnMemory? newModel;
-    final SingleResult<MPnMemory> insertResult = await DataTransferManager.instance.executeSqliteCurd.insertRow<MPnMemory>(pnMemory);
+    final SingleResult<MPnMemory> insertResult = await DataTransferManager.instance.transfer.executeSqliteCurd.insertRow<MPnMemory>(pnMemory);
     await insertResult.handle<void>(
       onSuccess: (MPnMemory successResult) async {
         newModel = successResult;
@@ -96,7 +96,7 @@ class LongPressedPoolRouteForComplete extends AbstractLongPressedPoolRoute {
     );
 
     MPnComplete? newModel;
-    final SingleResult<MPnComplete> insertResult = await DataTransferManager.instance.executeSqliteCurd.insertRow<MPnComplete>(pnComplete);
+    final SingleResult<MPnComplete> insertResult = await DataTransferManager.instance.transfer.executeSqliteCurd.insertRow<MPnComplete>(pnComplete);
     await insertResult.handle<void>(
       onSuccess: (MPnComplete successResult) async {
         newModel = successResult;
@@ -130,7 +130,7 @@ class LongPressedPoolRouteForRule extends AbstractLongPressedPoolRoute {
     );
 
     MPnRule? newModel;
-    final SingleResult<MPnRule> insertResult = await DataTransferManager.instance.executeSqliteCurd.insertRow<MPnRule>(pnRule);
+    final SingleResult<MPnRule> insertResult = await DataTransferManager.instance.transfer.executeSqliteCurd.insertRow<MPnRule>(pnRule);
     await insertResult.handle<void>(
       onSuccess: (MPnRule successResult) async {
         newModel = successResult;

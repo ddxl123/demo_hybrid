@@ -6,7 +6,7 @@ import 'package:get/get.dart';
 import 'package:hybrid/engine/constant/execute/OToNative.dart';
 import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
 import 'package:hybrid/engine/entry/main/MainEntry.dart';
-import 'package:hybrid/muc/getcontroller/SingleGetController.dart';
+import 'package:hybrid/muc/getcontroller/MainEntryGetController.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 import 'package:hybrid/util/sbroundedbox/SbRoundedBox.dart';
@@ -21,62 +21,12 @@ class FloatingWindowPermissionRoute extends SbRoute {
 
   @override
   void onInit() {
-    super.onInit();
-
-    _checkAndPush();
     _timer();
-  }
-
-  /// 以每秒一次的频率，检查是否已允许悬浮窗权限。
-  /// 若已允许，则进行 pop，并将 [MainEntry] 设为初始化成功；若未允许，则继续检查。
-  void _timer() {
-    Timer.periodic(
-      const Duration(seconds: 1),
-      (Timer timer) async {
-        final SingleResult<bool> checkResult = await DataTransferManager.instance.executeToNative<void, bool>(
-          operationId: OToNative.check_floating_window_permission,
-          setSendData: () {},
-          resultDataCast: null,
-        );
-        if (!timer.isActive) {
-          return;
-        }
-        await checkResult.handle<void>(
-          onSuccess: (bool successResult) async {
-            if (successResult) {
-              timer.cancel();
-              isAllowed = true;
-              sbRouteSetState();
-              // 触发 已允许悬浮窗权限，并进行应用数据初始化。
-              final SingleGetController singleGetController = Get.find<SingleGetController>(tag: SingleGetController.tag.MAIN_ENTRY_INIT);
-              (singleGetController.any['set2']! as Function(SingleGetController))(singleGetController);
-              SbHelper.getNavigator!.pop(SbPopResult(popResultSelect: PopResultSelect.one, value: null));
-            } else {
-              isAllowed = false;
-              sbRouteSetState();
-            }
-          },
-          onError: (Object? exception, StackTrace? stackTrace) async {
-            // 该错误提示最多存在一秒，因为 timer 每秒一次。
-            isAllowed = null;
-            sbRouteSetState();
-            SbLogger(
-              code: null,
-              viewMessage: null,
-              data: null,
-              description: Description('检查悬浮窗时发生了异常！'),
-              exception: exception,
-              stackTrace: stackTrace,
-            );
-          },
-        );
-      },
-    );
   }
 
   // 进入该 route 时，立即检查并弹出悬浮窗权限页面。
   Future<void> _checkAndPush() async {
-    final SingleResult<bool> checkAndPushResult = await DataTransferManager.instance.executeToNative<void, bool>(
+    final SingleResult<bool> checkAndPushResult = await DataTransferManager.instance.transfer.toNative<void, bool>(
       operationId: OToNative.check_and_push_page_floating_window_permission,
       setSendData: () {},
       resultDataCast: null,
@@ -101,39 +51,98 @@ class FloatingWindowPermissionRoute extends SbRoute {
     );
   }
 
+  /// 以每秒一次的频率，检查是否已允许悬浮窗权限。
+  /// 若已允许，则进行 pop，并将 [MainEntry] 设为初始化成功；若未允许，则继续检查。
+  void _timer() {
+    Timer.periodic(
+      const Duration(seconds: 1),
+      (Timer timer) async {
+        final SingleResult<bool> checkResult = await DataTransferManager.instance.transfer.toNative<void, bool>(
+          operationId: OToNative.check_floating_window_permission,
+          setSendData: () {},
+          resultDataCast: null,
+        );
+        if (!timer.isActive) {
+          return;
+        }
+        await checkResult.handle<void>(
+          onSuccess: (bool successResult) async {
+            if (successResult) {
+              timer.cancel();
+              isAllowed = true;
+              sbRouteSetState();
+              // 触发 已允许悬浮窗权限，并进行应用数据初始化。
+              SbHelper.getNavigator!.pop(SbPopResult(popResultSelect: PopResultSelect.one, value: null));
+              final MainEntryGetController mainEntryGetController = Get.find<MainEntryGetController>();
+              mainEntryGetController.setInitStatus(MainEntryInitStatus.appDataInitializing);
+            } else {
+              isAllowed = false;
+              sbRouteSetState();
+            }
+          },
+          onError: (Object? exception, StackTrace? stackTrace) async {
+            // 该错误提示最多存在一秒，因为 timer 每秒一次。
+            isAllowed = null;
+            sbRouteSetState();
+            SbLogger(
+              code: null,
+              viewMessage: null,
+              data: null,
+              description: Description('检查悬浮窗时发生了异常！'),
+              exception: exception,
+              stackTrace: stackTrace,
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   List<Widget> body() {
     return <Widget>[
       SbRoundedBox(
+        padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+        width: 200,
         children: <Widget>[
           Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Text(() {
-                if (isAllowed == null) {
-                  return '出现错误！';
-                }
-                if (isAllowed!) {
-                  return '已允许悬浮窗权限！';
-                }
-                return '您未允许悬浮窗权限！';
-              }()),
+              Flexible(
+                child: Text(
+                  () {
+                    if (isAllowed == null) {
+                      return '出现错误！';
+                    }
+                    if (isAllowed!) {
+                      return '已允许悬浮窗权限！';
+                    }
+                    return '未允许悬浮窗权限！';
+                  }(),
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
             ],
           ),
           if (isAllowed == null || !isAllowed!)
             Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                TextButton(
-                  child: const Text('获取'),
-                  onPressed: () {
-                    _checkAndPush();
-                  },
+                Expanded(
+                  child: TextButton(
+                    child: const Text('允许'),
+                    onPressed: () {
+                      _checkAndPush();
+                    },
+                  ),
                 ),
-                TextButton(
-                  child: const Text('退出'),
-                  onPressed: () {
-                    exit(0);
-                  },
+                Expanded(
+                  child: TextButton(
+                    child: const Text('退出'),
+                    onPressed: () {
+                      exit(0);
+                    },
+                  ),
                 ),
               ],
             )

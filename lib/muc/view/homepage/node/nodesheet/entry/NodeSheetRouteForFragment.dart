@@ -29,7 +29,7 @@ class NodeSheetRouteForFragment extends AbstractNodeSheetRoute<MFFragment> {
     }
 
     final MFFragment forKey = MFFragment();
-    final SingleResult<List<MFFragment>> queryResult = await DataTransferManager.instance.executeSqliteCurd.queryRowsAsModels<MFFragment>(
+    final SingleResult<List<MFFragment>> queryResult = await DataTransferManager.instance.transfer.executeSqliteCurd.queryRowsAsModels<MFFragment>(
       QueryWrapper(
         tableName: forKey.tableName,
         limit: limit,

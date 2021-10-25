@@ -4,6 +4,6 @@ import 'package:hybrid/engine/entry/data_center/DataCenterEntry.dart';
 import 'package:hybrid/engine/entry/main/MainEntry.dart';
 
 class OFromDataCenter {
-  /// form: [DataCenterEntry] to: [MainDataTransfer] for: [MainEntryMain]
+  /// form: [DataCenterEntry] to: [MainDataTransfer] for: [MainEntryBody]
   static const String send_init_data_to_main = 'send_init_data_to_main';
 }

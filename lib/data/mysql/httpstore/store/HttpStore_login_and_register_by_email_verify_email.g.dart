@@ -8,6 +8,23 @@ part of 'HttpStore_login_and_register_by_email_verify_email.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+HttpStore_login_and_register_by_email_verify_email
+    _$HttpStore_login_and_register_by_email_verify_emailFromJson(
+        Map<String, dynamic> json) {
+  return HttpStore_login_and_register_by_email_verify_email()
+    ..httpRequest =
+        HttpRequest.fromJson(json['httpRequest'] as Map<String, dynamic>)
+    ..httpResponse =
+        HttpResponse.fromJson(json['httpResponse'] as Map<String, dynamic>);
+}
+
+Map<String, dynamic> _$HttpStore_login_and_register_by_email_verify_emailToJson(
+        HttpStore_login_and_register_by_email_verify_email instance) =>
+    <String, dynamic>{
+      'httpRequest': instance.httpRequest.toJson(),
+      'httpResponse': instance.httpResponse.toJson(),
+    };
+
 RequestDataVO_LARBEVE _$RequestDataVO_LARBEVEFromJson(
     Map<String, dynamic> json) {
   return RequestDataVO_LARBEVE(
@@ -37,3 +54,12 @@ Map<String, dynamic> _$ResponseDataVO_LARBEVEToJson(
       'user_id': instance.user_id,
       'token': instance.token,
     };
+
+ResponseCodeCollect_LARBEVE _$ResponseCodeCollect_LARBEVEFromJson(
+    Map<String, dynamic> json) {
+  return ResponseCodeCollect_LARBEVE();
+}
+
+Map<String, dynamic> _$ResponseCodeCollect_LARBEVEToJson(
+        ResponseCodeCollect_LARBEVE instance) =>
+    <String, dynamic>{};

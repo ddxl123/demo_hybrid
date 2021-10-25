@@ -1,9 +1,7 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hybrid/global/Global.dart';
 import 'package:hybrid/muc/getcontroller/homepage/PoolGetController.dart';
-import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 import 'package:hybrid/util/sbroundedbox/SbRoundedBox.dart';
 import 'package:hybrid/util/sbroute/SbPopResult.dart';
@@ -59,7 +57,7 @@ class SelectPoolRoute extends SbRoute {
         if (quickPopResult.popResultSelect == PopResultSelect.one) {
           final PoolGetController fragmentPoolGetController = Get.find<PoolGetController>();
           if (quickPopResult.value is PoolType) {
-            await fragmentPoolGetController.updateLogic.to(quickPopResult.value! as PoolType);
+            await fragmentPoolGetController.to(quickPopResult.value! as PoolType);
             return true;
           }
         }

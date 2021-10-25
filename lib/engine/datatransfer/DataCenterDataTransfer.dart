@@ -1,3 +1,5 @@
+import 'package:hybrid/data/mysql/http/HttpCurd.dart';
+import 'package:hybrid/data/mysql/httpstore/handler/HttpStore.dart';
 import 'package:hybrid/data/sqlite/mmodel/ModelBase.dart';
 import 'package:hybrid/data/sqlite/mmodel/ModelManager.dart';
 import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
@@ -8,6 +10,10 @@ import 'package:hybrid/util/SbHelper.dart';
 class DataCenterDataTransfer extends BaseDataTransfer {
   @override
   Future<Object?> listenerMessageFormOtherFlutterEngine(String operationId, Object? data) async {
+    return await _sqliteCurd(operationId, data) ?? await _httpCurd(operationId, data);
+  }
+
+  Future<Object?> _sqliteCurd(String operationId, Object? data) async {
     switch (operationId) {
       case OUniform.SQLITE_QUERY_ROW_AS_JSONS:
         final Map<String, Object?> dataMap = (data! as Map<Object?, Object?>).cast<String, Object?>();
@@ -68,6 +74,24 @@ class DataCenterDataTransfer extends BaseDataTransfer {
             throw exception!;
           },
         );
+    }
+  }
+
+  Future<Object?> _httpCurd(String operationId, Object? data) async {
+    switch (operationId) {
+      case OUniform.HTTP_CURD:
+        final Map<String, Object?> dataMap = (data! as Map<Object?, Object?>).cast<String, Object?>();
+
+        final Map<String, Object?> httpStoreJson = (dataMap['putHttpStore']! as Map<Object?, Object?>).cast<String, Object?>();
+        final String? sameNotConcurrent = dataMap['sameNotConcurrent'] as String?;
+        final bool isBanAllOtherRequest = dataMap['isBanAllOtherRequest']! as bool;
+
+        final HttpStore_Clone requestResult = await HttpCurd.sendRequest(
+          putHttpStore: () => HttpStore_Clone.fromJson(httpStoreJson),
+          sameNotConcurrent: sameNotConcurrent,
+          isBanAllOtherRequest: isBanAllOtherRequest,
+        );
+        return requestResult.toJson();
     }
   }
 }

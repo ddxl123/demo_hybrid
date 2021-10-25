@@ -49,13 +49,13 @@ abstract class LongPressedNodeRouteBase extends AbstractPoolEntryRoute {
   Future<bool> whenPop(SbPopResult? popResult) async {
     return await quickWhenPop(popResult, (SbPopResult quickPopResult) async {
       if (quickPopResult.popResultSelect == PopResultSelect.one) {
-        final SingleResult<bool> deleteResult = await DataTransferManager.instance.executeSqliteCurd.deleteRow(
+        final SingleResult<bool> deleteResult = await DataTransferManager.instance.transfer.executeSqliteCurd.deleteRow(
           modelTableName: poolNodeModel.getCurrentNodeModel().tableName,
           modelId: poolNodeModel.getCurrentNodeModel().get_id,
         );
         await deleteResult.handle<void>(
           onSuccess: (bool successResult) async {
-            Get.find<PoolGetController>().updateLogic.deleteNode(poolNodeModel);
+            Get.find<PoolGetController>().deleteNode(poolNodeModel);
           },
           onError: (Object? exception, StackTrace? stackTrace) async {
             SbLogger(

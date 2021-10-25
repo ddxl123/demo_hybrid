@@ -2,9 +2,8 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:hybrid/data/mysql/http/HttpCurd.dart';
 import 'package:hybrid/data/mysql/httpstore/handler/HttpResponse.dart';
-import 'package:hybrid/data/mysql/httpstore/store/notjwt/loginandregister/HttpStore_login_and_register_by_email_send_email.dart';
+import 'package:hybrid/data/mysql/httpstore/store/HttpStore_login_and_register_by_email_send_email.dart';
 import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
 import 'package:hybrid/engine/push/PushTo.dart';
 import 'package:hybrid/util/SbHelper.dart';
@@ -105,19 +104,21 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
                 },
               );
 
-              final HttpStore_login_and_register_by_email_send_email httpStore = await HttpCurd.sendRequest(
-                httpStore: HttpStore_login_and_register_by_email_send_email(
-                  setRequestDataVO_LARBESE: () => RequestDataVO_LARBESE(
+              final HttpStore_login_and_register_by_email_send_email requestResult = await DataTransferManager.instance.transfer.executeHttpCurd.sendRequest(
+                putHttpStore: () => HttpStore_login_and_register_by_email_send_email(
+                  requestDataVO_LARBESE: RequestDataVO_LARBESE(
                     email: emailTextEditingController.text,
                   ),
                 ),
                 sameNotConcurrent: null,
                 isBanAllOtherRequest: true,
+                resultHttpStoreJson: (Map<String, Object?> json) async => HttpStore_login_and_register_by_email_send_email.fromJson(json),
               );
-              httpStore.httpResponse.handle(
-                doContinue: (HttpResponse<ResponseCodeCollect_LARBESE, ResponseNullDataVO> hr) async {
+
+              await requestResult.httpResponse.handle(
+                doContinue: (HttpResponse<ResponseCodeCollect_LARBESE, ResponseDataVO_LARBESE> hr) async {
                   // 发送成功。
-                  if (hr.code == hr.responseCodeCollect.C2_01_01_01) {
+                  if (hr.code == hr.responseCodeCollect!.C2_01_01_01) {
                     SbLogger(
                       code: null,
                       viewMessage: hr.viewMessage,
@@ -130,7 +131,7 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
                   }
                   return false;
                 },
-                doCancel: (HttpResponse<ResponseCodeCollect_LARBESE, ResponseNullDataVO> hr) async {
+                doCancel: (HttpResponse<ResponseCodeCollect_LARBESE, ResponseDataVO_LARBESE> hr) async {
                   timer?.cancel();
                   timer = null;
                   text = '重新发送';

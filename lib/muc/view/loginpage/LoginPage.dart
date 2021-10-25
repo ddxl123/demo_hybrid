@@ -1,12 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:hybrid/data/mysql/http/HttpCurd.dart';
 import 'package:hybrid/data/mysql/httpstore/handler/HttpResponse.dart';
-import 'package:hybrid/data/mysql/httpstore/store/notjwt/loginandregister/HttpStore_login_and_register_by_email_send_email.dart';
-import 'package:hybrid/data/mysql/httpstore/store/notjwt/loginandregister/HttpStore_login_and_register_by_email_verify_email.dart';
+import 'package:hybrid/data/mysql/httpstore/store/HttpStore_login_and_register_by_email_send_email.dart';
+import 'package:hybrid/data/mysql/httpstore/store/HttpStore_login_and_register_by_email_verify_email.dart';
 import 'package:hybrid/data/sqlite/mmodel/MUser.dart';
 import 'package:hybrid/data/sqlite/sqliter/OpenSqlite.dart';
+import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
 import 'package:hybrid/global/Global.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
@@ -110,19 +110,20 @@ class LoginPage extends SbRoute {
                 },
               );
 
-              final HttpStore_login_and_register_by_email_send_email httpStore = await HttpCurd.sendRequest(
-                httpStore: HttpStore_login_and_register_by_email_send_email(
-                  setRequestDataVO_LARBESE: () => RequestDataVO_LARBESE(
+              final HttpStore_login_and_register_by_email_send_email requestResult = await DataTransferManager.instance.transfer.executeHttpCurd.sendRequest(
+                putHttpStore: () => HttpStore_login_and_register_by_email_send_email(
+                  requestDataVO_LARBESE: RequestDataVO_LARBESE(
                     email: emailTextEditingController.text,
                   ),
                 ),
                 sameNotConcurrent: null,
                 isBanAllOtherRequest: true,
+                resultHttpStoreJson: (Map<String, Object?> json) async => HttpStore_login_and_register_by_email_send_email.fromJson(json),
               );
-              httpStore.httpResponse.handle(
-                doContinue: (HttpResponse<ResponseCodeCollect_LARBESE, ResponseNullDataVO> hr) async {
+              requestResult.httpResponse.handle(
+                doContinue: (HttpResponse<ResponseCodeCollect_LARBESE, ResponseDataVO_LARBESE> hr) async {
                   // 发送成功。
-                  if (hr.code == hr.responseCodeCollect.C2_01_01_01) {
+                  if (hr.code == hr.responseCodeCollect!.C2_01_01_01) {
                     SbLogger(
                       code: null,
                       viewMessage: hr.viewMessage,
@@ -135,7 +136,7 @@ class LoginPage extends SbRoute {
                   }
                   return false;
                 },
-                doCancel: (HttpResponse<ResponseCodeCollect_LARBESE, ResponseNullDataVO> hr) async {
+                doCancel: (HttpResponse<ResponseCodeCollect_LARBESE, ResponseDataVO_LARBESE> hr) async {
                   timer?.cancel();
                   timer = null;
                   text = '重新发送';
@@ -167,17 +168,18 @@ class LoginPage extends SbRoute {
           ),
           child: const Text('登陆/注册'),
           onPressed: () async {
-            final HttpStore_login_and_register_by_email_verify_email httpStore = await HttpCurd.sendRequest(
-              httpStore: HttpStore_login_and_register_by_email_verify_email(
-                setRequestDataVO_LARBEVE: () => RequestDataVO_LARBEVE(
+            final HttpStore_login_and_register_by_email_verify_email requestResult = await DataTransferManager.instance.transfer.executeHttpCurd.sendRequest(
+              putHttpStore: () => HttpStore_login_and_register_by_email_verify_email(
+                requestDataVO_LARBEVE: RequestDataVO_LARBEVE(
                   email: emailTextEditingController.text,
                   code: int.parse(codeTextEditingController.text),
                 ),
               ),
               sameNotConcurrent: null,
               isBanAllOtherRequest: true,
+              resultHttpStoreJson: (Map<String, Object?> json) async => HttpStore_login_and_register_by_email_verify_email.fromJson(json),
             );
-            await httpStore.httpResponse.handle(
+            await requestResult.httpResponse.handle(
               doCancel: (HttpResponse<ResponseCodeCollect_LARBEVE, ResponseDataVO_LARBEVE> hr) async {
                 // 登陆/注册失败
                 SbLogger(
@@ -191,7 +193,7 @@ class LoginPage extends SbRoute {
               },
               doContinue: (HttpResponse<ResponseCodeCollect_LARBEVE, ResponseDataVO_LARBEVE> hr) async {
                 // 登陆/注册成功
-                if (hr.code == hr.responseCodeCollect.C2_01_02_01 || hr.code == hr.responseCodeCollect.C2_01_02_02) {
+                if (hr.code == hr.responseCodeCollect!.C2_01_02_01 || hr.code == hr.responseCodeCollect!.C2_01_02_02) {
                   // TODO:
                   // 云端 token 生成成功，存储至本地。
                   final MUser newToken = MUser.createModel(
@@ -203,7 +205,7 @@ class LoginPage extends SbRoute {
                     email: null,
                     age: null,
                     // 无论 token 值是否有问题，都进行存储。
-                    token: hr.responseDataVO.token,
+                    token: hr.responseDataVO!.token,
                     is_downloaded_init_data: null,
                     created_at: SbHelper.newTimestamp,
                     updated_at: SbHelper.newTimestamp,
@@ -223,7 +225,7 @@ class LoginPage extends SbRoute {
                   return true;
                 }
                 // 邮箱重复异常
-                if (hr.code == hr.responseCodeCollect.C2_01_02_03) {
+                if (hr.code == hr.responseCodeCollect!.C2_01_02_03) {
                   SbLogger(
                     code: hr.code,
                     viewMessage: hr.viewMessage,
@@ -235,7 +237,7 @@ class LoginPage extends SbRoute {
                   return true;
                 }
                 // 验证码不正确
-                else if (hr.code == hr.responseCodeCollect.C2_01_02_04) {
+                else if (hr.code == hr.responseCodeCollect!.C2_01_02_04) {
                   SbLogger(
                     code: null,
                     viewMessage: hr.viewMessage,

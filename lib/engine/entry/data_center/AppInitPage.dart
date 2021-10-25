@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hybrid/data/mysql/http/HttpInit.dart';
+import 'package:hybrid/data/mysql/http/Httper.dart';
 import 'package:hybrid/data/sqlite/sqliter/SqliteInit.dart';
 import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
@@ -22,7 +22,7 @@ class _AppInitPageState extends State<AppInitPage> {
 
   late final Future<AppInitStatus> _future = Future<AppInitStatus>(
     () async {
-      HttpInit().init();
+      Httper.init();
       final SqliteInitResult sqliteInitResult = await SqliteInit().init();
       // FloatingBallInit().init(context);
       if (sqliteInitResult == SqliteInitResult.ok) {

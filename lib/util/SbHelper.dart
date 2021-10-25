@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:uuid/uuid.dart';
 
 class SingleResult<T> {
@@ -142,4 +143,20 @@ class SbHelper {
     }
     return Offset(double.parse(posStr.first), double.parse(posStr.last));
   }
+}
+
+/// 当类需要序列化，则继承该类。
+abstract class DoSerializable {
+  Map<String, Object?> toJson();
+}
+
+/// 对 [StackTrace] 进行自定义序列化解析。
+class StackTraceConverter implements JsonConverter<StackTrace?, String?> {
+  const StackTraceConverter();
+
+  @override
+  StackTrace? fromJson(String? json) => json == null ? null : StackTrace.fromString(json);
+
+  @override
+  String? toJson(StackTrace? object) => object?.toString();
 }

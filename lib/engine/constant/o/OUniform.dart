@@ -17,4 +17,9 @@ class OUniform {
 
   /// sqlite delete row。
   static const String SQLITE_DELETE_ROW = 'sqlite_delete_row';
+
+  /// TODO: sqlite 批量操作。
+
+  /// http curd。
+  static const String HTTP_CURD = 'http_curd';
 }

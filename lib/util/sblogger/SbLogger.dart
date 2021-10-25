@@ -1,13 +1,26 @@
 import 'dart:convert';
 import 'dart:developer';
 
-class Description {
+import 'package:hybrid/util/SbHelper.dart';
+import 'package:json_annotation/json_annotation.dart';
+
+part 'SbLogger.g.dart';
+
+@JsonSerializable()
+@StackTraceConverter()
+class Description extends DoSerializable {
   Description(this.description) {
     stackTrace = StackTrace.current;
   }
 
+  factory Description.fromJson(Map<String, Object?> json) => _$DescriptionFromJson(json);
+
+  @override
+  Map<String, Object?> toJson() => _$DescriptionToJson(this);
+
   final String description;
-  late final StackTrace stackTrace;
+
+  late final StackTrace? stackTrace;
 }
 
 class SbLogger {

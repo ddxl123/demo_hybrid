@@ -28,7 +28,7 @@ class NodeSheetRouteForRule extends AbstractNodeSheetRoute<MFRule> {
       mark.value = 0;
     }
     final MFRule forKey = MFRule();
-    final SingleResult<List<MFRule>> queryResult = await DataTransferManager.instance.executeSqliteCurd.queryRowsAsModels<MFRule>(
+    final SingleResult<List<MFRule>> queryResult = await DataTransferManager.instance.transfer.executeSqliteCurd.queryRowsAsModels<MFRule>(
       QueryWrapper(
         tableName: forKey.tableName,
         limit: limit,

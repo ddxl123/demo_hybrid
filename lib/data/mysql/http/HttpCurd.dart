@@ -8,7 +8,7 @@ import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
 import '../../../Config.dart';
-import 'HttpInit.dart';
+import 'Httper.dart';
 
 class HttpCurd {
   /// 【常规】请求的不可并发请求标志
@@ -22,6 +22,8 @@ class HttpCurd {
   ///
   /// general request
   ///
+  /// [putHttpStore] 返回的 [HttpStore] 不一定是输入的 [HttpStore]，所以在 [HttpStore.handle] 时，必须使用返回的 [HttpStore]。
+  ///
   /// [sameNotConcurrent] 不可并发标记。多个请求（可相同可不同），具有相同标记的请求不可并发。为 null 时代表不进行标记（即可并发）。
   ///
   /// [isBanAllOtherRequest] 若为 true，则其他请求全部禁止，只有当前请求继续直到当前请求结束。
@@ -31,11 +33,16 @@ class HttpCurd {
   /// 向云端修改数据成功，而响应回本地修改 sqlite 数据失败 ———— 该问题会在 [SqliteCurd] 中进行处理。
   ///
   static Future<HS> sendRequest<HS extends HttpStore>({
-    required HS httpStore,
+    required HS putHttpStore(),
     required String? sameNotConcurrent,
     bool isBanAllOtherRequest = false,
   }) async {
+    // 只会在捕获中使用该 HttpStore_Error。
+    late HS httpStore = HttpStore_Error() as HS;
     try {
+      // 若 putHttpStore 不出错，则始终使用不出错的（无论之后的操作是否存在异常）。
+      httpStore = putHttpStore();
+
       if (_isBanAllRequest) {
         return await httpStore.setCancel(viewMessage: '请求频繁！', description: Description('已禁止全部请求！'), exception: null, stackTrace: null) as HS;
       }
@@ -96,7 +103,7 @@ class HttpCurd {
         code: null,
         viewMessage: null,
         data: null,
-        description: Description(dio.options.baseUrl + httpStore.httpRequest.path),
+        description: Description(Httper.dio.options.baseUrl + httpStore.httpRequest.path),
         exception: null,
         stackTrace: null,
       );
@@ -105,7 +112,7 @@ class HttpCurd {
         await Future<void>.delayed(const Duration(seconds: 2));
       }
 
-      final Response<Map<String, Object?>> response = await dio.request<Map<String, Object?>>(
+      final Response<Map<String, Object?>> response = await Httper.dio.request<Map<String, Object?>>(
         httpStore.httpRequest.path,
         data: httpStore.httpRequest.requestDataVO?.toJson(),
         queryParameters: httpStore.httpRequest.requestParamsVO?.toJson(),
@@ -136,7 +143,12 @@ class HttpCurd {
         }
         return await httpStore.setCancel(viewMessage: '请求异常！', description: Description('dio 异常！'), exception: e, stackTrace: st) as HS;
       }
-      return await httpStore.setCancel(viewMessage: '发生错误！', description: Description('1. 可能是某个请求参数错误！'), exception: e, stackTrace: st) as HS;
+      return await httpStore.setCancel(
+        viewMessage: '发生错误！',
+        description: Description('1. 可能是 putHttpStore 中的某个请求参数错误！'),
+        exception: e,
+        stackTrace: st,
+      ) as HS;
     }
   }
 

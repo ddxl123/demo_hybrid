@@ -19,7 +19,7 @@ class HttpRequestIntercept<REQVO extends RequestDataVO, REQPVO extends RequestPa
     }
     final String must = httpRequest.path.split('/')[0];
     if (must == PathConstant.JWT) {
-      final SingleResult<List<MUser>> queryResult = await DataTransferManager.instance.executeSqliteCurd.queryRowsAsModels<MUser>(
+      final SingleResult<List<MUser>> queryResult = await DataTransferManager.instance.transfer.executeSqliteCurd.queryRowsAsModels<MUser>(
         QueryWrapper(tableName: MUser().tableName),
       );
       await queryResult.handle(

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hybrid/muc/getcontroller/homepage/HomePageGetController.dart';
 import 'package:hybrid/muc/getcontroller/homepage/PoolGetController.dart';
-import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sbbutton/Global.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 import 'package:hybrid/util/sbroundedbox/SbRoundedBox.dart';
@@ -26,7 +25,7 @@ abstract class AbstractLongPressedPoolRoute extends SbRoute {
                 final String easyPosition = '${offset.dx},${offset.dy}';
                 final PoolNodeModel? poolNodeModel = await createNewNode(easyPosition);
                 if (poolNodeModel != null) {
-                  Get.find<PoolGetController>().updateLogic.insertNewNode(poolNodeModel);
+                  Get.find<PoolGetController>().insertNewNode(poolNodeModel);
                 } else {
                   SbLogger(code: null, viewMessage: '添加节点失败！', data: null, description: Description('添加节点失败！'), exception: null, stackTrace: null);
                 }

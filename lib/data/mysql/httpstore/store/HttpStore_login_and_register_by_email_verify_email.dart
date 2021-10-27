@@ -11,12 +11,12 @@ part 'HttpStore_login_and_register_by_email_verify_email.g.dart';
 @JsonSerializable()
 class HttpStore_login_and_register_by_email_verify_email extends HttpStore_POST<RequestDataVO_LARBEVE, ResponseCodeCollect_LARBEVE, ResponseDataVO_LARBEVE> {
   HttpStore_login_and_register_by_email_verify_email({
-    RequestDataVO_LARBEVE? requestDataVO_LARBEVE,
+    RequestDataVO_LARBEVE? putRequestDataVO_LARBEVE()?,
   }) : super(
           r'no_jwt/login_and_register_by_email/verify_email',
-          requestDataVO_LARBEVE,
-          ResponseCodeCollect_LARBEVE(),
-          (Map<String, Object?> json) => ResponseDataVO_LARBEVE.fromJson(json),
+          putRequestDataVO_LARBEVE,
+          () => ResponseCodeCollect_LARBEVE(),
+          (Map<String, Object?>? json) => ResponseDataVO_LARBEVE.fromJson(json ?? <String, Object?>{}),
         );
   
   factory HttpStore_login_and_register_by_email_verify_email.fromJson(Map<String, Object?> json) => _$HttpStore_login_and_register_by_email_verify_emailFromJson(json);

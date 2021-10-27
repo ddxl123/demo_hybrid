@@ -105,8 +105,8 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
               );
 
               final HttpStore_login_and_register_by_email_send_email requestResult = await DataTransferManager.instance.transfer.executeHttpCurd.sendRequest(
-                putHttpStore: () => HttpStore_login_and_register_by_email_send_email(
-                  requestDataVO_LARBESE: RequestDataVO_LARBESE(
+                httpStore: HttpStore_login_and_register_by_email_send_email(
+                  putRequestDataVO_LARBESE: () => RequestDataVO_LARBESE(
                     email: emailTextEditingController.text,
                   ),
                 ),

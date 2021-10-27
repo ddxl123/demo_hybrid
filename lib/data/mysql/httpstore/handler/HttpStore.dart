@@ -13,14 +13,19 @@ part 'HttpStore.g.dart';
 
 abstract class HttpStore<REQVO extends RequestDataVO, REQPVO extends RequestParamsVO, RESPCCOL extends ResponseCodeCollect, RESPDVO extends ResponseDataVO>
     implements DoSerializable {
-  late final HttpRequest<REQVO, REQPVO> httpRequest;
-  late final HttpResponse<RESPCCOL, RESPDVO> httpResponse;
+  /// [HttpStore] 抽象类以及继承类，只能存在这两个熟悉，因为需要进行序列化和反序列化。
+  late HttpRequest<REQVO, REQPVO> httpRequest;
+  late HttpResponse<RESPCCOL, RESPDVO> httpResponse;
 
   /// 返回 false 表示拦截发生异常。
   ///
   /// 无论是被 [setCancel] 还是被 [setPass]，都需要配置 [_requestIntercept] 的结果。
   Future<bool> _requestIntercept() async {
     try {
+      if (httpRequest.hasErrors()) {
+        httpResponse.setCancel('请求数据解析异常！', Description('httpRequest 内部异常！'), httpRequest.exception, httpRequest.stackTrace);
+        return false;
+      }
       await HttpRequestIntercept<REQVO, REQPVO>(httpRequest).intercept();
       return true;
     } catch (e, st) {
@@ -37,7 +42,7 @@ abstract class HttpStore<REQVO extends RequestDataVO, REQPVO extends RequestPara
     required StackTrace? stackTrace,
   }) async {
     final bool result = await _requestIntercept();
-    if (result) {
+    if (!result) {
       httpResponse.setCancel(viewMessage, description, exception, stackTrace);
     }
     return this;
@@ -57,19 +62,19 @@ abstract class HttpStore_GET<REQPVO extends RequestParamsVO, RESPCCOL extends Re
     extends HttpStore<RequestDataVO, REQPVO, RESPCCOL, RESPDVO> {
   HttpStore_GET(
     String path,
-    REQPVO requestParamsVO,
-    RESPCCOL responseCodeCollect,
-    RESPDVO putResponseDataVO(Map<String, Object?> json),
+    REQPVO? putRequestParamsVO()?,
+    RESPCCOL putResponseCodeCollect(),
+    RESPDVO putResponseDataVO(Map<String, Object?>? json),
   ) {
     httpRequest = HttpRequest<RequestDataVO, REQPVO>(
       method: 'GET',
       path: path,
-      requestHeaders: null,
-      requestParamsVO: requestParamsVO,
-      requestDataVO: null,
+      putRequestHeaders: null,
+      putRequestParamsVO: putRequestParamsVO,
+      putRequestDataVO: null,
     );
     httpResponse = HttpResponse<RESPCCOL, RESPDVO>(
-      responseCodeCollect: responseCodeCollect,
+      putResponseCodeCollect: putResponseCodeCollect,
       putResponseDataVO: putResponseDataVO,
     );
   }
@@ -79,19 +84,19 @@ abstract class HttpStore_POST<REQVO extends RequestDataVO, RESPCCOL extends Resp
     extends HttpStore<REQVO, RequestParamsVO, RESPCCOL, RESPDVO> {
   HttpStore_POST(
     String path,
-    REQVO? requestDataVO,
-    RESPCCOL responseCodeCollect,
-    RESPDVO putResponseDataVO(Map<String, Object?> json),
+    REQVO? putRequestDataVO()?,
+    RESPCCOL putResponseCodeCollect(),
+    RESPDVO putResponseDataVO(Map<String, Object?>? json),
   ) {
     httpRequest = HttpRequest<REQVO, RequestParamsVO>(
       method: 'POST',
       path: path,
-      requestHeaders: null,
-      requestParamsVO: null,
-      requestDataVO: requestDataVO,
+      putRequestHeaders: null,
+      putRequestParamsVO: null,
+      putRequestDataVO: putRequestDataVO,
     );
     httpResponse = HttpResponse<RESPCCOL, RESPDVO>(
-      responseCodeCollect: responseCodeCollect,
+      putResponseCodeCollect: putResponseCodeCollect,
       putResponseDataVO: putResponseDataVO,
     );
   }
@@ -102,14 +107,14 @@ abstract class HttpStore_POST<REQVO extends RequestDataVO, RESPCCOL extends Resp
 class HttpStore_Error extends HttpStore {
   HttpStore_Error() {
     httpRequest = HttpRequest(
-      method: 'error_method',
-      path: 'error_path',
-      requestHeaders: null,
-      requestParamsVO: null,
-      requestDataVO: null,
+      method: 'have_error',
+      path: 'have_error',
+      putRequestHeaders: null,
+      putRequestParamsVO: null,
+      putRequestDataVO: null,
     );
     httpResponse = HttpResponse(
-      responseCodeCollect: null,
+      putResponseCodeCollect: null,
       putResponseDataVO: null,
     );
   }

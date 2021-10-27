@@ -8,7 +8,7 @@ import 'package:hybrid/util/sblogger/SbLogger.dart';
 class ExecuteHttpCurd {
   /// [resultJson] 需要手动转换成 [HttpStore]。
   Future<HS> sendRequest<HS extends HttpStore>({
-    required HS putHttpStore(),
+    required HS httpStore,
     required String? sameNotConcurrent,
     bool isBanAllOtherRequest = false,
     required Future<HS> resultHttpStoreJson(Map<String, Object?> resultJson),
@@ -17,7 +17,7 @@ class ExecuteHttpCurd {
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
       operationIdWhenEngineOnReady: OUniform.HTTP_CURD,
       setOperationData: () => <String, Object?>{
-        'putHttpStore': putHttpStore().toJson(),
+        'putHttpStore': httpStore.toJson(),
         'sameNotConcurrent': sameNotConcurrent,
         'isBanAllOtherRequest': isBanAllOtherRequest,
       },

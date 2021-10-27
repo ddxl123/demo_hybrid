@@ -47,12 +47,12 @@ part '${parsePathToClassName(storeWriter)}.g.dart';
 @JsonSerializable()
 class ${parsePathToClassName(storeWriter)} extends HttpStore_${storeWriter.method}<RequestDataVO_${parsePathToSimple(storeWriter)}, ResponseCodeCollect_${parsePathToSimple(storeWriter)}, ResponseDataVO_${parsePathToSimple(storeWriter)}> {
   ${parsePathToClassName(storeWriter)}({
-    RequestDataVO_${parsePathToSimple(storeWriter)}? requestDataVO_${parsePathToSimple(storeWriter)},
+    RequestDataVO_${parsePathToSimple(storeWriter)}? putRequestDataVO_${parsePathToSimple(storeWriter)}()?,
   }) : super(
           r'${storeWriter.path}',
-          requestDataVO_${parsePathToSimple(storeWriter)},
-          ResponseCodeCollect_${parsePathToSimple(storeWriter)}(),
-          (Map<String, Object?> json) => ResponseDataVO_${parsePathToSimple(storeWriter)}.fromJson(json),
+          putRequestDataVO_${parsePathToSimple(storeWriter)},
+          () => ResponseCodeCollect_${parsePathToSimple(storeWriter)}(),
+          (Map<String, Object?>? json) => ResponseDataVO_${parsePathToSimple(storeWriter)}.fromJson(json ?? <String, Object?>{}),
         );
   
   factory ${parsePathToClassName(storeWriter)}.fromJson(Map<String, Object?> json) => _\$${parsePathToClassName(storeWriter)}FromJson(json);

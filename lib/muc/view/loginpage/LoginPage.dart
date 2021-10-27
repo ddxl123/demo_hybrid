@@ -111,8 +111,8 @@ class LoginPage extends SbRoute {
               );
 
               final HttpStore_login_and_register_by_email_send_email requestResult = await DataTransferManager.instance.transfer.executeHttpCurd.sendRequest(
-                putHttpStore: () => HttpStore_login_and_register_by_email_send_email(
-                  requestDataVO_LARBESE: RequestDataVO_LARBESE(
+                httpStore: HttpStore_login_and_register_by_email_send_email(
+                  putRequestDataVO_LARBESE: () => RequestDataVO_LARBESE(
                     email: emailTextEditingController.text,
                   ),
                 ),
@@ -169,8 +169,8 @@ class LoginPage extends SbRoute {
           child: const Text('登陆/注册'),
           onPressed: () async {
             final HttpStore_login_and_register_by_email_verify_email requestResult = await DataTransferManager.instance.transfer.executeHttpCurd.sendRequest(
-              putHttpStore: () => HttpStore_login_and_register_by_email_verify_email(
-                requestDataVO_LARBEVE: RequestDataVO_LARBEVE(
+              httpStore: HttpStore_login_and_register_by_email_verify_email(
+                putRequestDataVO_LARBEVE: () => RequestDataVO_LARBEVE(
                   email: emailTextEditingController.text,
                   code: int.parse(codeTextEditingController.text),
                 ),

@@ -33,16 +33,11 @@ class HttpCurd {
   /// 向云端修改数据成功，而响应回本地修改 sqlite 数据失败 ———— 该问题会在 [SqliteCurd] 中进行处理。
   ///
   static Future<HS> sendRequest<HS extends HttpStore>({
-    required HS putHttpStore(),
+    required HS httpStore,
     required String? sameNotConcurrent,
     bool isBanAllOtherRequest = false,
   }) async {
-    // 只会在捕获中使用该 HttpStore_Error。
-    late HS httpStore = HttpStore_Error() as HS;
     try {
-      // 若 putHttpStore 不出错，则始终使用不出错的（无论之后的操作是否存在异常）。
-      httpStore = putHttpStore();
-
       if (_isBanAllRequest) {
         return await httpStore.setCancel(viewMessage: '请求频繁！', description: Description('已禁止全部请求！'), exception: null, stackTrace: null) as HS;
       }

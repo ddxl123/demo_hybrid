@@ -20,7 +20,7 @@ class Description extends DoSerializable {
 
   final String description;
 
-  late final StackTrace? stackTrace;
+  StackTrace? stackTrace;
 }
 
 class SbLogger {

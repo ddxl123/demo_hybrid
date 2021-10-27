@@ -11,12 +11,12 @@ part 'HttpStore_verify_token.g.dart';
 @JsonSerializable()
 class HttpStore_verify_token extends HttpStore_POST<RequestDataVO_VT, ResponseCodeCollect_VT, ResponseDataVO_VT> {
   HttpStore_verify_token({
-    RequestDataVO_VT? requestDataVO_VT,
+    RequestDataVO_VT? putRequestDataVO_VT()?,
   }) : super(
           r'no_jwt/verify_token',
-          requestDataVO_VT,
-          ResponseCodeCollect_VT(),
-          (Map<String, Object?> json) => ResponseDataVO_VT.fromJson(json),
+          putRequestDataVO_VT,
+          () => ResponseCodeCollect_VT(),
+          (Map<String, Object?>? json) => ResponseDataVO_VT.fromJson(json ?? <String, Object?>{}),
         );
   
   factory HttpStore_verify_token.fromJson(Map<String, Object?> json) => _$HttpStore_verify_tokenFromJson(json);

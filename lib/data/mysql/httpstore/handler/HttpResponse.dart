@@ -15,9 +15,15 @@ abstract class ResponseDataVO extends DoSerializable {}
 @StackTraceConverter()
 class HttpResponse<RESPCCOL extends ResponseCodeCollect, RESPDVO extends ResponseDataVO> extends DoSerializable {
   HttpResponse({
-    this.responseCodeCollect,
+    RESPCCOL? putResponseCodeCollect()?,
     this.putResponseDataVO,
-  });
+  }) {
+    try {
+      responseCodeCollect = putResponseCodeCollect == null ? null : putResponseCodeCollect();
+    } catch (e, st) {
+      setCancel('发生异常！', Description('putResponseCodeCollect 内部异常！'), e, st);
+    }
+  }
 
   factory HttpResponse.fromJson(Map<String, Object?> json) {
     return _$HttpResponseFromJson(json)
@@ -38,15 +44,15 @@ class HttpResponse<RESPCCOL extends ResponseCodeCollect, RESPDVO extends Respons
 
   /// 响应码集。
   @JsonKey(ignore: true)
-  late final RESPCCOL? responseCodeCollect;
+  RESPCCOL? responseCodeCollect;
 
   /// 对 [responseDataVO] 进行预配置。
   @JsonKey(ignore: true)
-  late final RESPDVO? Function(Map<String, Object?> json)? putResponseDataVO;
+  RESPDVO? Function(Map<String, Object?>? json)? putResponseDataVO;
 
   /// 响应体 data VO 模型。
   @JsonKey(ignore: true)
-  late final RESPDVO? responseDataVO;
+  RESPDVO? responseDataVO;
 
   /// 响应头。
   Map<String, Object?>? responseHeaders;
@@ -68,6 +74,7 @@ class HttpResponse<RESPCCOL extends ResponseCodeCollect, RESPDVO extends Respons
 
   void _setAll({
     required Map<String, Object?>? responseHeaders,
+    required RESPDVO? responseDataVO,
     required bool isContinue,
     required int? code,
     required String? viewMessage,
@@ -76,6 +83,7 @@ class HttpResponse<RESPCCOL extends ResponseCodeCollect, RESPDVO extends Respons
     required StackTrace? stackTrace,
   }) {
     this.responseHeaders = responseHeaders;
+    this.responseDataVO = responseDataVO;
     this.isContinue = isContinue;
     this.code = code;
     this.viewMessage = viewMessage;
@@ -88,6 +96,7 @@ class HttpResponse<RESPCCOL extends ResponseCodeCollect, RESPDVO extends Respons
   void setCancel(String viewMessage, Description description, Object? exception, StackTrace? stackTrace) {
     _setAll(
       responseHeaders: null,
+      responseDataVO: null,
       isContinue: false,
       code: -1,
       viewMessage: viewMessage,
@@ -108,23 +117,12 @@ class HttpResponse<RESPCCOL extends ResponseCodeCollect, RESPDVO extends Respons
         viewMessage: response.data!['message']! as String,
         description: Description('描述见云端日志。'),
         responseHeaders: response.headers.map,
+        responseDataVO: putResponseDataVO!(response.data!['data'] as Map<String, Object?>?),
         exception: null,
         stackTrace: null,
       );
-      final Map<String, Object?>? data = response.data!['data'] as Map<String, Object?>?;
-      if (data != null) {
-        responseDataVO = putResponseDataVO!(data);
-      }
     } catch (e, st) {
-      _setAll(
-        isContinue: false,
-        code: -1,
-        viewMessage: null,
-        description: Description('对响应的数据进行解析时发生了异常。'),
-        responseHeaders: null,
-        exception: e,
-        stackTrace: st,
-      );
+      setCancel('解析响应数据发生异常！', Description('对响应的数据进行解析时发生了异常。'), e, st);
     }
   }
 

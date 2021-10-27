@@ -86,8 +86,9 @@ class DataCenterDataTransfer extends BaseDataTransfer {
         final String? sameNotConcurrent = dataMap['sameNotConcurrent'] as String?;
         final bool isBanAllOtherRequest = dataMap['isBanAllOtherRequest']! as bool;
 
-        final HttpStore_Clone requestResult = await HttpCurd.sendRequest(
-          putHttpStore: () => HttpStore_Clone.fromJson(httpStoreJson),
+        // 返回的值类型必须是 HttpStore，而并不是 HttpStore_Clone，因为会返回 HttpStore_Error 的可能性。
+        final HttpStore requestResult = await HttpCurd.sendRequest(
+          httpStore: HttpStore_Clone.fromJson(httpStoreJson),
           sameNotConcurrent: sameNotConcurrent,
           isBanAllOtherRequest: isBanAllOtherRequest,
         );

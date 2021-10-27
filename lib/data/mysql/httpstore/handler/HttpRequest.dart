@@ -15,10 +15,19 @@ class HttpRequest<REQVO extends RequestDataVO, REQPVO extends RequestParamsVO> e
   HttpRequest({
     required this.method,
     required this.path,
-    this.requestHeaders,
-    this.requestDataVO,
-    this.requestParamsVO,
-  });
+    Map<String, Object?>? putRequestHeaders()?,
+    REQVO? putRequestDataVO()?,
+    REQPVO? putRequestParamsVO()?,
+  }) {
+    try {
+      requestHeaders = putRequestHeaders == null ? null : putRequestHeaders();
+      requestDataVO = putRequestDataVO == null ? null : putRequestDataVO();
+      requestParamsVO = putRequestParamsVO == null ? null : putRequestParamsVO();
+    } catch (e, st) {
+      exception = e;
+      stackTrace = st;
+    }
+  }
 
   factory HttpRequest.fromJson(Map<String, Object?> json) {
     return _$HttpRequestFromJson(json)
@@ -44,21 +53,21 @@ class HttpRequest<REQVO extends RequestDataVO, REQPVO extends RequestParamsVO> e
   final String path;
 
   /// 请求头。
-  Map<String, dynamic>? requestHeaders;
+  Map<String, Object?>? requestHeaders;
 
   /// 请求体 body VO 模型。
   @JsonKey(ignore: true)
-  late final REQVO? requestDataVO;
+  REQVO? requestDataVO;
 
   /// 请求体 params VO 模型。
   @JsonKey(ignore: true)
-  late final REQPVO? requestParamsVO;
+  REQPVO? requestParamsVO;
 
   /// 请求数据的异常 (单独捕获)。
-  late Object? exception;
+  Object? exception;
 
   /// 请求数据的 StackTrace (单独捕获)。
-  late StackTrace? stackTrace;
+  StackTrace? stackTrace;
 
   /// 请求数据是否出现异常。
   bool hasErrors() => exception != null;

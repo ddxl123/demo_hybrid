@@ -13,8 +13,8 @@ HttpRequest<REQVO, REQPVO> _$HttpRequestFromJson<REQVO extends RequestDataVO,
   return HttpRequest<REQVO, REQPVO>(
     method: json['method'] as String,
     path: json['path'] as String,
-    requestHeaders: json['requestHeaders'] as Map<String, dynamic>?,
   )
+    ..requestHeaders = json['requestHeaders'] as Map<String, dynamic>?
     ..exception = json['exception']
     ..stackTrace =
         const StackTraceConverter().fromJson(json['stackTrace'] as String?);

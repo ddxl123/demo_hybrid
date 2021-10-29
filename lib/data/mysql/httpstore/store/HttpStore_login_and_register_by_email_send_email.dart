@@ -8,21 +8,35 @@ import '../handler/HttpStore.dart';
 
 part 'HttpStore_login_and_register_by_email_send_email.g.dart';
 
-@JsonSerializable()
 class HttpStore_login_and_register_by_email_send_email extends HttpStore_POST<RequestDataVO_LARBESE, ResponseCodeCollect_LARBESE, ResponseDataVO_LARBESE> {
   HttpStore_login_and_register_by_email_send_email({
-    RequestDataVO_LARBESE? putRequestDataVO_LARBESE()?,
+    required RequestDataVO_LARBESE? putRequestDataVO_LARBESE(),
   }) : super(
           r'no_jwt/login_and_register_by_email/send_email',
           putRequestDataVO_LARBESE,
-          () => ResponseCodeCollect_LARBESE(),
-          (Map<String, Object?>? json) => ResponseDataVO_LARBESE.fromJson(json ?? <String, Object?>{}),
+          ResponseCodeCollect_LARBESE(),
+          (Map<String, Object?>? json) => json == null ? null : ResponseDataVO_LARBESE.fromJson(json),
         );
   
-  factory HttpStore_login_and_register_by_email_send_email.fromJson(Map<String, Object?> json) => _$HttpStore_login_and_register_by_email_send_emailFromJson(json);
+  factory HttpStore_login_and_register_by_email_send_email.fromJson(Map<String, Object?> json) =>
+      HttpStore_login_and_register_by_email_send_email(putRequestDataVO_LARBESE: () => null)
+        ..httpRequest = HttpRequest<RequestDataVO_LARBESE, RequestParamsVO>.fromJson(
+          json['httpRequest']! as Map<String, Object?>,
+          (Map<String, Object?>? reqvoJson) => reqvoJson == null ? null : RequestDataVO_LARBESE.fromJson(reqvoJson),
+          (Map<String, Object?>? reqpvoJson) => null,
+        )
+        ..httpResponse = HttpResponse<ResponseCodeCollect_LARBESE, ResponseDataVO_LARBESE>.fromJson(
+          json['httpResponse']! as Map<String, Object?>,
+          (Map<String, Object?>? respdvoJson) => respdvoJson == null ? null : ResponseDataVO_LARBESE.fromJson(respdvoJson),
+          (Map<String, Object?> respccolJson) => ResponseCodeCollect_LARBESE.fromJson(respccolJson),
+        );
+
 
   @override
-  Map<String, Object?> toJson() => _$HttpStore_login_and_register_by_email_send_emailToJson(this);
+  Map<String, Object?> toJson() => <String, Object?>{
+        'httpRequest': httpRequest.toJson(),
+        'httpResponse': httpResponse.toJson(),
+      };
 }
 
 @JsonSerializable()

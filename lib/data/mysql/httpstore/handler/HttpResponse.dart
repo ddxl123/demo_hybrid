@@ -1,57 +1,58 @@
+// ignore_for_file: camel_case_types
+
 import 'package:dio/dio.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
-import 'package:json_annotation/json_annotation.dart';
 
 import 'HttpResponseIntercept.dart';
-
-part 'HttpResponse.g.dart';
 
 abstract class ResponseCodeCollect extends DoSerializable {}
 
 abstract class ResponseDataVO extends DoSerializable {}
 
-@JsonSerializable()
-@StackTraceConverter()
 class HttpResponse<RESPCCOL extends ResponseCodeCollect, RESPDVO extends ResponseDataVO> extends DoSerializable {
   HttpResponse({
-    RESPCCOL? putResponseCodeCollect()?,
-    this.putResponseDataVO,
-  }) {
-    try {
-      responseCodeCollect = putResponseCodeCollect == null ? null : putResponseCodeCollect();
-    } catch (e, st) {
-      setCancel('发生异常！', Description('putResponseCodeCollect 内部异常！'), e, st);
-    }
-  }
+    required this.responseCodeCollect,
+    required this.putResponseDataVO,
+  });
 
-  factory HttpResponse.fromJson(Map<String, Object?> json) {
-    return _$HttpResponseFromJson(json)
-      ..responseCodeCollect = json['responseCodeCollect'] as RESPCCOL?
-      ..responseDataVO = json['responseDataVO'] as RESPDVO?;
+  factory HttpResponse.fromJson(
+      Map<String, Object?> json, RESPDVO? respdvo(Map<String, Object?>? respdvoJson), RESPCCOL respccol(Map<String, Object?> respccolJson)) {
+    return HttpResponse<RESPCCOL, RESPDVO>(
+      putResponseDataVO: (Map<String, Object?>? newResponseDataVO) => respdvo(newResponseDataVO),
+      responseCodeCollect: respccol(json['responseCodeCollect']! as Map<String, Object?>),
+    )
+      ..responseHeaders = json['responseHeaders'] as Map<String, Object?>?
+      ..responseDataVO = json['responseDataVO'] == null ? null : respdvo(json['responseDataVO']! as Map<String, Object?>)
+      ..isContinue = json['isContinue']! as bool
+      ..code = json['code'] as int?
+      ..viewMessage = json['viewMessage'] as String?
+      ..description = json['description'] == null ? null : Description.fromJson(json['description']! as Map<String, Object?>)
+      ..exception = json['exception'] == null ? null : Exception(json['exception']!)
+      ..stackTrace = json['stackTrace'] == null ? null : StackTrace.fromString(json['stackTrace']! as String);
   }
 
   @override
-  Map<String, Object?> toJson() {
-    return _$HttpResponseToJson(this)
-      ..addAll(
-        <String, Object?>{
-          'responseCodeCollect': responseCodeCollect?.toJson(),
-          'responseDataVO': responseDataVO?.toJson(),
-        },
-      );
-  }
+  Map<String, Object?> toJson() => <String, Object?>{
+        'responseHeaders': responseHeaders,
+        'responseCodeCollect': responseCodeCollect.toJson(),
+        'responseDataVO': responseDataVO?.toJson(),
+        'putResponseDataVO': null,
+        'isContinue': isContinue,
+        'code': code,
+        'viewMessage': viewMessage,
+        'description': description?.toJson(),
+        'exception': exception?.toString(),
+        'stackTrace': stackTrace?.toString(),
+      };
 
   /// 响应码集。
-  @JsonKey(ignore: true)
-  RESPCCOL? responseCodeCollect;
+  RESPCCOL responseCodeCollect;
 
   /// 对 [responseDataVO] 进行预配置。
-  @JsonKey(ignore: true)
-  RESPDVO? Function(Map<String, Object?>? json)? putResponseDataVO;
+  RESPDVO? Function(Map<String, Object?> json) putResponseDataVO;
 
   /// 响应体 data VO 模型。
-  @JsonKey(ignore: true)
   RESPDVO? responseDataVO;
 
   /// 响应头。
@@ -117,7 +118,7 @@ class HttpResponse<RESPCCOL extends ResponseCodeCollect, RESPDVO extends Respons
         viewMessage: response.data!['message']! as String,
         description: Description('描述见云端日志。'),
         responseHeaders: response.headers.map,
-        responseDataVO: putResponseDataVO!(response.data!['data'] as Map<String, Object?>?),
+        responseDataVO: response.data!['data'] == null ? null : putResponseDataVO(response.data!['data']! as Map<String, Object?>),
         exception: null,
         stackTrace: null,
       );

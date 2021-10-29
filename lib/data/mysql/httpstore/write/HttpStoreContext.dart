@@ -44,21 +44,35 @@ import '../handler/HttpStore.dart';
 
 part '${parsePathToClassName(storeWriter)}.g.dart';
 
-@JsonSerializable()
 class ${parsePathToClassName(storeWriter)} extends HttpStore_${storeWriter.method}<RequestDataVO_${parsePathToSimple(storeWriter)}, ResponseCodeCollect_${parsePathToSimple(storeWriter)}, ResponseDataVO_${parsePathToSimple(storeWriter)}> {
   ${parsePathToClassName(storeWriter)}({
-    RequestDataVO_${parsePathToSimple(storeWriter)}? putRequestDataVO_${parsePathToSimple(storeWriter)}()?,
+    required RequestDataVO_${parsePathToSimple(storeWriter)}? putRequestDataVO_${parsePathToSimple(storeWriter)}(),
   }) : super(
           r'${storeWriter.path}',
           putRequestDataVO_${parsePathToSimple(storeWriter)},
-          () => ResponseCodeCollect_${parsePathToSimple(storeWriter)}(),
-          (Map<String, Object?>? json) => ResponseDataVO_${parsePathToSimple(storeWriter)}.fromJson(json ?? <String, Object?>{}),
+          ResponseCodeCollect_${parsePathToSimple(storeWriter)}(),
+          (Map<String, Object?>? json) => json == null ? null : ResponseDataVO_${parsePathToSimple(storeWriter)}.fromJson(json),
         );
   
-  factory ${parsePathToClassName(storeWriter)}.fromJson(Map<String, Object?> json) => _\$${parsePathToClassName(storeWriter)}FromJson(json);
+  factory ${parsePathToClassName(storeWriter)}.fromJson(Map<String, Object?> json) =>
+      ${parsePathToClassName(storeWriter)}(putRequestDataVO_${parsePathToSimple(storeWriter)}: () => null)
+        ..httpRequest = HttpRequest<RequestDataVO_${parsePathToSimple(storeWriter)}, RequestParamsVO>.fromJson(
+          json['httpRequest']! as Map<String, Object?>,
+          (Map<String, Object?>? reqvoJson) => reqvoJson == null ? null : RequestDataVO_${parsePathToSimple(storeWriter)}.fromJson(reqvoJson),
+          (Map<String, Object?>? reqpvoJson) => null,
+        )
+        ..httpResponse = HttpResponse<ResponseCodeCollect_${parsePathToSimple(storeWriter)}, ResponseDataVO_${parsePathToSimple(storeWriter)}>.fromJson(
+          json['httpResponse']! as Map<String, Object?>,
+          (Map<String, Object?>? respdvoJson) => respdvoJson == null ? null : ResponseDataVO_${parsePathToSimple(storeWriter)}.fromJson(respdvoJson),
+          (Map<String, Object?> respccolJson) => ResponseCodeCollect_${parsePathToSimple(storeWriter)}.fromJson(respccolJson),
+        );
+
 
   @override
-  Map<String, Object?> toJson() => _\$${parsePathToClassName(storeWriter)}ToJson(this);
+  Map<String, Object?> toJson() => <String, Object?>{
+        'httpRequest': httpRequest.toJson(),
+        'httpResponse': httpResponse.toJson(),
+      };
 }
 
 @JsonSerializable()

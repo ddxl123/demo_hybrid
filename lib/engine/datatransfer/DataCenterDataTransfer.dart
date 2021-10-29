@@ -1,5 +1,5 @@
 import 'package:hybrid/data/mysql/http/HttpCurd.dart';
-import 'package:hybrid/data/mysql/httpstore/handler/HttpStore.dart';
+import 'package:hybrid/data/mysql/httpstore/handler/HttpStoreClone.dart';
 import 'package:hybrid/data/sqlite/mmodel/ModelBase.dart';
 import 'package:hybrid/data/sqlite/mmodel/ModelManager.dart';
 import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
@@ -86,8 +86,7 @@ class DataCenterDataTransfer extends BaseDataTransfer {
         final String? sameNotConcurrent = dataMap['sameNotConcurrent'] as String?;
         final bool isBanAllOtherRequest = dataMap['isBanAllOtherRequest']! as bool;
 
-        // 返回的值类型必须是 HttpStore，而并不是 HttpStore_Clone，因为会返回 HttpStore_Error 的可能性。
-        final HttpStore requestResult = await HttpCurd.sendRequest(
+        final HttpStore_Clone requestResult = await HttpCurd.sendRequest<HttpStore_Clone>(
           httpStore: HttpStore_Clone.fromJson(httpStoreJson),
           sameNotConcurrent: sameNotConcurrent,
           isBanAllOtherRequest: isBanAllOtherRequest,

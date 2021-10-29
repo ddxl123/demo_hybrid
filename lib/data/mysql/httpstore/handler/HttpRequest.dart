@@ -1,7 +1,6 @@
-import 'package:hybrid/util/SbHelper.dart';
-import 'package:json_annotation/json_annotation.dart';
+// ignore_for_file: camel_case_types
 
-part 'HttpRequest.g.dart';
+import 'package:hybrid/util/SbHelper.dart';
 
 abstract class RequestDataVO extends DoSerializable {}
 
@@ -9,42 +8,47 @@ abstract class RequestParamsVO extends DoSerializable {}
 
 /// 之所以 [requestHeaders]、[requestDataVO]、[requestParamsVO] 是回调函数，是为了对其输入的不正确数据进行置空处理，
 /// 只有被引用时才会抛出异常，而在被引用前已将该对象创建成功（哪怕请求数据是空），这样做的话，能捕获到请求数据的异常。
-@JsonSerializable()
-@StackTraceConverter()
 class HttpRequest<REQVO extends RequestDataVO, REQPVO extends RequestParamsVO> extends DoSerializable {
   HttpRequest({
     required this.method,
     required this.path,
-    Map<String, Object?>? putRequestHeaders()?,
-    REQVO? putRequestDataVO()?,
-    REQPVO? putRequestParamsVO()?,
+    required Map<String, Object?>? putRequestHeaders(),
+    required REQVO? putRequestDataVO(),
+    required REQPVO? putRequestParamsVO(),
   }) {
     try {
-      requestHeaders = putRequestHeaders == null ? null : putRequestHeaders();
-      requestDataVO = putRequestDataVO == null ? null : putRequestDataVO();
-      requestParamsVO = putRequestParamsVO == null ? null : putRequestParamsVO();
+      requestHeaders = putRequestHeaders();
+      requestDataVO = putRequestDataVO();
+      requestParamsVO = putRequestParamsVO();
     } catch (e, st) {
       exception = e;
       stackTrace = st;
     }
   }
 
-  factory HttpRequest.fromJson(Map<String, Object?> json) {
-    return _$HttpRequestFromJson(json)
-      ..requestDataVO = json['requestDataVO'] as REQVO?
-      ..requestParamsVO = json['requestParamsVO'] as REQPVO?;
+  factory HttpRequest.fromJson(
+      Map<String, Object?> httpRequestJson, REQVO? reqvo(Map<String, Object?>? reqvoJson), REQPVO? reqpvo(Map<String, Object?>? reqpvoJson)) {
+    return HttpRequest<REQVO, REQPVO>(
+      method: httpRequestJson['method']! as String,
+      path: httpRequestJson['path']! as String,
+      putRequestHeaders: () => httpRequestJson['requestHeaders'] as Map<String, Object?>?,
+      putRequestDataVO: () => reqvo(httpRequestJson['requestDataVO'] as Map<String, Object?>?),
+      putRequestParamsVO: () => reqpvo(httpRequestJson['requestParamsVO'] as Map<String, Object?>?),
+    )
+      ..exception = httpRequestJson['exception'] == null ? null : Exception(httpRequestJson['exception']! as String)
+      ..stackTrace = httpRequestJson['stackTrace'] == null ? null : StackTrace.fromString(httpRequestJson['stackTrace']! as String);
   }
 
   @override
-  Map<String, Object?> toJson() {
-    return _$HttpRequestToJson(this)
-      ..addAll(
-        <String, Object?>{
-          'requestDataVO': requestDataVO?.toJson(),
-          'requestParamsVO': requestParamsVO?.toJson(),
-        },
-      );
-  }
+  Map<String, Object?> toJson() => <String, dynamic>{
+        'method': method,
+        'path': path,
+        'requestHeaders': requestHeaders,
+        'requestDataVO': requestDataVO?.toJson(),
+        'requestParamsVO': requestParamsVO?.toJson(),
+        'exception': exception.toString(),
+        'stackTrace': stackTrace.toString(),
+      };
 
   /// 请求方法。GET/POST
   final String method;
@@ -56,11 +60,9 @@ class HttpRequest<REQVO extends RequestDataVO, REQPVO extends RequestParamsVO> e
   Map<String, Object?>? requestHeaders;
 
   /// 请求体 body VO 模型。
-  @JsonKey(ignore: true)
   REQVO? requestDataVO;
 
   /// 请求体 params VO 模型。
-  @JsonKey(ignore: true)
   REQPVO? requestParamsVO;
 
   /// 请求数据的异常 (单独捕获)。

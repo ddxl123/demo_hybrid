@@ -8,21 +8,35 @@ import '../handler/HttpStore.dart';
 
 part 'HttpStore_verify_token.g.dart';
 
-@JsonSerializable()
 class HttpStore_verify_token extends HttpStore_POST<RequestDataVO_VT, ResponseCodeCollect_VT, ResponseDataVO_VT> {
   HttpStore_verify_token({
-    RequestDataVO_VT? putRequestDataVO_VT()?,
+    required RequestDataVO_VT? putRequestDataVO_VT(),
   }) : super(
           r'no_jwt/verify_token',
           putRequestDataVO_VT,
-          () => ResponseCodeCollect_VT(),
-          (Map<String, Object?>? json) => ResponseDataVO_VT.fromJson(json ?? <String, Object?>{}),
+          ResponseCodeCollect_VT(),
+          (Map<String, Object?>? json) => json == null ? null : ResponseDataVO_VT.fromJson(json),
         );
   
-  factory HttpStore_verify_token.fromJson(Map<String, Object?> json) => _$HttpStore_verify_tokenFromJson(json);
+  factory HttpStore_verify_token.fromJson(Map<String, Object?> json) =>
+      HttpStore_verify_token(putRequestDataVO_VT: () => null)
+        ..httpRequest = HttpRequest<RequestDataVO_VT, RequestParamsVO>.fromJson(
+          json['httpRequest']! as Map<String, Object?>,
+          (Map<String, Object?>? reqvoJson) => reqvoJson == null ? null : RequestDataVO_VT.fromJson(reqvoJson),
+          (Map<String, Object?>? reqpvoJson) => null,
+        )
+        ..httpResponse = HttpResponse<ResponseCodeCollect_VT, ResponseDataVO_VT>.fromJson(
+          json['httpResponse']! as Map<String, Object?>,
+          (Map<String, Object?>? respdvoJson) => respdvoJson == null ? null : ResponseDataVO_VT.fromJson(respdvoJson),
+          (Map<String, Object?> respccolJson) => ResponseCodeCollect_VT.fromJson(respccolJson),
+        );
+
 
   @override
-  Map<String, Object?> toJson() => _$HttpStore_verify_tokenToJson(this);
+  Map<String, Object?> toJson() => <String, Object?>{
+        'httpRequest': httpRequest.toJson(),
+        'httpResponse': httpResponse.toJson(),
+      };
 }
 
 @JsonSerializable()

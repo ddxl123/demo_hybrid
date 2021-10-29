@@ -8,22 +8,6 @@ part of 'HttpStore_verify_token.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-HttpStore_verify_token _$HttpStore_verify_tokenFromJson(
-    Map<String, dynamic> json) {
-  return HttpStore_verify_token()
-    ..httpRequest =
-        HttpRequest.fromJson(json['httpRequest'] as Map<String, dynamic>)
-    ..httpResponse =
-        HttpResponse.fromJson(json['httpResponse'] as Map<String, dynamic>);
-}
-
-Map<String, dynamic> _$HttpStore_verify_tokenToJson(
-        HttpStore_verify_token instance) =>
-    <String, dynamic>{
-      'httpRequest': instance.httpRequest.toJson(),
-      'httpResponse': instance.httpResponse.toJson(),
-    };
-
 RequestDataVO_VT _$RequestDataVO_VTFromJson(Map<String, dynamic> json) {
   return RequestDataVO_VT(
     token: json['token'] as String,

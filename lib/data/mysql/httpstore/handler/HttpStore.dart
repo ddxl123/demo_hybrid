@@ -3,13 +3,10 @@
 import 'package:dio/dio.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
-import 'package:json_annotation/json_annotation.dart';
 
 import 'HttpRequest.dart';
 import 'HttpRequestIntercept.dart';
 import 'HttpResponse.dart';
-
-part 'HttpStore.g.dart';
 
 abstract class HttpStore<REQVO extends RequestDataVO, REQPVO extends RequestParamsVO, RESPCCOL extends ResponseCodeCollect, RESPDVO extends ResponseDataVO>
     implements DoSerializable {
@@ -49,7 +46,7 @@ abstract class HttpStore<REQVO extends RequestDataVO, REQPVO extends RequestPara
   }
 
   /// 直接通过。
-  Future<HttpStore<REQVO, REQPVO, RESPCCOL, RESPDVO>> setPass(Response<Map<String, dynamic>> response) async {
+  Future<HttpStore<REQVO, REQPVO, RESPCCOL, RESPDVO>> setPass(Response<Map<String, Object?>> response) async {
     final bool result = await _requestIntercept();
     if (result) {
       httpResponse.setPass(response);
@@ -62,19 +59,19 @@ abstract class HttpStore_GET<REQPVO extends RequestParamsVO, RESPCCOL extends Re
     extends HttpStore<RequestDataVO, REQPVO, RESPCCOL, RESPDVO> {
   HttpStore_GET(
     String path,
-    REQPVO? putRequestParamsVO()?,
-    RESPCCOL putResponseCodeCollect(),
+    REQPVO putRequestParamsVO(),
+    RESPCCOL responseCodeCollect,
     RESPDVO putResponseDataVO(Map<String, Object?>? json),
   ) {
     httpRequest = HttpRequest<RequestDataVO, REQPVO>(
       method: 'GET',
       path: path,
-      putRequestHeaders: null,
+      putRequestHeaders: () => null,
       putRequestParamsVO: putRequestParamsVO,
-      putRequestDataVO: null,
+      putRequestDataVO: () => null,
     );
     httpResponse = HttpResponse<RESPCCOL, RESPDVO>(
-      putResponseCodeCollect: putResponseCodeCollect,
+      responseCodeCollect: responseCodeCollect,
       putResponseDataVO: putResponseDataVO,
     );
   }
@@ -84,53 +81,20 @@ abstract class HttpStore_POST<REQVO extends RequestDataVO, RESPCCOL extends Resp
     extends HttpStore<REQVO, RequestParamsVO, RESPCCOL, RESPDVO> {
   HttpStore_POST(
     String path,
-    REQVO? putRequestDataVO()?,
-    RESPCCOL putResponseCodeCollect(),
-    RESPDVO putResponseDataVO(Map<String, Object?>? json),
+    REQVO? putRequestDataVO(),
+    RESPCCOL responseCodeCollect,
+    RESPDVO? putResponseDataVO(Map<String, Object?>? json),
   ) {
     httpRequest = HttpRequest<REQVO, RequestParamsVO>(
       method: 'POST',
       path: path,
-      putRequestHeaders: null,
-      putRequestParamsVO: null,
+      putRequestHeaders: () => null,
+      putRequestParamsVO: () => null,
       putRequestDataVO: putRequestDataVO,
     );
     httpResponse = HttpResponse<RESPCCOL, RESPDVO>(
-      putResponseCodeCollect: putResponseCodeCollect,
+      responseCodeCollect: responseCodeCollect,
       putResponseDataVO: putResponseDataVO,
     );
   }
-}
-
-@JsonSerializable()
-@StackTraceConverter()
-class HttpStore_Error extends HttpStore {
-  HttpStore_Error() {
-    httpRequest = HttpRequest(
-      method: 'have_error',
-      path: 'have_error',
-      putRequestHeaders: null,
-      putRequestParamsVO: null,
-      putRequestDataVO: null,
-    );
-    httpResponse = HttpResponse(
-      putResponseCodeCollect: null,
-      putResponseDataVO: null,
-    );
-  }
-
-  factory HttpStore_Error.fromJson(Map<String, Object?> json) => _$HttpStore_ErrorFromJson(json);
-
-  @override
-  Map<String, Object?> toJson() => _$HttpStore_ErrorToJson(this);
-}
-
-@JsonSerializable()
-class HttpStore_Clone extends HttpStore {
-  HttpStore_Clone();
-
-  factory HttpStore_Clone.fromJson(Map<String, Object?> json) => _$HttpStore_CloneFromJson(json);
-
-  @override
-  Map<String, Object?> toJson() => _$HttpStore_CloneToJson(this);
 }

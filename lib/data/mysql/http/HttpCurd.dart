@@ -110,10 +110,10 @@ class HttpCurd {
       final Response<Map<String, Object?>> response = await Httper.dio.request<Map<String, Object?>>(
         httpStore.httpRequest.path,
         data: httpStore.httpRequest.requestDataVO?.toJson(),
-        queryParameters: httpStore.httpRequest.requestParamsVO?.toJson(),
+        queryParameters: httpStore.httpRequest.requestParamsVO?.toJson().cast<String, Object?>(),
         options: Options(
           method: httpStore.httpRequest.method,
-          headers: httpStore.httpRequest.requestHeaders,
+          headers: httpStore.httpRequest.requestHeaders?.cast<String, Object?>(),
         ),
       );
 

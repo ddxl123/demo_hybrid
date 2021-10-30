@@ -123,7 +123,7 @@ class LoginPage extends SbRoute {
               requestResult.httpResponse.handle(
                 doContinue: (HttpResponse<ResponseCodeCollect_LARBESE, ResponseDataVO_LARBESE> hr) async {
                   // 发送成功。
-                  if (hr.code == hr.responseCodeCollect!.C2_01_01_01) {
+                  if (hr.code == hr.responseCodeCollect.C2_01_01_01) {
                     SbLogger(
                       code: null,
                       viewMessage: hr.viewMessage,
@@ -193,7 +193,7 @@ class LoginPage extends SbRoute {
               },
               doContinue: (HttpResponse<ResponseCodeCollect_LARBEVE, ResponseDataVO_LARBEVE> hr) async {
                 // 登陆/注册成功
-                if (hr.code == hr.responseCodeCollect!.C2_01_02_01 || hr.code == hr.responseCodeCollect!.C2_01_02_02) {
+                if (hr.code == hr.responseCodeCollect.C2_01_02_01 || hr.code == hr.responseCodeCollect.C2_01_02_02) {
                   // TODO:
                   // 云端 token 生成成功，存储至本地。
                   final MUser newToken = MUser.createModel(
@@ -225,7 +225,7 @@ class LoginPage extends SbRoute {
                   return true;
                 }
                 // 邮箱重复异常
-                if (hr.code == hr.responseCodeCollect!.C2_01_02_03) {
+                if (hr.code == hr.responseCodeCollect.C2_01_02_03) {
                   SbLogger(
                     code: hr.code,
                     viewMessage: hr.viewMessage,
@@ -237,7 +237,7 @@ class LoginPage extends SbRoute {
                   return true;
                 }
                 // 验证码不正确
-                else if (hr.code == hr.responseCodeCollect!.C2_01_02_04) {
+                else if (hr.code == hr.responseCodeCollect.C2_01_02_04) {
                   SbLogger(
                     code: null,
                     viewMessage: hr.viewMessage,

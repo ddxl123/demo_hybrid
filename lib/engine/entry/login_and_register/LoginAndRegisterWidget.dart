@@ -118,7 +118,7 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
               await requestResult.httpResponse.handle(
                 doContinue: (HttpResponse<ResponseCodeCollect_LARBESE, ResponseDataVO_LARBESE> hr) async {
                   // 发送成功。
-                  if (hr.code == hr.responseCodeCollect!.C2_01_01_01) {
+                  if (hr.code == hr.responseCodeCollect.C2_01_01_01) {
                     SbLogger(
                       code: null,
                       viewMessage: hr.viewMessage,

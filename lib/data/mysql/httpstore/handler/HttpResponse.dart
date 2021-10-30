@@ -20,14 +20,14 @@ class HttpResponse<RESPCCOL extends ResponseCodeCollect, RESPDVO extends Respons
       Map<String, Object?> json, RESPDVO? respdvo(Map<String, Object?>? respdvoJson), RESPCCOL respccol(Map<String, Object?> respccolJson)) {
     return HttpResponse<RESPCCOL, RESPDVO>(
       putResponseDataVO: (Map<String, Object?>? newResponseDataVO) => respdvo(newResponseDataVO),
-      responseCodeCollect: respccol(json['responseCodeCollect']! as Map<String, Object?>),
+      responseCodeCollect: respccol((json['responseCodeCollect']! as Map<Object?, Object?>).cast<String, Object?>()),
     )
       ..responseHeaders = json['responseHeaders'] as Map<String, Object?>?
-      ..responseDataVO = json['responseDataVO'] == null ? null : respdvo(json['responseDataVO']! as Map<String, Object?>)
+      ..responseDataVO = json['responseDataVO'] == null ? null : respdvo((json['responseDataVO']! as Map<Object?, Object?>).cast<String, Object?>())
       ..isContinue = json['isContinue']! as bool
       ..code = json['code'] as int?
       ..viewMessage = json['viewMessage'] as String?
-      ..description = json['description'] == null ? null : Description.fromJson(json['description']! as Map<String, Object?>)
+      ..description = json['description'] == null ? null : Description.fromJson((json['description']! as Map<Object?, Object?>).cast<String, Object?>())
       ..exception = json['exception'] == null ? null : Exception(json['exception']!)
       ..stackTrace = json['stackTrace'] == null ? null : StackTrace.fromString(json['stackTrace']! as String);
   }

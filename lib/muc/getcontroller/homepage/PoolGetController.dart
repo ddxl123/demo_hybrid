@@ -195,12 +195,12 @@ class PoolGetController extends GetxController {
         },
         onError: (Object? exception, StackTrace? stackTrace) async {
           SbLogger(
-            code: null,
-            viewMessage: '加载数据失败！',
+            c: null,
+            vm: '加载数据失败！',
             data: null,
-            description: Description('读取数据时发生异常'),
-            exception: queryResult.exception,
-            stackTrace: queryResult.stackTrace,
+            descp: Description('读取数据时发生异常'),
+            e: queryResult.exception,
+            st: queryResult.stackTrace,
           ).withToast(false);
           return <ModelBase>[];
         },

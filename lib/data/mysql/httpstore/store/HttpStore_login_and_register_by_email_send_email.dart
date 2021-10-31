@@ -2,7 +2,6 @@
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:json_annotation/json_annotation.dart';
-
 import '../handler/HttpRequest.dart';
 import '../handler/HttpResponse.dart';
 import '../handler/HttpStore.dart';
@@ -18,21 +17,20 @@ class HttpStore_login_and_register_by_email_send_email extends HttpStore_POST<Re
           ResponseCodeCollect_LARBESE(),
           (Map<String, Object?>? json) => json == null ? null : ResponseDataVO_LARBESE.fromJson(json),
         );
+  
+  factory HttpStore_login_and_register_by_email_send_email.fromJson(Map<String, Object?> json) =>
+      HttpStore_login_and_register_by_email_send_email(putRequestDataVO_LARBESE: () => null)
+        ..httpRequest = HttpRequest<RequestDataVO_LARBESE, RequestParamsVO>.fromJson(
+          json['httpRequest']! as Map<String, Object?>,
+          (Map<String, Object?>? reqvoJson) => reqvoJson == null ? null : RequestDataVO_LARBESE.fromJson(reqvoJson),
+          (Map<String, Object?>? reqpvoJson) => null,
+        )
+        ..httpResponse = HttpResponse<ResponseCodeCollect_LARBESE, ResponseDataVO_LARBESE>.fromJson(
+          json['httpResponse']! as Map<String, Object?>,
+          (Map<String, Object?>? respdvoJson) => respdvoJson == null ? null : ResponseDataVO_LARBESE.fromJson(respdvoJson),
+          (Map<String, Object?> respccolJson) => ResponseCodeCollect_LARBESE.fromJson(respccolJson),
+        );
 
-  factory HttpStore_login_and_register_by_email_send_email.fromJson(Map<String, Object?> json) {
-    print(json);
-    return HttpStore_login_and_register_by_email_send_email(putRequestDataVO_LARBESE: () => null)
-      ..httpRequest = HttpRequest<RequestDataVO_LARBESE, RequestParamsVO>.fromJson(
-        (json['httpRequest']! as Map<Object?, Object?>).cast<String, Object?>(),
-        (Map<String, Object?>? reqvoJson) => reqvoJson == null ? null : RequestDataVO_LARBESE.fromJson(reqvoJson),
-        (Map<String, Object?>? reqpvoJson) => null,
-      )
-      ..httpResponse = HttpResponse<ResponseCodeCollect_LARBESE, ResponseDataVO_LARBESE>.fromJson(
-        (json['httpResponse']! as Map<Object?, Object?>).cast<String, Object?>(),
-        (Map<String, Object?>? respdvoJson) => respdvoJson == null ? null : ResponseDataVO_LARBESE.fromJson(respdvoJson),
-        (Map<String, Object?> respccolJson) => ResponseCodeCollect_LARBESE.fromJson(respccolJson),
-      );
-  }
 
   @override
   Map<String, Object?> toJson() => <String, Object?>{
@@ -43,9 +41,8 @@ class HttpStore_login_and_register_by_email_send_email extends HttpStore_POST<Re
 
 @JsonSerializable()
 class RequestDataVO_LARBESE extends RequestDataVO {
-  RequestDataVO_LARBESE({
-    required this.email,
-  });
+  RequestDataVO_LARBESE(
+    {required this.email,});
 
   factory RequestDataVO_LARBESE.fromJson(Map<String, Object?> json) => _$RequestDataVO_LARBESEFromJson(json);
 
@@ -57,12 +54,16 @@ class RequestDataVO_LARBESE extends RequestDataVO {
 
 @JsonSerializable()
 class ResponseDataVO_LARBESE extends ResponseDataVO {
-  ResponseDataVO_LARBESE();
+  ResponseDataVO_LARBESE(
+    
+  );
 
   factory ResponseDataVO_LARBESE.fromJson(Map<String, Object?> json) => _$ResponseDataVO_LARBESEFromJson(json);
 
   @override
   Map<String, Object?> toJson() => _$ResponseDataVO_LARBESEToJson(this);
+
+  
 }
 
 @JsonSerializable()
@@ -74,6 +75,7 @@ class ResponseCodeCollect_LARBESE extends ResponseCodeCollect {
   @override
   Map<String, Object?> toJson() => _$ResponseCodeCollect_LARBESEToJson(this);
 
-  /// 邮箱已发送, 请注意查收!
+    /// 邮箱已发送, 请注意查收!
   final int C2_01_01_01 = 2010101;
+  
 }

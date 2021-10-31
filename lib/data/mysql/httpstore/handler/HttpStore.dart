@@ -33,14 +33,14 @@ abstract class HttpStore<REQVO extends RequestDataVO, REQPVO extends RequestPara
 
   /// 直接取消。
   Future<HttpStore<REQVO, REQPVO, RESPCCOL, RESPDVO>> setCancel({
-    required String viewMessage,
-    required Description description,
-    required Object? exception,
-    required StackTrace? stackTrace,
+    required String vm,
+    required Description descp,
+    required Object? e,
+    required StackTrace? st,
   }) async {
     final bool result = await _requestIntercept();
     if (!result) {
-      httpResponse.setCancel(viewMessage, description, exception, stackTrace);
+      httpResponse.setCancel(vm, descp, e, st);
     }
     return this;
   }

@@ -78,12 +78,12 @@ class TableDataRoute extends SbRoute {
   @override
   bool whenException(Object? exception, StackTrace? stackTrace) {
     SbLogger(
-      code: null,
-      viewMessage: null,
+      c: null,
+      vm: null,
       data: null,
-      description: null,
-      exception: exception,
-      stackTrace: stackTrace,
+      descp: null,
+      e: exception,
+      st: stackTrace,
     );
     return false;
   }
@@ -119,12 +119,12 @@ class _TableForTableDataState extends State<TableForTableData> {
         },
         onError: (Object? exception, StackTrace? stackTrace) async {
           SbLogger(
-            code: null,
-            viewMessage: '获取失败！',
+            c: null,
+            vm: '获取失败！',
             data: null,
-            description: null,
-            exception: queryResult.exception,
-            stackTrace: queryResult.stackTrace,
+            descp: null,
+            e: queryResult.exception,
+            st: queryResult.stackTrace,
           );
         },
       );
@@ -134,12 +134,12 @@ class _TableForTableDataState extends State<TableForTableData> {
   Widget _builder(BuildContext context, AsyncSnapshot<void> snapshot) {
     if (snapshot.hasError) {
       SbLogger(
-        code: null,
-        viewMessage: null,
+        c: null,
+        vm: null,
         data: null,
-        description: null,
-        exception: snapshot.error,
-        stackTrace: snapshot.stackTrace,
+        descp: null,
+        e: snapshot.error,
+        st: snapshot.stackTrace,
       );
       return const Text('err');
     }

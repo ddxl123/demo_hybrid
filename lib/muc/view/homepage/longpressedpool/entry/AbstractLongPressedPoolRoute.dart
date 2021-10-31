@@ -27,7 +27,7 @@ abstract class AbstractLongPressedPoolRoute extends SbRoute {
                 if (poolNodeModel != null) {
                   Get.find<PoolGetController>().insertNewNode(poolNodeModel);
                 } else {
-                  SbLogger(code: null, viewMessage: '添加节点失败！', data: null, description: Description('添加节点失败！'), exception: null, stackTrace: null);
+                  SbLogger(c: null, vm: '添加节点失败！', data: null, descp: Description('添加节点失败！'), e: null, st: null);
                 }
               },
             ),
@@ -40,12 +40,12 @@ abstract class AbstractLongPressedPoolRoute extends SbRoute {
   @override
   bool whenException(Object? exception, StackTrace? stackTrace) {
     SbLogger(
-      code: -1,
-      viewMessage: null,
+      c: -1,
+      vm: null,
       data: null,
-      description: null,
-      exception: exception,
-      stackTrace: stackTrace,
+      descp: null,
+      e: exception,
+      st: stackTrace,
     ).withAll(true);
     return false;
   }

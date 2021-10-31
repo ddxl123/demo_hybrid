@@ -3,6 +3,7 @@ import 'package:hybrid/engine/constant/execute/EngineEntryName.dart';
 import 'package:hybrid/engine/constant/o/OUniform.dart';
 import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
 import 'package:hybrid/util/SbHelper.dart';
+import 'package:hybrid/util/sblogger/SbLogger.dart';
 
 class ExecuteHttpCurd {
   /// [resultJson] 需要手动转换成 [HttpStore]。
@@ -30,12 +31,7 @@ class ExecuteHttpCurd {
         return await resultHttpStoreJson(successResult);
       },
       onError: (Object? exception, StackTrace? stackTrace) async {
-        return await resultHttpStoreJson(
-          <String, Object?>{
-            'exception': exception?.toString(),
-            'stackTrace': stackTrace?.toString(),
-          },
-        );
+        return await httpStore.setCancel(vm: '请求异常，请重新尝试！', descp: Description('请求异常，请重新尝试！'), e: exception, st: stackTrace) as HS;
       },
     );
   }

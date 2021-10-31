@@ -11,12 +11,12 @@ abstract class BaseDataTransfer {
     _listenerMessageFromOtherFlutterEngine();
 
     SbLogger(
-      code: null,
-      viewMessage: null,
+      c: null,
+      vm: null,
       data: null,
-      description: Description('${DataTransferManager.instance.currentEntryPointName} 入口的 BaseDataTransfer 初始化成功。'),
-      exception: null,
-      stackTrace: null,
+      descp: Description('${DataTransferManager.instance.currentEntryPointName} 入口的 BaseDataTransfer 初始化成功。'),
+      e: null,
+      st: null,
     );
   }
 
@@ -41,7 +41,7 @@ abstract class BaseDataTransfer {
           final Map<Object?, Object?> messageMap = message! as Map<Object?, Object?>;
           return await listenerMessageFormOtherFlutterEngineUniform(messageMap['operation_id']! as String, messageMap['data']);
         } catch (e, st) {
-          SbLogger(code: null, viewMessage: null, data: null, description: Description('接收的引擎发生了异常！'), exception: e, stackTrace: st);
+          SbLogger(c: null, vm: null, data: null, descp: Description('接收的引擎发生了异常！'), e: e, st: st);
           return null;
         }
       },

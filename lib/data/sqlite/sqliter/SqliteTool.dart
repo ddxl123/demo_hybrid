@@ -31,12 +31,12 @@ class SqliteTool {
     final List<String> tablesBefore = await getAllTableNames();
 
     SbLogger(
-      code: null,
-      viewMessage: null,
+      c: null,
+      vm: null,
       data: null,
-      description: Description('移除前的表：$tablesBefore'),
-      exception: null,
-      stackTrace: null,
+      descp: Description('移除前的表：$tablesBefore'),
+      e: null,
+      st: null,
     );
 
     // 将存在的表全部移除。
@@ -47,12 +47,12 @@ class SqliteTool {
     final List<String> tablesAfter = await getAllTableNames();
 
     SbLogger(
-      code: null,
-      viewMessage: null,
+      c: null,
+      vm: null,
       data: null,
-      description: Description('移除后的表：$tablesAfter'),
-      exception: null,
-      stackTrace: null,
+      descp: Description('移除后的表：$tablesAfter'),
+      e: null,
+      st: null,
     );
   }
 
@@ -63,12 +63,12 @@ class SqliteTool {
     }
     final List<String> result = await SqliteTool().getAllTableNames();
     SbLogger(
-      code: null,
-      viewMessage: null,
+      c: null,
+      vm: null,
       data: null,
-      description: Description('创建全部需要的表完成：$result'),
-      exception: null,
-      stackTrace: null,
+      descp: Description('创建全部需要的表完成：$result'),
+      e: null,
+      st: null,
     );
   }
 

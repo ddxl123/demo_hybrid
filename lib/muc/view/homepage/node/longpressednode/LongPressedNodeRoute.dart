@@ -35,12 +35,12 @@ abstract class LongPressedNodeRouteBase extends AbstractPoolEntryRoute {
   @override
   bool whenException(Object? exception, StackTrace? stackTrace) {
     SbLogger(
-      code: -1,
-      viewMessage: null,
+      c: -1,
+      vm: null,
       data: null,
-      description: null,
-      exception: exception,
-      stackTrace: stackTrace,
+      descp: null,
+      e: exception,
+      st: stackTrace,
     ).withAll(true);
     return false;
   }
@@ -59,12 +59,12 @@ abstract class LongPressedNodeRouteBase extends AbstractPoolEntryRoute {
           },
           onError: (Object? exception, StackTrace? stackTrace) async {
             SbLogger(
-              code: null,
-              viewMessage: '删除失败！',
+              c: null,
+              vm: '删除失败！',
               data: null,
-              description: Description('删除失败！'),
-              exception: deleteResult.exception,
-              stackTrace: deleteResult.stackTrace,
+              descp: Description('删除失败！'),
+              e: deleteResult.exception,
+              st: deleteResult.stackTrace,
             );
           },
         );

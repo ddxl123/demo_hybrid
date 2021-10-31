@@ -1,4 +1,3 @@
-import 'package:hybrid/data/mysql/constant/PathConstant.dart';
 import 'package:hybrid/data/sqlite/mmodel/MUser.dart';
 import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
 import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
@@ -17,8 +16,7 @@ class HttpRequestIntercept<REQVO extends RequestDataVO, REQPVO extends RequestPa
     if (hasIntercept) {
       return;
     }
-    final String must = httpRequest.path.split('/')[0];
-    if (must == PathConstant.JWT) {
+    if (httpRequest.pathType() == PathType.jwt) {
       final SingleResult<List<MUser>> queryResult = await DataTransferManager.instance.transfer.executeSqliteCurd.queryRowsAsModels<MUser>(
         QueryWrapper(tableName: MUser().tableName),
       );
@@ -30,9 +28,9 @@ class HttpRequestIntercept<REQVO extends RequestDataVO, REQPVO extends RequestPa
           throw '查询 user 数据时发生了异常！$exception';
         },
       );
-    } else if (must == PathConstant.NO_JWT) {
+    } else if (httpRequest.pathType() == PathType.no_jwt) {
     } else {
-      throw 'Path is irregular! "${httpRequest.path}"';
+      throw 'unknown PathType: ${httpRequest.path}';
     }
   }
 }

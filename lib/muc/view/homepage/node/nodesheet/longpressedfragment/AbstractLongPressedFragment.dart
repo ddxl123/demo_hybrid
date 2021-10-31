@@ -39,12 +39,12 @@ abstract class AbstractLongPressedFragment<FDM extends ModelBase> extends Abstra
   @override
   bool whenException(Object? exception, StackTrace? stackTrace) {
     SbLogger(
-      code: -1,
-      viewMessage: null,
+      c: -1,
+      vm: null,
       data: null,
-      description: Description('pop err'),
-      exception: exception,
-      stackTrace: stackTrace,
+      descp: Description('pop err'),
+      e: exception,
+      st: stackTrace,
     ).withAll(true);
     return false;
   }
@@ -65,12 +65,12 @@ abstract class AbstractLongPressedFragment<FDM extends ModelBase> extends Abstra
             },
             onError: (Object? exception, StackTrace? stackTrace) async {
               SbLogger(
-                code: null,
-                viewMessage: '删除失败！',
+                c: null,
+                vm: '删除失败！',
                 data: null,
-                description: Description('删除失败！'),
-                exception: deleteResult.exception,
-                stackTrace: deleteResult.stackTrace,
+                descp: Description('删除失败！'),
+                e: deleteResult.exception,
+                st: deleteResult.stackTrace,
               );
             },
           );

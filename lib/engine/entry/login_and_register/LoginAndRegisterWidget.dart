@@ -120,12 +120,12 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
                   // 发送成功。
                   if (hr.code == hr.responseCodeCollect.C2_01_01_01) {
                     SbLogger(
-                      code: null,
-                      viewMessage: hr.viewMessage,
+                      c: null,
+                      vm: hr.viewMessage,
                       data: null,
-                      description: hr.description,
-                      exception: null,
-                      stackTrace: null,
+                      descp: hr.description,
+                      e: null,
+                      st: null,
                     ).withToast(false);
                     return true;
                   }
@@ -136,13 +136,14 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
                   timer = null;
                   text = '重新发送';
                   state.refresh();
+                  print('hr.toJson() ${hr.toJson()}');
                   SbLogger(
-                    code: hr.code,
-                    viewMessage: hr.viewMessage,
+                    c: hr.code,
+                    vm: hr.viewMessage,
                     data: null,
-                    description: hr.description,
-                    exception: hr.exception,
-                    stackTrace: hr.stackTrace,
+                    descp: hr.description,
+                    e: hr.exception,
+                    st: hr.stackTrace,
                   ).withAll(true);
                 },
               );

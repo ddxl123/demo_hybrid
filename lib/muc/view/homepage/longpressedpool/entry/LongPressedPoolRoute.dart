@@ -31,12 +31,12 @@ class LongPressedPoolRouteForFragment extends AbstractLongPressedPoolRoute {
       },
       onError: (Object? exception, StackTrace? stackTrace) async {
         SbLogger(
-          code: null,
-          viewMessage: '添加失败！',
+          c: null,
+          vm: '添加失败！',
           data: null,
-          description: null,
-          exception: insertResult.exception,
-          stackTrace: insertResult.stackTrace,
+          descp: null,
+          e: insertResult.exception,
+          st: insertResult.stackTrace,
         );
       },
     );
@@ -67,12 +67,12 @@ class LongPressedPoolRouteForMemory extends AbstractLongPressedPoolRoute {
       },
       onError: (Object? exception, StackTrace? stackTrace) async {
         SbLogger(
-          code: null,
-          viewMessage: '添加失败！',
+          c: null,
+          vm: '添加失败！',
           data: null,
-          description: null,
-          exception: exception,
-          stackTrace: stackTrace,
+          descp: null,
+          e: exception,
+          st: stackTrace,
         );
       },
     );
@@ -103,12 +103,12 @@ class LongPressedPoolRouteForComplete extends AbstractLongPressedPoolRoute {
       },
       onError: (Object? exception, StackTrace? stackTrace) async {
         SbLogger(
-          code: null,
-          viewMessage: '添加失败！',
+          c: null,
+          vm: '添加失败！',
           data: null,
-          description: null,
-          exception: exception,
-          stackTrace: stackTrace,
+          descp: null,
+          e: exception,
+          st: stackTrace,
         );
       },
     );
@@ -137,12 +137,12 @@ class LongPressedPoolRouteForRule extends AbstractLongPressedPoolRoute {
       },
       onError: (Object? exception, StackTrace? stackTrace) async {
         SbLogger(
-          code: null,
-          viewMessage: '添加失败！',
+          c: null,
+          vm: '添加失败！',
           data: null,
-          description: null,
-          exception: exception,
-          stackTrace: stackTrace,
+          descp: null,
+          e: exception,
+          st: stackTrace,
         );
       },
     );

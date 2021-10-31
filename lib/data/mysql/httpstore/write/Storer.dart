@@ -4,7 +4,7 @@ import 'HttpStoreWriter.dart';
 
 void Storer() {
   StoreWrapperPost(
-    pathType: PathType.no_jwt,
+    pathType: WritePathType.no_jwt,
     path: '/login_and_register_by_email/send_email',
     requestDataVOKeys: <DataVOWrapper>[
       DataVOWrapper(keyName: 'email', type: DataVOType.STRING, isRequired: true),
@@ -16,7 +16,7 @@ void Storer() {
   );
 
   StoreWrapperPost(
-    pathType: PathType.no_jwt,
+    pathType: WritePathType.no_jwt,
     path: '/login_and_register_by_email/verify_email',
     requestDataVOKeys: <DataVOWrapper>[
       DataVOWrapper(keyName: 'email', type: DataVOType.STRING, isRequired: true),
@@ -35,7 +35,7 @@ void Storer() {
   );
 
   StoreWrapperPost(
-    pathType: PathType.no_jwt,
+    pathType: WritePathType.no_jwt,
     path: '/verify_token',
     requestDataVOKeys: <DataVOWrapper>[
       DataVOWrapper(keyName: 'token', type: DataVOType.STRING, isRequired: true),

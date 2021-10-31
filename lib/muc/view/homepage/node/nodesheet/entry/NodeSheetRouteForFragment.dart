@@ -48,12 +48,12 @@ class NodeSheetRouteForFragment extends AbstractNodeSheetRoute<MFFragment> {
       },
       onError: (Object? exception, StackTrace? stackTrace) async {
         SbLogger(
-          code: null,
-          viewMessage: '获取失败！',
+          c: null,
+          vm: '获取失败！',
           data: null,
-          description: null,
-          exception: exception,
-          stackTrace: stackTrace,
+          descp: null,
+          e: exception,
+          st: stackTrace,
         );
       },
     );
@@ -62,12 +62,12 @@ class NodeSheetRouteForFragment extends AbstractNodeSheetRoute<MFFragment> {
   @override
   void bodyDataException(Object? exception, StackTrace? stackTrace) {
     SbLogger(
-      code: -1,
-      viewMessage: null,
+      c: -1,
+      vm: null,
       data: null,
-      description: null,
-      exception: exception,
-      stackTrace: stackTrace,
+      descp: null,
+      e: exception,
+      st: stackTrace,
     ).withAll(true);
   }
 

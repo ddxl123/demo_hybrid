@@ -23,23 +23,23 @@ class PushTo {
       onSuccess: (bool successResult) async {
         if (!successResult) {
           SbLogger(
-            code: null,
-            viewMessage: '新入口弹出失败！',
+            c: null,
+            vm: '新入口弹出失败！',
             data: successResult,
-            description: null,
-            exception: Exception('successResult 不为 true！'),
-            stackTrace: null,
+            descp: null,
+            e: Exception('successResult 不为 true！'),
+            st: null,
           );
         }
       },
       onError: (Object? exception, StackTrace? stackTrace) async {
         SbLogger(
-          code: null,
-          viewMessage: '新入口弹出异常！',
+          c: null,
+          vm: '新入口弹出异常！',
           data: null,
-          description: null,
-          exception: exception,
-          stackTrace: stackTrace,
+          descp: null,
+          e: exception,
+          st: stackTrace,
         );
       },
     );

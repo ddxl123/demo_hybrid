@@ -69,12 +69,12 @@ class SelectPoolRoute extends SbRoute {
   @override
   bool whenException(Object? exception, StackTrace? stackTrace) {
     SbLogger(
-      code: -1,
-      viewMessage: null,
+      c: -1,
+      vm: null,
       data: null,
-      description: null,
-      exception: exception,
-      stackTrace: stackTrace,
+      descp: null,
+      e: exception,
+      st: stackTrace,
     ).withAll(true);
     return false;
   }

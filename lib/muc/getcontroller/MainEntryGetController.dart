@@ -78,12 +78,12 @@ class MainEntryGetController extends GetxController {
       onError: (Object? exception, StackTrace? stackTrace) async {
         await setInitStatus(MainEntryInitStatus.error, '权限检查发生异常！');
         SbLogger(
-          code: null,
-          viewMessage: null,
+          c: null,
+          vm: null,
           data: null,
-          description: Description('发生异常！'),
-          exception: exception,
-          stackTrace: stackTrace,
+          descp: Description('发生异常！'),
+          e: exception,
+          st: stackTrace,
         ).withRecord();
       },
     );
@@ -110,24 +110,24 @@ class MainEntryGetController extends GetxController {
         } else {
           await setInitStatus(MainEntryInitStatus.error, '应用数据初始化异常！');
           SbLogger(
-            code: null,
-            viewMessage: null,
+            c: null,
+            vm: null,
             data: successResult,
-            description: Description('result 不为 true！'),
-            exception: null,
-            stackTrace: null,
+            descp: Description('result 不为 true！'),
+            e: null,
+            st: null,
           ).withRecord();
         }
       },
       onError: (Object? exception, StackTrace? stackTrace) async {
         await setInitStatus(MainEntryInitStatus.error, '应用数据初始化异常！');
         SbLogger(
-          code: null,
-          viewMessage: null,
+          c: null,
+          vm: null,
           data: null,
-          description: Description('发生异常！'),
-          exception: exception,
-          stackTrace: stackTrace,
+          descp: Description('发生异常！'),
+          e: exception,
+          st: stackTrace,
         ).withRecord();
       },
     );
@@ -150,12 +150,12 @@ class MainEntryGetController extends GetxController {
         onError: (Object? exception, StackTrace? stackTrace) async {
           isPass = null;
           SbLogger(
-            code: null,
-            viewMessage: null,
+            c: null,
+            vm: null,
             data: null,
-            description: Description('发生异常！'),
-            exception: exception,
-            stackTrace: stackTrace,
+            descp: Description('发生异常！'),
+            e: exception,
+            st: stackTrace,
           ).withRecord();
         },
         isCheckOnly: isCheckOnly,

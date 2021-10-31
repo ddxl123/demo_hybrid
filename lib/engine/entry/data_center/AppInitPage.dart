@@ -41,12 +41,12 @@ class _AppInitPageState extends State<AppInitPage> {
       builder: (BuildContext context, AsyncSnapshot<AppInitStatus> snapshot) {
         if (snapshot.hasError) {
           SbLogger(
-            code: -1,
-            viewMessage: null,
+            c: -1,
+            vm: null,
             data: null,
-            description: Description('initAll err'),
-            exception: snapshot.error,
-            stackTrace: snapshot.stackTrace,
+            descp: Description('initAll err'),
+            e: snapshot.error,
+            st: snapshot.stackTrace,
           ).withRecord().withToast(true);
           return const Scaffold(
             body: Center(

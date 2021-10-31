@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:hybrid/data/mysql/httpstore/write/HttpStoreContext.dart';
 
-enum PathType {
+enum WritePathType {
   jwt,
   no_jwt,
 }
@@ -45,9 +45,9 @@ abstract class StoreWrapper {
     this.responseDataVOKeys,
     this.requestParamsVOKeys,
   ) {
-    if (pathType == PathType.jwt) {
+    if (pathType == WritePathType.jwt) {
       path = 'jwt' + path;
-    } else if (pathType == PathType.no_jwt) {
+    } else if (pathType == WritePathType.no_jwt) {
       path = 'no_jwt' + path;
     } else {
       throw 'pathType error: $pathType';
@@ -57,7 +57,7 @@ abstract class StoreWrapper {
 
   String method;
 
-  PathType pathType;
+  WritePathType pathType;
 
   String path;
 
@@ -72,7 +72,7 @@ abstract class StoreWrapper {
 
 class StoreWrapperPost extends StoreWrapper {
   StoreWrapperPost({
-    required PathType pathType,
+    required WritePathType pathType,
     required String path,
     required List<DataVOWrapper> requestDataVOKeys,
     required List<CodeWrapper> responseCodeCollect,
@@ -90,7 +90,7 @@ class StoreWrapperPost extends StoreWrapper {
 
 class StoreWrapperGet extends StoreWrapper {
   StoreWrapperGet({
-    required PathType pathType,
+    required WritePathType pathType,
     required String path,
     required List<DataVOWrapper> requestParamsVOKeys,
     required List<CodeWrapper> responseCodeCollect,

@@ -40,12 +40,12 @@ class FloatingWindowPermissionRoute extends SbRoute {
         isAllowed = null;
         sbRouteSetState();
         SbLogger(
-          code: null,
-          viewMessage: null,
+          c: null,
+          vm: null,
           data: null,
-          description: Description('检查是否已允许悬浮窗权限（若未允许则弹出权限设置页面）发生异常！'),
-          exception: checkAndPushResult.exception,
-          stackTrace: checkAndPushResult.stackTrace,
+          descp: Description('检查是否已允许悬浮窗权限（若未允许则弹出权限设置页面）发生异常！'),
+          e: checkAndPushResult.exception,
+          st: checkAndPushResult.stackTrace,
         ).withRecord();
       },
     );
@@ -85,12 +85,12 @@ class FloatingWindowPermissionRoute extends SbRoute {
             isAllowed = null;
             sbRouteSetState();
             SbLogger(
-              code: null,
-              viewMessage: null,
+              c: null,
+              vm: null,
               data: null,
-              description: Description('检查悬浮窗时发生了异常！'),
-              exception: exception,
-              stackTrace: stackTrace,
+              descp: Description('检查悬浮窗时发生了异常！'),
+              e: exception,
+              st: stackTrace,
             );
           },
         );

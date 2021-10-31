@@ -6,6 +6,33 @@ abstract class RequestDataVO extends DoSerializable {}
 
 abstract class RequestParamsVO extends DoSerializable {}
 
+enum PathType {
+  jwt,
+  no_jwt,
+}
+
+extension PathTypeExt on PathType {
+  String text() {
+    switch (index) {
+      case 0:
+        return 'jwt';
+      case 1:
+        return 'no_jwt';
+      default:
+        throw 'unknown PathType: $this';
+    }
+  }
+
+  static PathType textToEnum(String text) {
+    for (final PathType value in PathType.values) {
+      if (value.text() == text) {
+        return value;
+      }
+    }
+    throw 'unknown PathType: $text';
+  }
+}
+
 /// 之所以 [requestHeaders]、[requestDataVO]、[requestParamsVO] 是回调函数，是为了对其输入的不正确数据进行置空处理，
 /// 只有被引用时才会抛出异常，而在被引用前已将该对象创建成功（哪怕请求数据是空），这样做的话，能捕获到请求数据的异常。
 class HttpRequest<REQVO extends RequestDataVO, REQPVO extends RequestParamsVO> extends DoSerializable {
@@ -54,6 +81,7 @@ class HttpRequest<REQVO extends RequestDataVO, REQPVO extends RequestParamsVO> e
   final String method;
 
   /// 请求 url。
+  /// no_jwt/bb/cc
   final String path;
 
   /// 请求头。
@@ -73,4 +101,10 @@ class HttpRequest<REQVO extends RequestDataVO, REQPVO extends RequestParamsVO> e
 
   /// 请求数据是否出现异常。
   bool hasErrors() => exception != null;
+
+  /// path type
+  PathType pathType() {
+    final String type = path.split('/')[0];
+    return PathTypeExt.textToEnum(type);
+  }
 }

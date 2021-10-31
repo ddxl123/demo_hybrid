@@ -33,12 +33,12 @@ class SqliteDataRoute extends SbRoute {
 
     if (!snapshot.hasData || snapshot.hasError) {
       SbLogger(
-        code: -1,
-        viewMessage: null,
+        c: -1,
+        vm: null,
         data: null,
-        description: null,
-        exception: snapshot.error,
-        stackTrace: snapshot.stackTrace,
+        descp: null,
+        e: snapshot.error,
+        st: snapshot.stackTrace,
       ).withRecord().withToast(true);
       return sbRoundedBox(
         children: const <Widget>[
@@ -104,12 +104,12 @@ class SqliteDataRoute extends SbRoute {
   @override
   bool whenException(Object? exception, StackTrace? stackTrace) {
     SbLogger(
-      code: null,
-      viewMessage: null,
+      c: null,
+      vm: null,
       data: null,
-      description: null,
-      exception: exception,
-      stackTrace: stackTrace,
+      descp: null,
+      e: exception,
+      st: stackTrace,
     );
     return false;
   }

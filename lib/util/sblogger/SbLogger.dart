@@ -26,12 +26,12 @@ class SbLogger {
   ///
 
   SbLogger({
-    required this.code,
-    required this.viewMessage,
+    required this.c,
+    required this.vm,
     required this.data,
-    required this.description,
-    required this.exception,
-    required this.stackTrace,
+    required this.descp,
+    required this.e,
+    required this.st,
   }) {
     _withDebug();
   }
@@ -43,38 +43,38 @@ class SbLogger {
   }
 
   /// 信息码。
-  int? code;
+  int? c;
 
-  /// 显示在 toast 的 【文本消息】，不包含 [code]。
-  String? viewMessage;
+  /// 显示在 toast 的 【文本消息】，不包含 [c]。
+  String? vm;
 
   /// 描述。
-  Description? description;
+  Description? descp;
 
   /// 数据。[Map]、[List] 会被自动缩进。
   Object? data;
 
-  Object? exception;
-  StackTrace? stackTrace;
+  Object? e;
+  StackTrace? st;
 
-  bool get isAllNull => code == null && viewMessage == null && description == null && data == null && exception == null && stackTrace == null;
+  bool get isAllNull => c == null && vm == null && descp == null && data == null && e == null && st == null;
 
   SbLogger _withDebug() {
     try {
       if (isAllNull) {
-        log('> — — ${_entryName == null ? 'Warning: The log information to be output is all empty!' : ''}');
+        log('> — — ${_entryName ?? 'Warning: The log information to be output is all empty!'}');
         return this;
       }
 
-      log('> — — ${_entryName == null ? 'Warning: unassigned engine entry!' : ''}');
-      if (code != null) {
-        log('  | $_entryName | code: $code');
+      log('> — — ${_entryName ?? 'Warning: unassigned engine entry!'}');
+      if (c != null) {
+        log('  | $_entryName | code: $c');
       }
-      if (viewMessage != null) {
-        log('  | $_entryName | viewMessage: $viewMessage');
+      if (vm != null) {
+        log('  | $_entryName | viewMessage: $vm');
       }
-      if (description != null) {
-        log('  | $_entryName | description: ${description!.description} ${'(package:' + description!.stackTrace.toString().split('(package:')[2].split(')')[0] + ')'}');
+      if (descp != null) {
+        log('  | $_entryName | description: ${descp!.description} ${'(package:' + descp!.stackTrace.toString().split('(package:')[2].split(')')[0] + ')'}');
       }
       if (data != null) {
         try {
@@ -86,11 +86,11 @@ class SbLogger {
 
       log('  | $_entryName | loggerOutputSt: (package:' + StackTrace.current.toString().split('(package:')[3].split(')')[0] + ')');
 
-      if (exception != null) {
-        log('  | $_entryName | exception: \n$exception');
+      if (e != null) {
+        log('  | $_entryName | exception: \n$e');
       }
-      if (stackTrace != null) {
-        log('  | $_entryName | stackTrace: \n$stackTrace');
+      if (st != null) {
+        log('  | $_entryName | stackTrace: \n$st');
       }
     } catch (e, st) {
       log('  | $_entryName | logger internal error: ↓', error: e, stackTrace: st);

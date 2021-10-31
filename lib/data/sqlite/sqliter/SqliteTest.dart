@@ -108,12 +108,12 @@ class SqliteTest {
     // );
     //
     SbLogger(
-      code: null,
-      viewMessage: null,
+      c: null,
+      vm: null,
       data: null,
-      description: Description('生成测试数据成功！'),
-      exception: null,
-      stackTrace: null,
+      descp: Description('生成测试数据成功！'),
+      e: null,
+      st: null,
     );
   }
 }

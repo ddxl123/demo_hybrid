@@ -125,12 +125,12 @@ class LoginPage extends SbRoute {
                   // 发送成功。
                   if (hr.code == hr.responseCodeCollect.C2_01_01_01) {
                     SbLogger(
-                      code: null,
-                      viewMessage: hr.viewMessage,
+                      c: null,
+                      vm: hr.viewMessage,
                       data: null,
-                      description: hr.description,
-                      exception: null,
-                      stackTrace: null,
+                      descp: hr.description,
+                      e: null,
+                      st: null,
                     ).withToast(false);
                     return true;
                   }
@@ -142,12 +142,12 @@ class LoginPage extends SbRoute {
                   text = '重新发送';
                   state.refresh();
                   SbLogger(
-                    code: hr.code,
-                    viewMessage: hr.viewMessage,
+                    c: hr.code,
+                    vm: hr.viewMessage,
                     data: null,
-                    description: hr.description,
-                    exception: hr.exception,
-                    stackTrace: hr.stackTrace,
+                    descp: hr.description,
+                    e: hr.exception,
+                    st: hr.stackTrace,
                   ).withAll(true);
                 },
               );
@@ -183,12 +183,12 @@ class LoginPage extends SbRoute {
               doCancel: (HttpResponse<ResponseCodeCollect_LARBEVE, ResponseDataVO_LARBEVE> hr) async {
                 // 登陆/注册失败
                 SbLogger(
-                  code: hr.code,
-                  viewMessage: hr.viewMessage,
+                  c: hr.code,
+                  vm: hr.viewMessage,
                   data: null,
-                  description: hr.description,
-                  exception: hr.exception,
-                  stackTrace: hr.stackTrace,
+                  descp: hr.description,
+                  e: hr.exception,
+                  st: hr.stackTrace,
                 ).withAll(true);
               },
               doContinue: (HttpResponse<ResponseCodeCollect_LARBEVE, ResponseDataVO_LARBEVE> hr) async {
@@ -215,36 +215,36 @@ class LoginPage extends SbRoute {
                   await db.insert(newToken.tableName, newToken.getRowJson);
 
                   SbLogger(
-                    code: null,
-                    viewMessage: hr.viewMessage,
+                    c: null,
+                    vm: hr.viewMessage,
                     data: null,
-                    description: null,
-                    exception: null,
-                    stackTrace: null,
+                    descp: null,
+                    e: null,
+                    st: null,
                   ).withToast(false);
                   return true;
                 }
                 // 邮箱重复异常
                 if (hr.code == hr.responseCodeCollect.C2_01_02_03) {
                   SbLogger(
-                    code: hr.code,
-                    viewMessage: hr.viewMessage,
+                    c: hr.code,
+                    vm: hr.viewMessage,
                     data: null,
-                    description: null,
-                    exception: null,
-                    stackTrace: null,
+                    descp: null,
+                    e: null,
+                    st: null,
                   ).withToast(true);
                   return true;
                 }
                 // 验证码不正确
                 else if (hr.code == hr.responseCodeCollect.C2_01_02_04) {
                   SbLogger(
-                    code: null,
-                    viewMessage: hr.viewMessage,
+                    c: null,
+                    vm: hr.viewMessage,
                     data: null,
-                    description: null,
-                    exception: null,
-                    stackTrace: null,
+                    descp: null,
+                    e: null,
+                    st: null,
                   ).withToast(false);
                   return true;
                 }
@@ -264,7 +264,7 @@ class LoginPage extends SbRoute {
 
   @override
   bool whenException(Object? exception, StackTrace? stackTrace) {
-    SbLogger(code: null, viewMessage: null, data: null, description: null, exception: exception, stackTrace: stackTrace);
+    SbLogger(c: null, vm: null, data: null, descp: null, e: exception, st: stackTrace);
     return false;
   }
 }

@@ -94,17 +94,18 @@ class HttpResponse<RESPCCOL extends ResponseCodeCollect, RESPDVO extends Respons
   }
 
   /// [code] 值为 -1 表示本地异常。
-  void setCancel(String viewMessage, Description description, Object? exception, StackTrace? stackTrace) {
+  void setCancel(String vm, Description descp, Object? e, StackTrace? st) {
     _setAll(
-      responseHeaders: null,
-      responseDataVO: null,
+      responseHeaders: responseHeaders,
+      responseDataVO: responseDataVO,
       isContinue: false,
-      code: -1,
-      viewMessage: viewMessage,
-      description: description,
-      exception: exception,
-      stackTrace: stackTrace,
+      code: code,
+      viewMessage: vm,
+      description: descp,
+      exception: e,
+      stackTrace: st,
     );
+    SbLogger(c: 4444, vm: null, data: null, descp: Description(''), e: e, st: st);
   }
 
   void setPass(Response<Map<String, Object?>> response) {

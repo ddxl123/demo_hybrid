@@ -104,6 +104,8 @@ class HttpCurd {
         ),
       );
 
+      SbLogger(c: 0, vm: 'vm', data: response, descp: Description('dddd'), e: null, st: null);
+
       if (httpStore.httpRequest.pathType() == PathType.jwt) {
         // 说明 token 刷新成功，即验证用户身份成功。
         // 前提是用户已经在本地是被登陆状态。

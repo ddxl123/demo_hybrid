@@ -136,12 +136,11 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
                   timer = null;
                   text = '重新发送';
                   state.refresh();
-                  print('hr.toJson() ${hr.toJson()}');
                   SbLogger(
                     c: hr.code,
                     vm: hr.viewMessage,
-                    data: null,
-                    descp: hr.description,
+                    data: hr,
+                    descp: Description(''),
                     e: hr.exception,
                     st: hr.stackTrace,
                   ).withAll(true);

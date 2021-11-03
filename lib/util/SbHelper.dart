@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:hybrid/util/sblogger/SbLogger.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -44,6 +45,7 @@ class SingleResult<T> {
   /// [HR]：指定返回类型。
   Future<HR> handle<HR>({required Future<HR> onSuccess(T successResult), required Future<HR> onError(Object? exception, StackTrace? stackTrace)}) async {
     if (_hasError) {
+      SbLogger(c: 123123, vm: null, data: _hasError, descp: Description(''), e: exception, st: stackTrace);
       return await onError(exception, stackTrace);
     }
     try {

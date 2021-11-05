@@ -7,63 +7,52 @@ import 'package:hybrid/util/sblogger/SbLogger.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:uuid/uuid.dart';
 
-class SingleResult<T> {
-  SingleResult({required this.result, required this.exception, required this.stackTrace});
-
-  SingleResult.empty() {
-    exception = Exception('未处理 SingleResult！');
-  }
-
-  /// 当 [_hasError] 为 false 时，[result] 必须不为 null。
-  T? result;
+class SingleResult<R> {
+  R? result;
+  String? viewMessage;
+  Description? description;
   Object? exception;
   StackTrace? stackTrace;
 
-  bool get _hasError => exception != null || result == null;
+  bool isSet = false;
 
-  /// 当 [setSuccess] 时，传入的 result 不能为空。
-  Future<SingleResult<T>> setSuccess({required Future<T> setResult()}) async {
+  bool _hasError() => exception != null;
+
+  SingleResult<R> setSuccess({required R setResult()}) {
     try {
-      result = await setResult();
-      exception = null;
-      stackTrace = null;
+      result = setResult();
       return this;
     } catch (e, st) {
-      return setError(exception: Exception('setSuccess 内部异常！$e'), stackTrace: st);
+      return setError(vm: '结果数据解析异常！', descp: Description(''), e: e, st: st);
     }
   }
 
-  SingleResult<T> setError({required Object? exception, required StackTrace? stackTrace}) {
-    result = null;
-    this.exception = exception ?? Exception('result 不能为 null！');
-    this.stackTrace = stackTrace;
+  /// [e] 不能为空，因为需要根据 [e] 来判断是否 [doCancel]。
+  SingleResult<R> setError({required String vm, required Description descp, required Object e, required StackTrace? st}) {
+    viewMessage = vm;
+    description = descp;
+    exception = e;
+    stackTrace = st;
     return this;
   }
 
-  /// 可以在 [onError] 内部进行 throw。
+  /// 可以在 [doError] 内部进行 throw。
   ///
   /// [HR]：指定返回类型。
-  Future<HR> handle<HR>({required Future<HR> onSuccess(T successResult), required Future<HR> onError(Object? exception, StackTrace? stackTrace)}) async {
-    if (_hasError) {
-      SbLogger(c: 123123, vm: null, data: _hasError, descp: Description(''), e: exception, st: stackTrace);
-      return await onError(exception, stackTrace);
+  ///
+  /// 必须先 [setSuccess]/[setError]，再 [handle]。
+  /// 必须先 [setSuccess]/[setError]，再 [doSuccess]/[doError]。
+  Future<HR> handle<HR>({required Future<HR> doSuccess(R successResult), required Future<HR> doError(SingleResult<R> errorResult)}) async {
+    if (!_hasError()) {
+      try {
+        return await doSuccess(result as R);
+      } catch (e, st) {
+        setError(vm: 'doSuccess 内部异常！', descp: Description(''), e: e, st: st);
+        return await doError(this);
+      }
+    } else {
+      return await doError(this);
     }
-    try {
-      return await onSuccess(result as T);
-    } catch (e, st) {
-      return await onError(Exception('onSuccess 内部异常！$e'), st);
-    }
-  }
-
-  void _setAll({required T? result, required Object? exception, required StackTrace? stackTrace}) {
-    this.result = result;
-    this.exception = exception;
-    this.stackTrace = stackTrace;
-  }
-
-  /// 将当前对象克隆到指定对象上。
-  void cloneTo(SingleResult<T> otherResult) {
-    otherResult._setAll(result: result, exception: exception, stackTrace: stackTrace);
   }
 }
 

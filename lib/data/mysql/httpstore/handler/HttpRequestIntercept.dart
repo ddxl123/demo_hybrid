@@ -21,10 +21,10 @@ class HttpRequestIntercept<REQVO extends RequestDataVO, REQPVO extends RequestPa
         QueryWrapper(tableName: MUser().tableName),
       );
       await queryResult.handle(
-        onSuccess: (List<MUser> result) async {
+        doSuccess: (List<MUser> result) async {
           httpRequest.requestHeaders = <String, Object?>{'authorization': 'bearer ' + (result.isEmpty ? '' : (result.first.get_token ?? ''))};
         },
-        onError: (Object? exception, StackTrace? stackTrace) async {
+        doError: (Object? exception, StackTrace? stackTrace) async {
           throw '查询 user 数据时发生了异常！$exception';
         },
       );

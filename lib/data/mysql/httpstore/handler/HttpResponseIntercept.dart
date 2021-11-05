@@ -1,6 +1,8 @@
 // ignore_for_file: non_constant_identifier_names
 
-import 'HttpResponse.dart';
+import 'package:hybrid/util/sblogger/SbLogger.dart';
+
+import 'HttpStore.dart';
 
 /// token 验证失败需重新登陆的 code。
 class ReLoginCodeCollect {
@@ -17,25 +19,28 @@ class ReLoginCodeCollect {
   final int C3010504 = 3010504;
 }
 
-class HttpResponseIntercept<RESPCCOL extends ResponseCodeCollect, RESPDVO extends ResponseDataVO> {
-  HttpResponseIntercept(this.httpResponse);
+class HttpResponseIntercept {
+  HttpResponseIntercept(this.httpStore);
 
-  final HttpResponse<RESPCCOL, RESPDVO> httpResponse;
+  final HttpStore httpStore;
   final ReLoginCodeCollect reLoginCodeCollect = ReLoginCodeCollect();
 
-  Future<void> handle() async {
-    await _tokenExceptionIntercept();
+  /// 返回 true，被拦截（doCancel）
+  Future<bool> intercept() async {
+    return await _tokenExceptionIntercept();
   }
 
-  Future<void> _tokenExceptionIntercept() async {
-    // 若 token 创建或刷新异常，则重新登陆。
-    if (httpResponse.code == reLoginCodeCollect.C3010501 ||
-        httpResponse.code == reLoginCodeCollect.C3010502 ||
-        httpResponse.code == reLoginCodeCollect.C3010503 ||
-        httpResponse.code == reLoginCodeCollect.C3010504) {
+  Future<bool> _tokenExceptionIntercept() async {
+    // 当 pathType 为 jwt 时，若 token 检验或更新异常，则重新登陆。
+    if (httpStore.httpResponse.code == reLoginCodeCollect.C3010501 ||
+        httpStore.httpResponse.code == reLoginCodeCollect.C3010502 ||
+        httpStore.httpResponse.code == reLoginCodeCollect.C3010503 ||
+        httpStore.httpResponse.code == reLoginCodeCollect.C3010504) {
       // TODO: 这里弹出登陆框。注意，登陆时 token 生成发生异常会被重复触发 重新登陆 的操作，因此需要约束一下登陆弹框的单例性。
-
+      httpStore.httpHandler
+          .setCancel(vm: '请重新登陆！', descp: Description(''), e: Exception('PathType 为 jwt 时，token 检验或更新异常！响应code：${httpStore.httpResponse.code}'), st: null);
+      return true;
     }
-    // else{} 不能 else，因为会把其他不需要拦截的 code 给拦截住。
+    return false;
   }
 }

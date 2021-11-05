@@ -23,11 +23,11 @@ class ExecuteSqliteCurd {
       resultDataCast: (Object resultData) => (resultData as List<Object?>).cast<Map<String, Object?>>(),
     );
     return await queryRowResult.handle<SingleResult<List<Map<String, Object?>>>>(
-      onSuccess: (List<Map<String, Object?>> successResult) async {
+      doSuccess: (List<Map<String, Object?>> successResult) async {
         return await SingleResult<List<Map<String, Object?>>>.empty().setSuccess(setResult: () async => successResult.cast<Map<String, Object?>>());
       },
-      onError: (Object? exception, StackTrace? stackTrace) async {
-        return SingleResult<List<Map<String, Object?>>>.empty().setError(exception: exception, stackTrace: stackTrace);
+      doError: (Object? exception, StackTrace? stackTrace) async {
+        return SingleResult<List<Map<String, Object?>>>.empty().setError(e: exception, st: stackTrace);
       },
     );
   }
@@ -36,7 +36,7 @@ class ExecuteSqliteCurd {
   Future<SingleResult<List<T>>> queryRowsAsModels<T extends ModelBase>(QueryWrapper queryWrapper) async {
     final SingleResult<List<Map<String, Object?>>> queryRowResult = await queryRowsAsJsons(queryWrapper);
     return await queryRowResult.handle<SingleResult<List<T>>>(
-      onSuccess: (List<Map<String, Object?>> successResult) async {
+      doSuccess: (List<Map<String, Object?>> successResult) async {
         return await SingleResult<List<T>>.empty().setSuccess(
           setResult: () async {
             final List<T> list = <T>[];
@@ -47,8 +47,8 @@ class ExecuteSqliteCurd {
           },
         );
       },
-      onError: (Object? exception, StackTrace? stackTrace) async {
-        return SingleResult<List<T>>.empty().setError(exception: exception, stackTrace: stackTrace);
+      doError: (Object? exception, StackTrace? stackTrace) async {
+        return SingleResult<List<T>>.empty().setError(e: exception, st: stackTrace);
       },
     );
   }
@@ -68,17 +68,17 @@ class ExecuteSqliteCurd {
       resultDataCast: (Object resultData) => (resultData as Map<Object?, Object?>).cast<String, Object?>(),
     );
     return await insertRowResult.handle<SingleResult<T>>(
-      onSuccess: (Map<String, Object?> successResult) async {
+      doSuccess: (Map<String, Object?> successResult) async {
         try {
           return await SingleResult<T>.empty().setSuccess(
             setResult: () async => ModelManager.createEmptyModelByTableName<T>(insertModel.tableName)..setRowJson = successResult,
           );
         } catch (e, st) {
-          return SingleResult<T>.empty().setError(exception: e, stackTrace: st);
+          return SingleResult<T>.empty().setError(e: e, st: st);
         }
       },
-      onError: (Object? exception, StackTrace? stackTrace) async {
-        return SingleResult<T>.empty().setError(exception: exception, stackTrace: stackTrace);
+      doError: (Object? exception, StackTrace? stackTrace) async {
+        return SingleResult<T>.empty().setError(e: exception, st: stackTrace);
       },
     );
   }
@@ -103,13 +103,13 @@ class ExecuteSqliteCurd {
       resultDataCast: (Object resultData) => (resultData as Map<Object?, Object?>).cast<String, Object?>(),
     );
     return await updateRowResult.handle<SingleResult<T>>(
-      onSuccess: (Map<String, Object?> successResult) async {
+      doSuccess: (Map<String, Object?> successResult) async {
         return SingleResult<T>.empty().setSuccess(
           setResult: () async => ModelManager.createEmptyModelByTableName(modelTableName)..setRowJson = successResult,
         );
       },
-      onError: (Object? exception, StackTrace? stackTrace) async {
-        return SingleResult<T>.empty().setError(exception: exception, stackTrace: stackTrace);
+      doError: (Object? exception, StackTrace? stackTrace) async {
+        return SingleResult<T>.empty().setError(e: exception, st: stackTrace);
       },
     );
   }
@@ -132,15 +132,15 @@ class ExecuteSqliteCurd {
       resultDataCast: null,
     );
     return await deleteRowResult.handle<SingleResult<bool>>(
-      onSuccess: (bool successResult) async {
+      doSuccess: (bool successResult) async {
         if (deleteRowResult.result!) {
           return SingleResult<bool>.empty().setSuccess(setResult: () async => deleteRowResult.result!);
         } else {
-          return SingleResult<bool>.empty().setError(exception: Exception('result 不为 true！'), stackTrace: null);
+          return SingleResult<bool>.empty().setError(e: Exception('result 不为 true！'), st: null);
         }
       },
-      onError: (Object? exception, StackTrace? stackTrace) async {
-        return SingleResult<bool>.empty().setError(exception: deleteRowResult.exception, stackTrace: deleteRowResult.stackTrace);
+      doError: (Object? exception, StackTrace? stackTrace) async {
+        return SingleResult<bool>.empty().setError(e: deleteRowResult.exception, st: deleteRowResult.stackTrace);
       },
     );
   }

@@ -114,10 +114,10 @@ class _TableForTableDataState extends State<TableForTableData> {
       final SingleResult<List<ModelBase>> queryResult =
           await DataTransferManager.instance.transfer.executeSqliteCurd.queryRowsAsModels(QueryWrapper(tableName: widget.tableName));
       await queryResult.handle<void>(
-        onSuccess: (List<ModelBase> successResult) async {
+        doSuccess: (List<ModelBase> successResult) async {
           body.addAll(successResult);
         },
-        onError: (Object? exception, StackTrace? stackTrace) async {
+        doError: (Object? exception, StackTrace? stackTrace) async {
           SbLogger(
             c: null,
             vm: '获取失败！',

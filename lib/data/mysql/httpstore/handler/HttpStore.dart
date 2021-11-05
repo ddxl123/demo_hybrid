@@ -1,100 +1,27 @@
-// ignore_for_file: camel_case_types
-
-import 'package:dio/dio.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
+import 'HttpHandler.dart';
 import 'HttpRequest.dart';
-import 'HttpRequestIntercept.dart';
 import 'HttpResponse.dart';
 
 abstract class HttpStore<REQVO extends RequestDataVO, REQPVO extends RequestParamsVO, RESPCCOL extends ResponseCodeCollect, RESPDVO extends ResponseDataVO>
     implements DoSerializable {
-  /// [HttpStore] 抽象类以及继承类，只能存在这两个熟悉，因为需要进行序列化和反序列化。
-  late HttpRequest<REQVO, REQPVO> httpRequest;
-  late HttpResponse<RESPCCOL, RESPDVO> httpResponse;
-
-  /// 返回 false 表示拦截发生异常。
-  ///
-  /// 无论是被 [setCancel] 还是被 [setPass]，都需要配置 [_requestIntercept] 的结果。
-  Future<bool> _requestIntercept() async {
+  HttpStore({
+    required HttpRequest<REQVO, REQPVO> putHttpRequest(),
+    required RESPCCOL putResponseCodeCollect,
+  }) {
+    httpHandler = HttpHandler(this);
     try {
-      if (httpRequest.hasErrors()) {
-        httpResponse.setCancel('请求数据解析异常！', Description('httpRequest 内部异常！'), httpRequest.exception, httpRequest.stackTrace);
-        return false;
-      }
-      await HttpRequestIntercept<REQVO, REQPVO>(httpRequest).intercept();
-      return true;
+      httpRequest = putHttpRequest();
+      httpResponse = HttpResponse<RESPCCOL, RESPDVO>(putResponseCodeCollect: putResponseCodeCollect.toJson());
     } catch (e, st) {
-      httpResponse.setCancel('发生异常！', Description('可能是请求拦截部分发生异常！'), e, st);
-      return false;
+      httpHandler.setCancel(vm: '', descp: Description(''), e: e, st: st);
     }
   }
 
-  /// 直接取消。
-  Future<HttpStore<REQVO, REQPVO, RESPCCOL, RESPDVO>> setCancel({
-    required String vm,
-    required Description descp,
-    required Object? e,
-    required StackTrace? st,
-  }) async {
-    final bool result = await _requestIntercept();
-    if (!result) {
-      httpResponse.setCancel(vm, descp, e, st);
-    }
-    return this;
-  }
-
-  /// 直接通过。
-  Future<HttpStore<REQVO, REQPVO, RESPCCOL, RESPDVO>> setPass(Response<Map<String, Object?>> response) async {
-    final bool result = await _requestIntercept();
-    if (result) {
-      httpResponse.setPass(response);
-    }
-    return this;
-  }
-}
-
-abstract class HttpStore_GET<REQPVO extends RequestParamsVO, RESPCCOL extends ResponseCodeCollect, RESPDVO extends ResponseDataVO>
-    extends HttpStore<RequestDataVO, REQPVO, RESPCCOL, RESPDVO> {
-  HttpStore_GET(
-    String path,
-    REQPVO putRequestParamsVO(),
-    RESPCCOL responseCodeCollect,
-    RESPDVO putResponseDataVO(Map<String, Object?>? json),
-  ) {
-    httpRequest = HttpRequest<RequestDataVO, REQPVO>(
-      method: 'GET',
-      path: path,
-      putRequestHeaders: () => null,
-      putRequestParamsVO: putRequestParamsVO,
-      putRequestDataVO: () => null,
-    );
-    httpResponse = HttpResponse<RESPCCOL, RESPDVO>(
-      responseCodeCollect: responseCodeCollect,
-      putResponseDataVO: putResponseDataVO,
-    );
-  }
-}
-
-abstract class HttpStore_POST<REQVO extends RequestDataVO, RESPCCOL extends ResponseCodeCollect, RESPDVO extends ResponseDataVO>
-    extends HttpStore<REQVO, RequestParamsVO, RESPCCOL, RESPDVO> {
-  HttpStore_POST(
-    String path,
-    REQVO? putRequestDataVO(),
-    RESPCCOL responseCodeCollect,
-    RESPDVO? putResponseDataVO(Map<String, Object?>? json),
-  ) {
-    httpRequest = HttpRequest<REQVO, RequestParamsVO>(
-      method: 'POST',
-      path: path,
-      putRequestHeaders: () => null,
-      putRequestParamsVO: () => null,
-      putRequestDataVO: putRequestDataVO,
-    );
-    httpResponse = HttpResponse<RESPCCOL, RESPDVO>(
-      responseCodeCollect: responseCodeCollect,
-      putResponseDataVO: putResponseDataVO,
-    );
-  }
+  /// [HttpStore] 抽象类以及继承类，只能存在这两个熟悉，因为需要进行序列化和反序列化。
+  late final HttpRequest<REQVO, REQPVO> httpRequest;
+  late final HttpResponse<RESPCCOL, RESPDVO> httpResponse;
+  late final HttpHandler httpHandler;
 }

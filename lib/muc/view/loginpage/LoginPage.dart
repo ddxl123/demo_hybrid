@@ -120,7 +120,7 @@ class LoginPage extends SbRoute {
                 isBanAllOtherRequest: true,
                 resultHttpStoreJson: (Map<String, Object?> json) async => HttpStore_login_and_register_by_email_send_email.fromJson(json),
               );
-              requestResult.httpResponse.handle(
+              requestResult.httpResponse.intercept(
                 doContinue: (HttpResponse<ResponseCodeCollect_LARBESE, ResponseDataVO_LARBESE> hr) async {
                   // 发送成功。
                   if (hr.code == hr.responseCodeCollect.C2_01_01_01) {
@@ -128,7 +128,7 @@ class LoginPage extends SbRoute {
                       c: null,
                       vm: hr.viewMessage,
                       data: null,
-                      descp: hr.description,
+                      descp: hr.text,
                       e: null,
                       st: null,
                     ).withToast(false);
@@ -145,7 +145,7 @@ class LoginPage extends SbRoute {
                     c: hr.code,
                     vm: hr.viewMessage,
                     data: null,
-                    descp: hr.description,
+                    descp: hr.text,
                     e: hr.exception,
                     st: hr.stackTrace,
                   ).withAll(true);
@@ -179,14 +179,14 @@ class LoginPage extends SbRoute {
               isBanAllOtherRequest: true,
               resultHttpStoreJson: (Map<String, Object?> json) async => HttpStore_login_and_register_by_email_verify_email.fromJson(json),
             );
-            await requestResult.httpResponse.handle(
+            await requestResult.httpResponse.intercept(
               doCancel: (HttpResponse<ResponseCodeCollect_LARBEVE, ResponseDataVO_LARBEVE> hr) async {
                 // 登陆/注册失败
                 SbLogger(
                   c: hr.code,
                   vm: hr.viewMessage,
                   data: null,
-                  descp: hr.description,
+                  descp: hr.text,
                   e: hr.exception,
                   st: hr.stackTrace,
                 ).withAll(true);

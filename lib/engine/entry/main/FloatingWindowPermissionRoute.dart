@@ -32,10 +32,10 @@ class FloatingWindowPermissionRoute extends SbRoute {
       resultDataCast: null,
     );
     await checkAndPushResult.handle<void>(
-      onSuccess: (bool successResult) async {
+      doSuccess: (bool successResult) async {
         // 无论 true 或 false，都不进行处理，都已经交付给 timer 处理了。
       },
-      onError: (Object? exception, StackTrace? stackTrace) async {
+      doError: (Object? exception, StackTrace? stackTrace) async {
         // 该错误提示最多存在一秒，因为 timer 每秒一次。
         isAllowed = null;
         sbRouteSetState();
@@ -66,7 +66,7 @@ class FloatingWindowPermissionRoute extends SbRoute {
           return;
         }
         await checkResult.handle<void>(
-          onSuccess: (bool successResult) async {
+          doSuccess: (bool successResult) async {
             if (successResult) {
               timer.cancel();
               isAllowed = true;
@@ -80,7 +80,7 @@ class FloatingWindowPermissionRoute extends SbRoute {
               sbRouteSetState();
             }
           },
-          onError: (Object? exception, StackTrace? stackTrace) async {
+          doError: (Object? exception, StackTrace? stackTrace) async {
             // 该错误提示最多存在一秒，因为 timer 每秒一次。
             isAllowed = null;
             sbRouteSetState();

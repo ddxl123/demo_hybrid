@@ -60,10 +60,10 @@ abstract class AbstractLongPressedFragment<FDM extends ModelBase> extends Abstra
             modelId: currentFragmentModel.get_id,
           );
           await deleteResult.handle<void>(
-            onSuccess: (bool successResult) async {
+            doSuccess: (bool successResult) async {
               fatherRoute.sheetPageController.bodyData.remove(currentFragmentModel);
             },
-            onError: (Object? exception, StackTrace? stackTrace) async {
+            doError: (Object? exception, StackTrace? stackTrace) async {
               SbLogger(
                 c: null,
                 vm: '删除失败！',

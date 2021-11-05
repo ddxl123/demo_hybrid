@@ -115,7 +115,7 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
                 resultHttpStoreJson: (Map<String, Object?> json) async => HttpStore_login_and_register_by_email_send_email.fromJson(json),
               );
 
-              await requestResult.httpResponse.handle(
+              await requestResult.httpResponse.intercept(
                 doContinue: (HttpResponse<ResponseCodeCollect_LARBESE, ResponseDataVO_LARBESE> hr) async {
                   // 发送成功。
                   if (hr.code == hr.responseCodeCollect.C2_01_01_01) {
@@ -123,7 +123,7 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
                       c: null,
                       vm: hr.viewMessage,
                       data: null,
-                      descp: hr.description,
+                      descp: hr.text,
                       e: null,
                       st: null,
                     ).withToast(false);

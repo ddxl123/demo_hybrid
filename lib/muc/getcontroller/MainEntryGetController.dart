@@ -66,7 +66,7 @@ class MainEntryGetController extends GetxController {
       resultDataCast: null,
     );
     await checkResult.handle<void>(
-      onSuccess: (bool successResult) async {
+      doSuccess: (bool successResult) async {
         if (successResult) {
           // 进行应用数据初始化。
           await setInitStatus(MainEntryInitStatus.appDataInitializing);
@@ -75,7 +75,7 @@ class MainEntryGetController extends GetxController {
           SbHelper.getNavigator!.push(FloatingWindowPermissionRoute());
         }
       },
-      onError: (Object? exception, StackTrace? stackTrace) async {
+      doError: (Object? exception, StackTrace? stackTrace) async {
         await setInitStatus(MainEntryInitStatus.error, '权限检查发生异常！');
         SbLogger(
           c: null,
@@ -103,7 +103,7 @@ class MainEntryGetController extends GetxController {
       resultDataCast: null,
     );
     await startDataCenterResult.handle<void>(
-      onSuccess: (bool successResult) async {
+      doSuccess: (bool successResult) async {
         if (successResult) {
           // 用户数据初始化。
           await setInitStatus(MainEntryInitStatus.userDataInitializing);
@@ -119,7 +119,7 @@ class MainEntryGetController extends GetxController {
           ).withRecord();
         }
       },
-      onError: (Object? exception, StackTrace? stackTrace) async {
+      doError: (Object? exception, StackTrace? stackTrace) async {
         await setInitStatus(MainEntryInitStatus.error, '应用数据初始化异常！');
         SbLogger(
           c: null,

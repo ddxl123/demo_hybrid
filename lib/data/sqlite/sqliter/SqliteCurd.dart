@@ -179,7 +179,7 @@ class SqliteCurd {
         );
       }
     } catch (e, st) {
-      result.setError(exception: e, stackTrace: st);
+      result.setError(e: e, st: st);
     }
     return result;
   }
@@ -196,7 +196,7 @@ class SqliteCurd {
       queryWrapper: queryWrapper,
     );
     await queryRowsAsJsonsResult.handle(
-      onSuccess: (List<Map<String, Object?>> successResult) async {
+      doSuccess: (List<Map<String, Object?>> successResult) async {
         final List<M> models = <M>[];
         for (final Map<String, Object?> row in queryRowsAsJsonsResult.result!) {
           final M newModel = ModelManager.createEmptyModelByTableName<M>(queryWrapper.tableName);
@@ -206,8 +206,8 @@ class SqliteCurd {
         }
         await result.setSuccess(setResult: () async => models);
       },
-      onError: (Object? exception, StackTrace? stackTrace) async {
-        result.setError(exception: queryRowsAsJsonsResult.exception, stackTrace: queryRowsAsJsonsResult.stackTrace);
+      doError: (Object? exception, StackTrace? stackTrace) async {
+        result.setError(e: queryRowsAsJsonsResult.exception, st: queryRowsAsJsonsResult.stackTrace);
       },
     );
     return result;
@@ -249,7 +249,7 @@ class SqliteCurd {
       if (transactionMark != null) {
         rethrow;
       } else {
-        insertRowResult.setError(exception: e, stackTrace: st);
+        insertRowResult.setError(e: e, st: st);
       }
     }
     return insertRowResult;
@@ -276,10 +276,10 @@ class SqliteCurd {
             queryWrapper: QueryWrapper(tableName: modelTableName, where: 'id = ?', whereArgs: <Object?>[modelId]),
           );
           return await queryRowsAsModelsResult.handle<T>(
-            onSuccess: (List<T> successResult) async {
+            doSuccess: (List<T> successResult) async {
               return successResult.first;
             },
-            onError: (Object? exception, StackTrace? stackTrace) async {
+            doError: (Object? exception, StackTrace? stackTrace) async {
               throw exception!;
             },
           );
@@ -305,7 +305,7 @@ class SqliteCurd {
       if (transactionMark != null) {
         rethrow;
       } else {
-        updateRowResult.setError(exception: e, stackTrace: st);
+        updateRowResult.setError(e: e, st: st);
       }
     }
     return updateRowResult;
@@ -353,7 +353,7 @@ class SqliteCurd {
       if (transactionMark != null) {
         rethrow;
       } else {
-        deleteRowResult.setError(exception: e, stackTrace: st);
+        deleteRowResult.setError(e: e, st: st);
       }
     }
     return deleteRowResult;
@@ -393,7 +393,7 @@ class SqliteCurd {
       queryWrapper: QueryWrapper(tableName: model.tableName, where: '${model.uuid} = ?', whereArgs: <Object>[model.get_uuid!]),
     );
     return await queryRowsAsJsonsResult.handle<T>(
-      onSuccess: (List<Map<String, Object?>> successResult) async {
+      doSuccess: (List<Map<String, Object?>> successResult) async {
         if (successResult.isNotEmpty) {
           throw 'The model already exits.';
         }
@@ -419,7 +419,7 @@ class SqliteCurd {
         await transactionMark.transaction.insert(upload.tableName, upload.getRowJson);
         return model;
       },
-      onError: (Object? exception, StackTrace? stackTrace) async {
+      doError: (Object? exception, StackTrace? stackTrace) async {
         throw exception!;
       },
     );
@@ -481,10 +481,10 @@ class SqliteCurd {
     );
 
     final T newModel = await queryRowsAsModelsResult.handle<T>(
-      onSuccess: (List<T> successResult) async {
+      doSuccess: (List<T> successResult) async {
         return successResult.first;
       },
-      onError: (Object? exception, StackTrace? stackTrace) async {
+      doError: (Object? exception, StackTrace? stackTrace) async {
         throw exception!;
       },
     );
@@ -647,10 +647,10 @@ class SqliteCurd {
     );
 
     final List<T> queryResult = await ofModelResult.handle(
-      onSuccess: (List<T> successResult) async {
+      doSuccess: (List<T> successResult) async {
         return successResult;
       },
-      onError: (Object? exception, StackTrace? stackTrace) async {
+      doError: (Object? exception, StackTrace? stackTrace) async {
         throw exception!;
       },
     );
@@ -681,7 +681,7 @@ class SqliteCurd {
       ),
     );
     final CheckResult? checkResult = await ofUploadModelResult.handle<CheckResult?>(
-      onSuccess: (List<MUpload> successResult) async {
+      doSuccess: (List<MUpload> successResult) async {
         if (successResult.isNotEmpty) {
           getUploadModel(successResult.first);
           // 若为 uploading 状态，则需要先判断是否已经 upload 成功，成功则修改成 uploaded 后才能继续。
@@ -693,7 +693,7 @@ class SqliteCurd {
           return CheckResult.uploadModelIsNotExist;
         }
       },
-      onError: (Object? exception, StackTrace? stackTrace) async {
+      doError: (Object? exception, StackTrace? stackTrace) async {
         throw exception!;
       },
     );
@@ -782,7 +782,7 @@ class SqliteCurd {
       ),
     );
     await queryRowsAsModelsResult.handle(
-      onSuccess: (List<ModelBase> successResult) async {
+      doSuccess: (List<ModelBase> successResult) async {
         // 把查询到的进行递归 delete
         for (int i = 0; i < successResult.length; i++) {
           final SingleResult<bool> deleteRowResult = await SqliteCurd.deleteRow(
@@ -791,18 +791,18 @@ class SqliteCurd {
             transactionMark: transactionMark,
           );
           await deleteRowResult.handle(
-            onSuccess: (bool successResult) async {
+            doSuccess: (bool successResult) async {
               if (!successResult) {
                 throw Exception('result 不为 true！');
               }
             },
-            onError: (Object? exception, StackTrace? stackTrace) async {
+            doError: (Object? exception, StackTrace? stackTrace) async {
               throw exception!;
             },
           );
         }
       },
-      onError: (Object? exception, StackTrace? stackTrace) async {
+      doError: (Object? exception, StackTrace? stackTrace) async {
         throw exception!;
       },
     );

@@ -54,10 +54,10 @@ abstract class LongPressedNodeRouteBase extends AbstractPoolEntryRoute {
           modelId: poolNodeModel.getCurrentNodeModel().get_id,
         );
         await deleteResult.handle<void>(
-          onSuccess: (bool successResult) async {
+          doSuccess: (bool successResult) async {
             Get.find<PoolGetController>().deleteNode(poolNodeModel);
           },
-          onError: (Object? exception, StackTrace? stackTrace) async {
+          doError: (Object? exception, StackTrace? stackTrace) async {
             SbLogger(
               c: null,
               vm: '删除失败！',

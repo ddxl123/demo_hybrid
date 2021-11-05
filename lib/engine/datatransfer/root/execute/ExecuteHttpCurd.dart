@@ -27,10 +27,10 @@ class ExecuteHttpCurd {
       resultDataCast: (Object resultData) => (resultData as Map<Object?, Object?>).cast<String, Object?>(),
     );
     return await executeResult.handle<HS>(
-      onSuccess: (Map<String, Object?> successResult) async {
+      doSuccess: (Map<String, Object?> successResult) async {
         return await resultHttpStoreJson(successResult);
       },
-      onError: (Object? exception, StackTrace? stackTrace) async {
+      doError: (Object? exception, StackTrace? stackTrace) async {
         return await httpStore.setCancel(vm: '请求异常，请重新尝试！', descp: Description('请求异常，请重新尝试！'), e: exception, st: stackTrace) as HS;
       },
     );

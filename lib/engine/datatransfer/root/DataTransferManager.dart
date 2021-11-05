@@ -106,7 +106,7 @@ class DataTransferManager {
         await sendResult.setSuccess(setResult: () async => resultDataCast == null ? resultData as R : resultDataCast(resultData));
       }
     } catch (e, st) {
-      sendResult.setError(exception: '_sendMessageToOther 内部异常！$e', stackTrace: st);
+      sendResult.setError(e: '_sendMessageToOther 内部异常！$e', st: st);
     }
     return sendResult;
   }

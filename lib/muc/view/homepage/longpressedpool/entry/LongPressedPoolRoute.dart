@@ -26,10 +26,10 @@ class LongPressedPoolRouteForFragment extends AbstractLongPressedPoolRoute {
     MPnFragment? newModel;
     final SingleResult<MPnFragment> insertResult = await DataTransferManager.instance.transfer.executeSqliteCurd.insertRow<MPnFragment>(pnFragment);
     await insertResult.handle<void>(
-      onSuccess: (MPnFragment successResult) async {
+      doSuccess: (MPnFragment successResult) async {
         newModel = successResult;
       },
-      onError: (Object? exception, StackTrace? stackTrace) async {
+      doError: (Object? exception, StackTrace? stackTrace) async {
         SbLogger(
           c: null,
           vm: '添加失败！',
@@ -62,10 +62,10 @@ class LongPressedPoolRouteForMemory extends AbstractLongPressedPoolRoute {
     MPnMemory? newModel;
     final SingleResult<MPnMemory> insertResult = await DataTransferManager.instance.transfer.executeSqliteCurd.insertRow<MPnMemory>(pnMemory);
     await insertResult.handle<void>(
-      onSuccess: (MPnMemory successResult) async {
+      doSuccess: (MPnMemory successResult) async {
         newModel = successResult;
       },
-      onError: (Object? exception, StackTrace? stackTrace) async {
+      doError: (Object? exception, StackTrace? stackTrace) async {
         SbLogger(
           c: null,
           vm: '添加失败！',
@@ -98,10 +98,10 @@ class LongPressedPoolRouteForComplete extends AbstractLongPressedPoolRoute {
     MPnComplete? newModel;
     final SingleResult<MPnComplete> insertResult = await DataTransferManager.instance.transfer.executeSqliteCurd.insertRow<MPnComplete>(pnComplete);
     await insertResult.handle<void>(
-      onSuccess: (MPnComplete successResult) async {
+      doSuccess: (MPnComplete successResult) async {
         newModel = successResult;
       },
-      onError: (Object? exception, StackTrace? stackTrace) async {
+      doError: (Object? exception, StackTrace? stackTrace) async {
         SbLogger(
           c: null,
           vm: '添加失败！',
@@ -132,10 +132,10 @@ class LongPressedPoolRouteForRule extends AbstractLongPressedPoolRoute {
     MPnRule? newModel;
     final SingleResult<MPnRule> insertResult = await DataTransferManager.instance.transfer.executeSqliteCurd.insertRow<MPnRule>(pnRule);
     await insertResult.handle<void>(
-      onSuccess: (MPnRule successResult) async {
+      doSuccess: (MPnRule successResult) async {
         newModel = successResult;
       },
-      onError: (Object? exception, StackTrace? stackTrace) async {
+      doError: (Object? exception, StackTrace? stackTrace) async {
         SbLogger(
           c: null,
           vm: '添加失败！',

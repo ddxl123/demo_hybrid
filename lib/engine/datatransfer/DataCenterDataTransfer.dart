@@ -23,10 +23,10 @@ class DataCenterDataTransfer extends BaseDataTransfer {
           connectTransaction: null,
         );
         return await queryResult.handle<List<Map<String, Object?>>>(
-          onSuccess: (List<Map<String, Object?>> successResult) async {
+          doSuccess: (List<Map<String, Object?>> successResult) async {
             return successResult;
           },
-          onError: (Object? exception, StackTrace? stackTrace) async {
+          doError: (Object? exception, StackTrace? stackTrace) async {
             throw exception!;
           },
         );
@@ -37,10 +37,10 @@ class DataCenterDataTransfer extends BaseDataTransfer {
           transactionMark: null,
         );
         return await insertRowResult.handle<Map<String, Object?>>(
-          onSuccess: (ModelBase successResult) async {
+          doSuccess: (ModelBase successResult) async {
             return successResult.getRowJson;
           },
-          onError: (Object? exception, StackTrace? stackTrace) async {
+          doError: (Object? exception, StackTrace? stackTrace) async {
             throw exception!;
           },
         );
@@ -53,10 +53,10 @@ class DataCenterDataTransfer extends BaseDataTransfer {
           transactionMark: null,
         );
         return await updateRowResult.handle<Map<String, Object?>>(
-          onSuccess: (ModelBase successResult) async {
+          doSuccess: (ModelBase successResult) async {
             return successResult.getRowJson;
           },
-          onError: (Object? exception, StackTrace? stackTrace) async {
+          doError: (Object? exception, StackTrace? stackTrace) async {
             throw exception!;
           },
         );
@@ -68,10 +68,10 @@ class DataCenterDataTransfer extends BaseDataTransfer {
           transactionMark: null,
         );
         return await deleteRowResult.handle<bool>(
-          onSuccess: (bool successResult) async {
+          doSuccess: (bool successResult) async {
             return successResult;
           },
-          onError: (Object? exception, StackTrace? stackTrace) async {
+          doError: (Object? exception, StackTrace? stackTrace) async {
             throw exception!;
           },
         );

@@ -190,10 +190,10 @@ class PoolGetController extends GetxController {
       final SingleResult<List<ModelBase>> queryResult =
           await DataTransferManager.instance.transfer.executeSqliteCurd.queryRowsAsModels(QueryWrapper(tableName: tableName));
       return await queryResult.handle<List<ModelBase>>(
-        onSuccess: (List<ModelBase> successResult) async {
+        doSuccess: (List<ModelBase> successResult) async {
           return successResult;
         },
-        onError: (Object? exception, StackTrace? stackTrace) async {
+        doError: (Object? exception, StackTrace? stackTrace) async {
           SbLogger(
             c: null,
             vm: '加载数据失败！',

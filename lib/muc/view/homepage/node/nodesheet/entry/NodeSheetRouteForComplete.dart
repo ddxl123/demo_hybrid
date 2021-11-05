@@ -43,10 +43,10 @@ class NodeSheetRouteForComplete extends AbstractNodeSheetRoute<MFComplete> {
       ),
     );
     await queryResult.handle<void>(
-      onSuccess: (List<MFComplete> successResult) async {
+      doSuccess: (List<MFComplete> successResult) async {
         bodyData.addAll(successResult);
       },
-      onError: (Object? exception, StackTrace? stackTrace) async {
+      doError: (Object? exception, StackTrace? stackTrace) async {
         SbLogger(
           c: null,
           vm: '获取失败！',

@@ -40,13 +40,13 @@ class HttpCurd {
   }) async {
     try {
       if (_isBanAllRequest) {
-        return await httpStore.setCancel(vm: '请求频繁！', descp: Description('已禁止全部请求！'), e: null, st: null) as HS;
+        return httpStore.httpHandler.setCancel(vm: '请求频繁！', descp: Description(''), e: Exception('已禁止全部请求！'), st: null) as HS;
       }
 
       if (isBanAllOtherRequest) {
         // 若存在任意请求，则当前请求触发失败。
         if (_sameNotConcurrentMap.isNotEmpty) {
-          return await httpStore.setCancel(vm: '请求频繁！', descp: Description('要禁止其他全部请求时，已存在其他请求，需在没有任何请求的情况下才能触发！'), e: null, st: null) as HS;
+          return httpStore.httpHandler.setCancel(vm: '请求频繁！', descp: Description(''), e: Exception('要禁止其他全部请求时，已存在其他请求，需在没有任何请求的情况下才能触发！'), st: null) as HS;
         }
         _isBanAllRequest = true;
       }
@@ -54,7 +54,7 @@ class HttpCurd {
       if (sameNotConcurrent != null) {
         /// 若相同请求被并发
         if (_sameNotConcurrentMap.containsKey(sameNotConcurrent)) {
-          return await httpStore.setCancel(vm: '请求频繁！', descp: Description('相同标记的请求被并发！'), e: null, st: null) as HS;
+          return httpStore.httpHandler.setCancel(vm: '请求频繁！', descp: Description(''), e: Exception('相同标记的请求被并发！'), st: null) as HS;
         }
 
         /// 当相同请求未并发时，对当前请求做阻断标记
@@ -70,16 +70,16 @@ class HttpCurd {
 
         // 返回空则继续，即存在账号。
         final HS? usersResultHandle = await usersResult.handle<HS?>(
-          onSuccess: (List<MUser> result) async {
+          doSuccess: (List<MUser> result) async {
             if (result.isEmpty) {
               //TODO: 不存在账号信息，则弹出【登陆界面引擎】
-              return await httpStore.setCancel(vm: '未登录！', descp: Description('本地不存在账号信息！'), e: null, st: null) as HS;
+              return httpStore.httpHandler.setCancel(vm: '未登录！', descp: Description(''), e: Exception('本地不存在账号信息！'), st: null) as HS;
             }
             return null;
           },
-          onError: (Object? exception, StackTrace? stackTrace) async {
-            return await httpStore.setCancel(vm: '检查本地账号时发生了异常！', descp: Description('检测本地是否存在账号信息！'), e: usersResult.exception, st: usersResult.stackTrace)
-                as HS;
+          doError: (Object? exception, StackTrace? stackTrace) async {
+            return httpStore.httpHandler
+                .setCancel(vm: '检查本地账号时发生了异常！', descp: Description('检测本地是否存在账号信息！'), e: exception, st: stackTrace) as HS;
           },
         );
 

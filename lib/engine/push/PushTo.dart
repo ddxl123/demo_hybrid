@@ -20,7 +20,7 @@ class PushTo {
       resultDataCast: null,
     );
     await startResult.handle<void>(
-      onSuccess: (bool successResult) async {
+      doSuccess: (bool successResult) async {
         if (!successResult) {
           SbLogger(
             c: null,
@@ -32,7 +32,7 @@ class PushTo {
           );
         }
       },
-      onError: (Object? exception, StackTrace? stackTrace) async {
+      doError: (Object? exception, StackTrace? stackTrace) async {
         SbLogger(
           c: null,
           vm: '新入口弹出异常！',

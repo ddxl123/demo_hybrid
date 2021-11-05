@@ -4,20 +4,20 @@ import 'dart:developer';
 import 'package:hybrid/util/SbHelper.dart';
 
 class Description extends DoSerializable {
-  Description(this.description) {
+  Description(this.text) {
     stackTrace = StackTrace.current;
   }
 
   factory Description.fromJson(Map<String, Object?> json) =>
-      Description(json['description']! as String)..stackTrace = json['stackTrace'] == null ? null : StackTrace.fromString(json['stackTrace']! as String);
+      Description(json['text']! as String)..stackTrace = json['stackTrace'] == null ? null : StackTrace.fromString(json['stackTrace']! as String);
 
   @override
   Map<String, Object?> toJson() => <String, dynamic>{
-        'description': description,
+        'text': text,
         'stackTrace': stackTrace?.toString(),
       };
 
-  final String description;
+  final String text;
 
   StackTrace? stackTrace;
 }
@@ -74,7 +74,7 @@ class SbLogger {
         log('  | $_entryName | viewMessage: $vm');
       }
       if (descp != null) {
-        log('  | $_entryName | description: ${descp!.description} ${'(package:' + descp!.stackTrace.toString().split('(package:')[2].split(')')[0] + ')'}');
+        log('  | $_entryName | description: ${descp!.text} ${'(package:' + descp!.stackTrace.toString().split('(package:')[2].split(')')[0] + ')'}');
       }
       if (data != null) {
         try {

@@ -43,10 +43,10 @@ class NodeSheetRouteForFragment extends AbstractNodeSheetRoute<MFFragment> {
       ),
     );
     await queryResult.handle<void>(
-      onSuccess: (List<MFFragment> successResult) async {
+      doSuccess: (List<MFFragment> successResult) async {
         bodyData.addAll(successResult);
       },
-      onError: (Object? exception, StackTrace? stackTrace) async {
+      doError: (Object? exception, StackTrace? stackTrace) async {
         SbLogger(
           c: null,
           vm: '获取失败！',

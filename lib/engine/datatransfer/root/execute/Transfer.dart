@@ -67,7 +67,7 @@ class Transfer {
     final SingleResult<R> executeResult = SingleResult<R>.empty();
 
     if (executeForWhichEngine == EngineEntryName.NATIVE || executeForWhichEngine == EngineEntryName.MAIN) {
-      return executeResult.setError(exception: 'executeForWhichEngine 不能为 ${EngineEntryName.NATIVE} 或 ${EngineEntryName.MAIN}！', stackTrace: null);
+      return executeResult.setError(e: 'executeForWhichEngine 不能为 ${EngineEntryName.NATIVE} 或 ${EngineEntryName.MAIN}！', st: null);
     }
 
     // 检测是否已启动引擎，若未启动，则启动。
@@ -78,12 +78,12 @@ class Transfer {
       resultDataCast: null,
     );
     await messageResult.handle<void>(
-      onSuccess: (bool successResult) async {
+      doSuccess: (bool successResult) async {
         // 引擎已启动或已触发启动引擎，则得到 true。
         if (successResult) {
           final SingleResult<bool> isReadyResult = await _isPushedEngineOnReady(executeForWhichEngine);
           await isReadyResult.handle<void>(
-            onSuccess: (bool successResult) async {
+            doSuccess: (bool successResult) async {
               if (successResult) {
                 await _handleViewAndOperation<S, R>(
                   executeResult: executeResult,
@@ -96,22 +96,22 @@ class Transfer {
                   resultDataCast: resultDataCast,
                 );
               } else {
-                executeResult.setError(exception: Exception('启动引擎后的检查第一帧是否已被初始化发生了异常：result 不为 true！'), stackTrace: null);
+                executeResult.setError(e: Exception('启动引擎后的检查第一帧是否已被初始化发生了异常：result 不为 true！'), st: null);
               }
             },
-            onError: (Object? exception, StackTrace? stackTrace) async {
+            doError: (Object? exception, StackTrace? stackTrace) async {
               executeResult.setError(
-                exception: Exception('启动引擎后的检查第一帧是否已被初始化发生了异常：未知异常！' + exception.toString()),
-                stackTrace: stackTrace,
+                e: Exception('启动引擎后的检查第一帧是否已被初始化发生了异常：未知异常！' + exception.toString()),
+                st: stackTrace,
               );
             },
           );
         } else {
-          executeResult.setError(exception: Exception('启动引擎发生了异常！result 不为 true！'), stackTrace: null);
+          executeResult.setError(e: Exception('启动引擎发生了异常！result 不为 true！'), st: null);
         }
       },
-      onError: (Object? exception, StackTrace? stackTrace) async {
-        executeResult.setError(exception: exception, stackTrace: stackTrace);
+      doError: (Object? exception, StackTrace? stackTrace) async {
+        executeResult.setError(e: exception, st: stackTrace);
       },
     );
     return executeResult;
@@ -133,22 +133,22 @@ class Transfer {
       final SingleResult<ViewParams> lastViewParamsResult =
           await DataTransferManager.instance.transfer.executeSomething.getNativeWindowViewParams(executeForWhichEngine);
       lastViewParams = await lastViewParamsResult.handle<ViewParams?>(
-        onSuccess: (ViewParams successResult) async {
+        doSuccess: (ViewParams successResult) async {
           return successResult;
         },
-        onError: (Object? exception, StackTrace? stackTrace) async {
-          executeResult.setError(exception: 'lastViewParamsResult 异常！ $exception', stackTrace: stackTrace);
+        doError: (Object? exception, StackTrace? stackTrace) async {
+          executeResult.setError(e: 'lastViewParamsResult 异常！ $exception', st: stackTrace);
           return null;
         },
       );
 
       final SingleResult<SizeInt> screenSizeResult = await DataTransferManager.instance.transfer.executeSomething.getScreenSize();
       screenSize = await screenSizeResult.handle<SizeInt?>(
-        onSuccess: (SizeInt size) async {
+        doSuccess: (SizeInt size) async {
           return size;
         },
-        onError: (Object? exception, StackTrace? stackTrace) async {
-          executeResult.setError(exception: 'screenSizeResult 异常！ $exception', stackTrace: stackTrace);
+        doError: (Object? exception, StackTrace? stackTrace) async {
+          executeResult.setError(e: 'screenSizeResult 异常！ $exception', st: stackTrace);
           return null;
         },
       );
@@ -166,7 +166,7 @@ class Transfer {
       resultDataCast: null,
     );
     await viewResult.handle<void>(
-      onSuccess: (bool successResult) async {
+      doSuccess: (bool successResult) async {
         // view set 完成。
         if (successResult) {
           if (operationIdIfEngineFirstFrameInitialized != null) {
@@ -181,11 +181,11 @@ class Transfer {
             await executeResult.setSuccess(setResult: () async => true as R);
           }
         } else {
-          executeResult.setError(exception: Exception('data 不为 true！'), stackTrace: null);
+          executeResult.setError(e: Exception('data 不为 true！'), st: null);
         }
       },
-      onError: (Object? exception, StackTrace? stackTrace) async {
-        executeResult.setError(exception: exception, stackTrace: stackTrace);
+      doError: (Object? exception, StackTrace? stackTrace) async {
+        executeResult.setError(e: exception, st: stackTrace);
       },
     );
   }
@@ -206,15 +206,15 @@ class Transfer {
     for (int i = 0; i < 20; i++) {
       final SingleResult<bool> sendResult = await send();
       final SingleResult<bool>? singleResultBool = await sendResult.handle<SingleResult<bool>?>(
-        onSuccess: (bool successResult) async {
+        doSuccess: (bool successResult) async {
           if (successResult) {
             return await SingleResult<bool>.empty().setSuccess(setResult: () async => true);
           } else {
             await Future<void>.delayed(delayed);
           }
         },
-        onError: (Object? exception, StackTrace? stackTrace) async {
-          return SingleResult<bool>.empty().setError(exception: 'singleResultBool 异常！$exception', stackTrace: stackTrace);
+        doError: (Object? exception, StackTrace? stackTrace) async {
+          return SingleResult<bool>.empty().setError(e: 'singleResultBool 异常！$exception', st: stackTrace);
         },
       );
       if (singleResultBool != null) {

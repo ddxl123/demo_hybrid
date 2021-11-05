@@ -42,10 +42,10 @@ class NodeSheetRouteForRule extends AbstractNodeSheetRoute<MFRule> {
       ),
     );
     await queryResult.handle<void>(
-      onSuccess: (List<MFRule> successResult) async {
+      doSuccess: (List<MFRule> successResult) async {
         bodyData.addAll(successResult);
       },
-      onError: (Object? exception, StackTrace? stackTrace) async {
+      doError: (Object? exception, StackTrace? stackTrace) async {
         SbLogger(
           c: null,
           vm: '获取失败！',

@@ -42,10 +42,10 @@ class NodeSheetRouteForMemory extends AbstractNodeSheetRoute<MFMemory> {
       ),
     );
     await queryResult.handle<void>(
-      onSuccess: (List<MFMemory> successResult) async {
+      doSuccess: (List<MFMemory> successResult) async {
         bodyData.addAll(successResult);
       },
-      onError: (Object? exception, StackTrace? stackTrace) async {
+      doError: (Object? exception, StackTrace? stackTrace) async {
         SbLogger(
           c: null,
           vm: '获取失败！',

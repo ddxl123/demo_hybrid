@@ -31,7 +31,7 @@ class ExecuteSomething {
       QueryWrapper(tableName: MUser().tableName),
     );
     await queryResult.handle<void>(
-      onSuccess: (List<MUser> successResult) async {
+      doSuccess: (List<MUser> successResult) async {
         if (successResult.isEmpty) {
           if (!isCheckOnly) {
             await onNotPass();
@@ -51,12 +51,12 @@ class ExecuteSomething {
               resultDataCast: null,
             );
             await pushResult.handle(
-              onSuccess: (bool successResult) async {
+              doSuccess: (bool successResult) async {
                 if (!successResult) {
                   throw Exception('result 不为 true！');
                 }
               },
-              onError: (Object? exception, StackTrace? stackTrace) async {
+              doError: (Object? exception, StackTrace? stackTrace) async {
                 // 弹出异常，则抛出。
                 throw Exception(exception);
               },
@@ -73,7 +73,7 @@ class ExecuteSomething {
           }
         }
       },
-      onError: (Object? exception, StackTrace? stackTrace) async {
+      doError: (Object? exception, StackTrace? stackTrace) async {
         await onError(exception, stackTrace);
       },
     );

@@ -112,7 +112,7 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
                 ),
                 sameNotConcurrent: null,
                 isBanAllOtherRequest: true,
-                resultHttpStoreJson: (Map<String, Object?> json) async => HttpStore_login_and_register_by_email_send_email.fromJson(json),
+                resultHttpStoreJson2HS: (Map<String, Object?> json) async => HttpStore_login_and_register_by_email_send_email.fromJson(json),
               );
 
               await requestResult.httpResponse.intercept(
@@ -141,7 +141,7 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
                     vm: hr.viewMessage,
                     data: hr,
                     descp: Description(''),
-                    e: hr.exception,
+                    e: hr._exception,
                     st: hr.stackTrace,
                   ).withAll(true);
                 },

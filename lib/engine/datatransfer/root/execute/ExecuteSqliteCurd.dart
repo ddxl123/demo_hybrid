@@ -15,7 +15,7 @@ class ExecuteSqliteCurd {
     final SingleResult<List<Map<String, Object?>>> queryRowResult =
         await DataTransferManager.instance.transfer.execute<Map<String, Object?>, List<Map<String, Object?>>>(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
-      operationIdWhenEngineOnReady: OUniform.SQLITE_QUERY_ROW_AS_JSONS,
+      operationId: OUniform.SQLITE_QUERY_ROW_AS_JSONS,
       setOperationData: () => queryWrapper.toJson(),
       startViewParams: null,
       endViewParams: null,
@@ -57,7 +57,7 @@ class ExecuteSqliteCurd {
   Future<SingleResult<T>> insertRow<T extends ModelBase>(T insertModel) async {
     final SingleResult<Map<String, Object?>> insertRowResult = await DataTransferManager.instance.transfer.execute<Map<String, Object?>, Map<String, Object?>>(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
-      operationIdWhenEngineOnReady: OUniform.SQLITE_INSERT_ROW,
+      operationId: OUniform.SQLITE_INSERT_ROW,
       setOperationData: () => <String, Object?>{
         'table_name': insertModel.tableName,
         'model_data': insertModel.getRowJson,
@@ -91,7 +91,7 @@ class ExecuteSqliteCurd {
   }) async {
     final SingleResult<Map<String, Object?>> updateRowResult = await DataTransferManager.instance.transfer.execute<Map<String, Object?>, Map<String, Object?>>(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
-      operationIdWhenEngineOnReady: OUniform.SQLITE_UPDATE_ROW,
+      operationId: OUniform.SQLITE_UPDATE_ROW,
       setOperationData: () => <String, Object?>{
         'model_table_name': modelTableName,
         'model_id': modelId,
@@ -121,7 +121,7 @@ class ExecuteSqliteCurd {
   }) async {
     final SingleResult<bool> deleteRowResult = await DataTransferManager.instance.transfer.execute<Map<String, Object?>, bool>(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
-      operationIdWhenEngineOnReady: OUniform.SQLITE_DELETE_ROW,
+      operationId: OUniform.SQLITE_DELETE_ROW,
       setOperationData: () => <String, Object?>{
         'model_table_name': modelTableName,
         'model_id': modelId,

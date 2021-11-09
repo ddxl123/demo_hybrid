@@ -6,13 +6,24 @@ import 'package:hybrid/util/SbHelper.dart';
 
 import '../DataTransferManager.dart';
 
+enum CheckUserResultType {
+  /// 检查全部通过：用户已登陆、用户初始数据已下载。
+  pass,
+
+  /// 用户未登陆。
+  notLogin,
+
+  /// 用户已登录，但初始数据未下载。
+  notDownload,
+}
+
 /// 可以在任何引擎中执行。
 class ExecuteSomething {
   ///
 
   /// 检查用户是否已登陆、检查用户初始数据是否已被下载。
   ///
-  /// [onSuccess]：全部检查通过。
+  /// [onPass]：全部检查通过。
   ///
   /// [onNotPass]：未通过。表示用户未登录或未下载初始数据。
   ///
@@ -21,25 +32,22 @@ class ExecuteSomething {
   ///
   /// [isCheckOnly]：是否只检查，而不进行 push。
   ///
-  Future<void> checkUser({
-    required Future<void> onSuccess(),
-    required Future<void> onNotPass(),
-    required Future<void> onError(Object? exception, StackTrace? stackTrace),
-    required bool isCheckOnly,
-  }) async {
+  Future<SingleResult<CheckUserResultType>> checkUser({required bool isCheckOnly}) async {
+    final SingleResult<CheckUserResultType> checkUserResult = SingleResult<CheckUserResultType>();
+
     final SingleResult<List<MUser>> queryResult = await DataTransferManager.instance.transfer.executeSqliteCurd.queryRowsAsModels<MUser>(
       QueryWrapper(tableName: MUser().tableName),
     );
     await queryResult.handle<void>(
       doSuccess: (List<MUser> successResult) async {
         if (successResult.isEmpty) {
+          // 先配置不通过，再进行弹出操作。
+          checkUserResult.setSuccess(setResult: () => CheckUserResultType.notLogin);
           if (!isCheckOnly) {
-            await onNotPass();
-
             // TODO: 弹出登陆页面引擎。
             final SingleResult<bool> pushResult = await DataTransferManager.instance.transfer.execute<void, bool>(
               executeForWhichEngine: EngineEntryName.LOGIN_AND_REGISTER,
-              operationIdWhenEngineOnReady: null,
+              operationId: null,
               setOperationData: () {},
               startViewParams: (ViewParams lastViewParams, SizeInt screenSize) {
                 return ViewParams(width: 500, height: 1000, x: 200, y: 200, isFocus: true);
@@ -51,32 +59,38 @@ class ExecuteSomething {
               resultDataCast: null,
             );
             await pushResult.handle(
-              doSuccess: (bool successResult) async {
-                if (!successResult) {
-                  throw Exception('result 不为 true！');
+              doSuccess: (bool isPushSuccess) async {
+                if (!isPushSuccess) {
+                  // TODO: 弹出的成功与失败，不能配置 checkUserResult，而需要另其独立配置。
+                  // checkUserResult.setError(vm: '弹出登陆页面异常！', descp: Description(''), e: Exception('isPushSuccess 不为 true！'), st: null);
                 }
               },
-              doError: (Object? exception, StackTrace? stackTrace) async {
-                // 弹出异常，则抛出。
-                throw Exception(exception);
+              doError: (SingleResult<bool> errorResult) async {
+                // TODO: 弹出的成功与失败，不能配置 checkUserResult，而需要另其独立配置。
+                // checkUserResult.setError(
+                //     vm: errorResult.getRequiredVm(), descp: errorResult.getRequiredDescp(), e: errorResult.getRequiredE(), st: errorResult.stackTrace);
               },
             );
           }
         } else {
           if (successResult.first.get_is_downloaded_init_data == 1) {
-            await onSuccess();
+            checkUserResult.setSuccess(setResult: () => CheckUserResultType.pass);
           } else {
-            await onNotPass();
+            // 先配置不通过，再进行弹出操作。
+            checkUserResult.setSuccess(setResult: () => CheckUserResultType.notDownload);
             if (!isCheckOnly) {
               // TODO: 弹出初始化数据下载页面引擎。
+              // TODO: 弹出的成功与失败，不能配置 checkUserResult，而需要另其独立配置。
             }
           }
         }
       },
-      doError: (Object? exception, StackTrace? stackTrace) async {
-        await onError(exception, stackTrace);
+      doError: (SingleResult<List<MUser>> errorResult) async {
+        checkUserResult.setError(
+            vm: errorResult.getRequiredVm(), descp: errorResult.getRequiredDescp(), e: errorResult.getRequiredE(), st: errorResult.stackTrace);
       },
     );
+    return checkUserResult;
   }
 
   /// 获取当前引擎的 window 大小(非 flutter 实际大小)

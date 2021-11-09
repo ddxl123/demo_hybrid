@@ -100,7 +100,7 @@ class HttpCurd {
         queryParameters: httpStore.httpRequest.requestParamsVO?.toJson().cast<String, Object?>(),
         options: Options(
           method: httpStore.httpRequest.method,
-          headers: httpStore.httpRequest.requestHeaders?.cast<String, Object?>(),
+          headers: httpStore.httpRequest.requestHeadersVO?.cast<String, Object?>(),
         ),
       );
 

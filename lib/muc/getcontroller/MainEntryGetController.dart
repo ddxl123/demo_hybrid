@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:hybrid/engine/constant/execute/EngineEntryName.dart';
 import 'package:hybrid/engine/constant/execute/OToNative.dart';
 import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
+import 'package:hybrid/engine/datatransfer/root/execute/ExecuteSomething.dart';
 import 'package:hybrid/engine/entry/main/FloatingWindowPermissionRoute.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
@@ -95,7 +96,7 @@ class MainEntryGetController extends GetxController {
   Future<void> _appDataInitializing() async {
     final SingleResult<bool> startDataCenterResult = await DataTransferManager.instance.transfer.execute<void, bool>(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
-      operationIdWhenEngineOnReady: null,
+      operationId: null,
       setOperationData: () {},
       startViewParams: null,
       endViewParams: null,
@@ -137,57 +138,47 @@ class MainEntryGetController extends GetxController {
   ///
   /// 主要检查用户是否已登录、用户数据是否已下载。
   Future<void> _userDataInitializing() async {
-    final Future<bool?> Function(bool isCheckOnly) checkUser = (bool isCheckOnly) async {
-      // 为 null 表示异常。
-      bool? isPass = false;
-      await DataTransferManager.instance.transfer.executeSomething.checkUser(
-        onSuccess: () async {
-          isPass = true;
-        },
-        onNotPass: () async {
-          isPass = false;
-        },
-        onError: (Object? exception, StackTrace? stackTrace) async {
-          isPass = null;
-          SbLogger(
-            c: null,
-            vm: null,
-            data: null,
-            descp: Description('发生异常！'),
-            e: exception,
-            st: stackTrace,
-          ).withRecord();
-        },
-        isCheckOnly: isCheckOnly,
-      );
-      return isPass;
+    final Future<SingleResult<CheckUserResultType>> Function(bool isCheckOnly) checkUser = (bool isCheckOnly) async {
+      return await DataTransferManager.instance.transfer.executeSomething.checkUser(isCheckOnly: isCheckOnly);
     };
 
-    final bool? checkResult = await checkUser(false);
-    if (checkResult == true) {
-      setInitStatus(MainEntryInitStatus.ok);
-      return;
-    } else if (checkResult == null) {
-      setInitStatus(MainEntryInitStatus.error, '用户数据初始化发生了异常！');
-      return;
-    }
-    // checkResult 为 false 时，会弹出操作框。
+    // 这一部分是进行检查并需要弹出时弹出。
+    final SingleResult<CheckUserResultType> checkResult = await checkUser(false);
+    await checkResult.handle(
+      doSuccess: (CheckUserResultType successResult) async {
+        if (successResult == CheckUserResultType.pass) {
+          setInitStatus(MainEntryInitStatus.ok);
+        } else if (successResult == CheckUserResultType.notLogin || successResult == CheckUserResultType.notDownload) {
+        } else {
+          setInitStatus(MainEntryInitStatus.error, '未知检查类型！');
+        }
+      },
+      doError: (SingleResult<CheckUserResultType> errorResult) async {
+        setInitStatus(MainEntryInitStatus.error, errorResult.getRequiredVm());
+      },
+    );
 
+    // 这一部分是只进行检查。
     Timer.periodic(
       const Duration(seconds: 1),
       (Timer timer) async {
-        final bool? timerResult = await checkUser(true);
+        final SingleResult<CheckUserResultType> timerResult = await checkUser(true);
         if (!timer.isActive) {
           return;
         }
-        if (timerResult == true) {
-          setInitStatus(MainEntryInitStatus.ok);
-          timer.cancel();
-        } else if (timerResult == null) {
-          setInitStatus(MainEntryInitStatus.error, '用户数据初始化发生了异常！');
-          timer.cancel();
-        }
-        // timerResult 为 false 时，会继续循环。
+        await timerResult.handle(
+          doSuccess: (CheckUserResultType successResult) async {
+            if (successResult == CheckUserResultType.pass) {
+              setInitStatus(MainEntryInitStatus.ok);
+              timer.cancel();
+            }
+            // 否则保持不变，继续循环。
+          },
+          doError: (SingleResult<CheckUserResultType> errorResult) async {
+            setInitStatus(MainEntryInitStatus.error, '检查时出现异常！');
+            timer.cancel();
+          },
+        );
       },
     );
   }

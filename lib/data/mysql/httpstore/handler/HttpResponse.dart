@@ -2,11 +2,13 @@
 
 import 'package:hybrid/util/SbHelper.dart';
 
-abstract class ResponseCodeCollect extends DoSerializable {}
+abstract class ResponseHeadersVO extends DoSerializable {}
 
 abstract class ResponseDataVO extends DoSerializable {}
 
-class HttpResponse<RESPCCOL extends ResponseCodeCollect, RESPDVO extends ResponseDataVO> {
+abstract class ResponseCodeCollect extends DoSerializable {}
+
+class HttpResponse<RESPHVO extends ResponseHeadersVO, RESPDVO extends ResponseDataVO, RESPCCOL extends ResponseCodeCollect> implements DoSerializable {
   HttpResponse({
     required Map<String, Object?> putResponseCodeCollect,
   }) {
@@ -16,40 +18,33 @@ class HttpResponse<RESPCCOL extends ResponseCodeCollect, RESPDVO extends Respons
     responseCodeCollect.addAll(putResponseCodeCollect);
   }
 
-  // factory HttpResponse.fromJson(
-  //     Map<String, Object?> json, RESPDVO? respdvo(Map<String, Object?>? respdvoJson), RESPCCOL respccol(Map<String, Object?> respccolJson)) {
-  //   return HttpResponse<RESPCCOL, RESPDVO>(
-  //     putResponseDataVO: (Map<String, Object?>? newResponseDataVO) => respdvo(newResponseDataVO),
-  //     responseCodeCollect: respccol((json['responseCodeCollect']! as Map<Object?, Object?>).cast<String, Object?>()),
-  //   )
-  //     ..responseHeaders = json['responseHeaders'] as Map<String, Object?>?
-  //     ..responseDataVO = json['responseDataVO'] == null ? null : respdvo((json['responseDataVO']! as Map<Object?, Object?>).cast<String, Object?>())
-  //     ..isContinue = json['isContinue']! as bool
-  //     ..code = json['code'] as int?
-  //     ..viewMessage = json['viewMessage'] as String?
-  //     ..description = json['description'] == null ? null : Description.fromJson((json['description']! as Map<Object?, Object?>).cast<String, Object?>())
-  //     ..exception = json['exception'] == null ? null : Exception(json['exception']!)
-  //     ..stackTrace = json['stackTrace'] == null ? null : StackTrace.fromString(json['stackTrace']! as String);
-  // }
-  //
-  // @override
-  // Map<String, Object?> toJson() => <String, Object?>{
-  //       'responseHeaders': responseHeaders,
-  //       'responseCodeCollect': responseCodeCollect.toJson(),
-  //       'responseDataVO': responseDataVO?.toJson(),
-  //       'putResponseDataVO': null,
-  //       'isContinue': isContinue,
-  //       'code': code,
-  //       'viewMessage': viewMessage,
-  //       'description': description?.toJson(),
-  //       'exception': exception?.toString(),
-  //       'stackTrace': stackTrace?.toString(),
-  //     };
+  factory HttpResponse.fromJson(Map<String, Object?> json) {
+    return HttpResponse<RESPHVO, RESPDVO, RESPCCOL>(
+      putResponseCodeCollect: (json['responseCodeCollect'] as Map<String, Object?>?) ?? <String, Object?>{},
+    )
+      ..code = (json['code'] as int?) ?? -1
+      ..viewMessage = (json['viewMessage'] as String?) ?? '异常消息(空)'
+      ..responseDataVO.addAll((json['responseDataVO'] as Map<String, Object?>?) ?? <String, Object?>{})
+      ..responseHeadersVO.addAll((json['responseHeadersVO'] as Map<String, Object?>?) ?? <String, Object?>{});
+  }
+
+  @override
+  Map<String, Object?> toJson() => <String, Object?>{
+        'responseCodeCollect': responseCodeCollect,
+        'code': code,
+        'viewMessage': viewMessage,
+        'responseDataVO': responseDataVO,
+        'responseHeadersVO': responseHeadersVO,
+      };
 
   /// 响应码集。
   final Map<String, Object?> responseCodeCollect = <String, Object?>{};
 
   /// 响应码。
+  ///
+  /// -1 表示赋值了 null；
+  ///
+  /// -2 表示未对其赋值。
   int code = -2;
 
   /// 响应消息。
@@ -59,13 +54,13 @@ class HttpResponse<RESPCCOL extends ResponseCodeCollect, RESPDVO extends Respons
   final Map<String, Object?> responseDataVO = <String, Object?>{};
 
   /// 响应头。
-  final Map<String, Object?> responseHeaders = <String, Object?>{};
+  final Map<String, Object?> responseHeadersVO = <String, Object?>{};
 
   void setAll({
     required int code,
     required String viewMessage,
     required Map<String, Object?> responseDataVO,
-    required Map<String, Object?> responseHeaders,
+    required Map<String, Object?> responseHeadersVO,
   }) {
     this.code = code;
     this.viewMessage = viewMessage;
@@ -73,12 +68,12 @@ class HttpResponse<RESPCCOL extends ResponseCodeCollect, RESPDVO extends Respons
     if (responseDataVO.isNotEmpty) {
       throw '_responseDataVO 已被添加过！';
     }
-    responseDataVO.addAll(responseDataVO);
+    this.responseDataVO.addAll(responseDataVO);
 
-    if (responseHeaders.isNotEmpty) {
-      throw 'responseHeaders 已被添加过！';
+    if (responseHeadersVO.isNotEmpty) {
+      throw 'responseHeadersVO 已被添加过！';
     }
-    responseHeaders.addAll(responseHeaders);
+    this.responseHeadersVO.addAll(responseHeadersVO);
   }
 
   RESPCCOL toVOForResponseCodeCollect(RESPCCOL respccol(Map<String, Object?> json)) {

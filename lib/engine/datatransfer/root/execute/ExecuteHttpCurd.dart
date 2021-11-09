@@ -11,11 +11,11 @@ class ExecuteHttpCurd {
     required HS httpStore,
     required String? sameNotConcurrent,
     bool isBanAllOtherRequest = false,
-    required Future<HS> resultHttpStoreJson(Map<String, Object?> resultJson),
+    required Future<HS> resultHttpStoreJson2HS(Map<String, Object?> resultJson),
   }) async {
     final SingleResult<Map<String, Object?>> executeResult = await DataTransferManager.instance.transfer.execute<Map<String, Object?>, Map<String, Object?>>(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
-      operationIdWhenEngineOnReady: OUniform.HTTP_CURD,
+      operationId: OUniform.HTTP_CURD,
       setOperationData: () => <String, Object?>{
         'putHttpStore': httpStore.toJson(),
         'sameNotConcurrent': sameNotConcurrent,
@@ -28,11 +28,10 @@ class ExecuteHttpCurd {
     );
     return await executeResult.handle<HS>(
       doSuccess: (Map<String, Object?> successResult) async {
-        return await resultHttpStoreJson(successResult);
-      },
-      doError: (Object? exception, StackTrace? stackTrace) async {
-        return await httpStore.setCancel(vm: '请求异常，请重新尝试！', descp: Description('请求异常，请重新尝试！'), e: exception, st: stackTrace) as HS;
-      },
+        return await resultHttpStoreJson2HS(successResult);
+      }, doError: (SingleResult<Map<String, Object?>> errorResult) async{
+        return
+    },
     );
   }
 }

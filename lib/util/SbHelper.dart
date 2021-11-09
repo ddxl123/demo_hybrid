@@ -9,18 +9,36 @@ import 'package:uuid/uuid.dart';
 
 class SingleResult<R> {
   R? result;
-  String? viewMessage;
-  Description? description;
-  Object? exception;
+  String? _viewMessage;
+
+  String getRequiredVm() => _viewMessage ?? '_viewMessage 为空！';
+  Description? _description;
+
+  Description getRequiredDescp() => _description ?? Description('_description 为空！');
+  Object? _exception;
+
+  Object getRequiredE() => _exception ?? Exception('_exception 为空！');
   StackTrace? stackTrace;
 
   bool isSet = false;
 
-  bool _hasError() => exception != null;
+  bool _hasError() => _exception != null;
+
+  void _reSetError() {
+    _viewMessage = '重复处理异常！';
+    _description = Description('');
+    _exception = '重复处理异常！';
+    stackTrace = null;
+  }
 
   SingleResult<R> setSuccess({required R setResult()}) {
+    if (isSet) {
+      _reSetError();
+      return this;
+    }
     try {
       result = setResult();
+      isSet = true;
       return this;
     } catch (e, st) {
       return setError(vm: '结果数据解析异常！', descp: Description(''), e: e, st: st);
@@ -29,9 +47,15 @@ class SingleResult<R> {
 
   /// [e] 不能为空，因为需要根据 [e] 来判断是否 [doCancel]。
   SingleResult<R> setError({required String vm, required Description descp, required Object e, required StackTrace? st}) {
-    viewMessage = vm;
-    description = descp;
-    exception = e;
+    if (isSet) {
+      _reSetError();
+      return this;
+    }
+    isSet = true;
+
+    _viewMessage = vm;
+    _description = descp;
+    _exception = e;
     stackTrace = st;
     return this;
   }
@@ -43,6 +67,11 @@ class SingleResult<R> {
   /// 必须先 [setSuccess]/[setError]，再 [handle]。
   /// 必须先 [setSuccess]/[setError]，再 [doSuccess]/[doError]。
   Future<HR> handle<HR>({required Future<HR> doSuccess(R successResult), required Future<HR> doError(SingleResult<R> errorResult)}) async {
+    if (!isSet) {
+      setError(vm: '请求未完全处理！', descp: Description(''), e: Exception('必须先进行 setCancel/setPass，才能进行 handle！'), st: null);
+      return await doError(this);
+    }
+
     if (!_hasError()) {
       try {
         return await doSuccess(result as R);

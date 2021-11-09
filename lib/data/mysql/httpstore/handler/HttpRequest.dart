@@ -2,9 +2,11 @@
 
 import 'package:hybrid/util/SbHelper.dart';
 
-abstract class RequestDataVO extends DoSerializable {}
+abstract class RequestHeadersVO extends DoSerializable {}
 
 abstract class RequestParamsVO extends DoSerializable {}
+
+abstract class RequestDataVO extends DoSerializable {}
 
 enum PathType {
   jwt,
@@ -33,40 +35,39 @@ extension PathTypeExt on PathType {
   }
 }
 
-/// 之所以 [requestHeaders]、[requestDataVO]、[requestParamsVO] 是回调函数，是为了对其输入的不正确数据进行置空处理，
+/// 之所以 [requestHeadersVO]、[requestDataVO]、[requestParamsVO] 是回调函数，是为了对其输入的不正确数据进行置空处理，
 /// 只有被引用时才会抛出异常，而在被引用前已将该对象创建成功（哪怕请求数据是空），这样做的话，能捕获到请求数据的异常。
-class HttpRequest<REQVO extends RequestDataVO, REQPVO extends RequestParamsVO> {
+class HttpRequest<REQHVO extends RequestHeadersVO, REQPVO extends RequestParamsVO, REQVO extends RequestDataVO> implements DoSerializable {
   HttpRequest({
     required this.method,
     required this.path,
-    required Map<String, Object?> putRequestHeaders,
-    required Map<String, Object?> putRequestDataVO,
+    required Map<String, Object?> putRequestHeadersVO,
     required Map<String, Object?> putRequestParamsVO,
+    required Map<String, Object?> putRequestDataVO,
   }) {
-    requestHeaders.addAll(putRequestHeaders);
+    requestHeadersVO.addAll(putRequestHeadersVO);
     requestDataVO.addAll(putRequestDataVO);
     requestParamsVO.addAll(putRequestParamsVO);
   }
 
-  // factory HttpRequest.fromJson(
-  //     Map<String, Object?> httpRequestJson, REQVO? reqvo(Map<String, Object?>? reqvoJson), REQPVO? reqpvo(Map<String, Object?>? reqpvoJson)) {
-  //   return HttpRequest<REQVO, REQPVO>(
-  //     method: httpRequestJson['method']! as String,
-  //     path: httpRequestJson['path']! as String,
-  //     putRequestHeaders: () => httpRequestJson['requestHeaders'] as Map<String, Object?>?,
-  //     putRequestDataVO: () => reqvo(httpRequestJson['requestDataVO'] as Map<String, Object?>?),
-  //     putRequestParamsVO: () => reqpvo(httpRequestJson['requestParamsVO'] as Map<String, Object?>?),
-  //   );
-  // }
+  factory HttpRequest.fromJson(Map<String, Object?> json) {
+    return HttpRequest<REQHVO, REQPVO, REQVO>(
+      method: json['method']! as String,
+      path: json['path']! as String,
+      putRequestHeadersVO: (json['requestHeadersVO'] as Map<String, Object?>?) ?? <String, Object?>{},
+      putRequestDataVO: (json['requestDataVO'] as Map<String, Object?>?) ?? <String, Object?>{},
+      putRequestParamsVO: (json['requestParamsVO'] as Map<String, Object?>?) ?? <String, Object?>{},
+    );
+  }
 
-  // @override
-  // Map<String, Object?> toJson() => <String, dynamic>{
-  //       'method': method,
-  //       'path': path,
-  //       'requestHeaders': requestHeaders,
-  //       'requestDataVO': requestDataVO?.toJson(),
-  //       'requestParamsVO': requestParamsVO?.toJson(),
-  //     };
+  @override
+  Map<String, Object?> toJson() => <String, Object?>{
+        'method': method,
+        'path': path,
+        'requestHeadersVO': requestHeadersVO,
+        'requestDataVO': requestDataVO,
+        'requestParamsVO': requestParamsVO,
+      };
 
   /// 请求方法。GET/POST
   String method;
@@ -76,13 +77,17 @@ class HttpRequest<REQVO extends RequestDataVO, REQPVO extends RequestParamsVO> {
   String path;
 
   /// 请求头。
-  final Map<String, Object?> requestHeaders = <String, Object?>{};
+  final Map<String, Object?> requestHeadersVO = <String, Object?>{};
 
   /// 请求体 body VO 模型。
   final Map<String, Object?> requestDataVO = <String, Object?>{};
 
   /// 请求体 params VO 模型。
   final Map<String, Object?> requestParamsVO = <String, Object?>{};
+
+  REQHVO toVOForRequestHeadersVO(REQHVO reqhvo(Map<String, Object?> json)) {
+    return reqhvo(requestDataVO);
+  }
 
   REQVO toVOForRequestDataVO(REQVO reqvo(Map<String, Object?> json)) {
     return reqvo(requestDataVO);

@@ -118,7 +118,7 @@ class LoginPage extends SbRoute {
                 ),
                 sameNotConcurrent: null,
                 isBanAllOtherRequest: true,
-                resultHttpStoreJson: (Map<String, Object?> json) async => HttpStore_login_and_register_by_email_send_email.fromJson(json),
+                resultHttpStoreJson2HS: (Map<String, Object?> json) async => HttpStore_login_and_register_by_email_send_email.fromJson(json),
               );
               requestResult.httpResponse.intercept(
                 doContinue: (HttpResponse<ResponseCodeCollect_LARBESE, ResponseDataVO_LARBESE> hr) async {
@@ -146,7 +146,7 @@ class LoginPage extends SbRoute {
                     vm: hr.viewMessage,
                     data: null,
                     descp: hr.text,
-                    e: hr.exception,
+                    e: hr._exception,
                     st: hr.stackTrace,
                   ).withAll(true);
                 },
@@ -177,7 +177,7 @@ class LoginPage extends SbRoute {
               ),
               sameNotConcurrent: null,
               isBanAllOtherRequest: true,
-              resultHttpStoreJson: (Map<String, Object?> json) async => HttpStore_login_and_register_by_email_verify_email.fromJson(json),
+              resultHttpStoreJson2HS: (Map<String, Object?> json) async => HttpStore_login_and_register_by_email_verify_email.fromJson(json),
             );
             await requestResult.httpResponse.intercept(
               doCancel: (HttpResponse<ResponseCodeCollect_LARBEVE, ResponseDataVO_LARBEVE> hr) async {
@@ -187,7 +187,7 @@ class LoginPage extends SbRoute {
                   vm: hr.viewMessage,
                   data: null,
                   descp: hr.text,
-                  e: hr.exception,
+                  e: hr._exception,
                   st: hr.stackTrace,
                 ).withAll(true);
               },

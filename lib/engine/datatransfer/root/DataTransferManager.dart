@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:hybrid/engine/constant/execute/EngineEntryName.dart';
-import 'package:hybrid/engine/constant/o/OUniform.dart';
 import 'package:hybrid/engine/datatransfer/root/BaseDataTransfer.dart';
 import 'package:hybrid/engine/datatransfer/root/execute/Transfer.dart';
 import 'package:hybrid/util/SbHelper.dart';
+import 'package:hybrid/util/sblogger/SbLogger.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'DataTransferManager.g.dart';
@@ -75,13 +75,15 @@ class DataTransferManager {
   ///
   /// [resultDataCast] 将原始类型手动转化为 [R]，若为空，则自动转化。
   ///
+  /// 返回独立的 [SingleResult] 对象。
+  ///
   Future<SingleResult<R>> sendMessageToOther<S, R extends Object>({
     required String sendToWhichEngine,
     required String operationId,
     required S setSendData(),
     required R resultDataCast(Object resultData)?,
   }) async {
-    final SingleResult<R> sendResult = SingleResult<R>.empty();
+    final SingleResult<R> sendResult = SingleResult<R>();
     try {
       final Map<String, Object?> messageMap = <String, Object?>{
         'send_to_which_engine': sendToWhichEngine,
@@ -90,7 +92,10 @@ class DataTransferManager {
       };
       final Object? resultData = await currentDataTransfer.basicMessageChannel.send(messageMap);
       if (resultData == null) {
-        throw Exception('''
+        return sendResult.setError(
+          vm: '通道传输异常！',
+          descp: Description(''),
+          e: Exception('''
                 
         来自原生的响应数据为 null！
         可能的原因如下：
@@ -101,14 +106,14 @@ class DataTransferManager {
           3. 接收者发生了异常
             1) listenerMessageFormOtherFlutterEngine 内部异常！
             2) 未对 operationId: $operationId 进行处理。
-        ''');
+        '''),
+          st: null,
+        );
       } else {
-        await sendResult.setSuccess(setResult: () async => resultDataCast == null ? resultData as R : resultDataCast(resultData));
+        return sendResult.setSuccess(setResult: () => resultDataCast == null ? resultData as R : resultDataCast(resultData));
       }
     } catch (e, st) {
-      sendResult.setError(e: '_sendMessageToOther 内部异常！$e', st: st);
+      return sendResult.setError(vm: '通道传输异常！', descp: Description(''), e: e, st: st);
     }
-    return sendResult;
   }
-
 }

@@ -22,7 +22,7 @@ class HttpRequestIntercept<REQVO extends RequestDataVO, REQPVO extends RequestPa
       );
       await queryResult.handle(
         doSuccess: (List<MUser> result) async {
-          httpRequest.requestHeaders = <String, Object?>{'authorization': 'bearer ' + (result.isEmpty ? '' : (result.first.get_token ?? ''))};
+          httpRequest.requestHeadersVO = <String, Object?>{'authorization': 'bearer ' + (result.isEmpty ? '' : (result.first.get_token ?? ''))};
         },
         doError: (Object? exception, StackTrace? stackTrace) async {
           throw '查询 user 数据时发生了异常！$exception';

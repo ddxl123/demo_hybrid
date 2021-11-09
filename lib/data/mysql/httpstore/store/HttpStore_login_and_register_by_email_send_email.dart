@@ -1,48 +1,75 @@
 // ignore_for_file: camel_case_types
 // ignore_for_file: non_constant_identifier_names
 
+import 'package:hybrid/data/mysql/httpstore/handler/HttpHandler.dart';
 import 'package:json_annotation/json_annotation.dart';
+
 import '../handler/HttpRequest.dart';
 import '../handler/HttpResponse.dart';
 import '../handler/HttpStore.dart';
 
 part 'HttpStore_login_and_register_by_email_send_email.g.dart';
 
-class HttpStore_login_and_register_by_email_send_email extends HttpStore_POST<RequestDataVO_LARBESE, ResponseCodeCollect_LARBESE, ResponseDataVO_LARBESE> {
+class HttpStore_login_and_register_by_email_send_email extends HttpStore<RequestHeadersVO_LARBESE, RequestParamsVO_LARBESE, RequestDataVO_LARBESE,
+    ResponseHeadersVO_LARBESE, ResponseDataVO_LARBESE, ResponseCodeCollect_LARBESE> {
   HttpStore_login_and_register_by_email_send_email({
-    required RequestDataVO_LARBESE? putRequestDataVO_LARBESE(),
+    required RequestHeadersVO_LARBESE requestHeadersVO_LARBESE,
+    required RequestParamsVO_LARBESE requestParamsVO_LARBESE,
+    required RequestDataVO_LARBESE requestDataVO_LARBESE,
   }) : super(
-          r'no_jwt/login_and_register_by_email/send_email',
-          putRequestDataVO_LARBESE,
-          ResponseCodeCollect_LARBESE(),
-          (Map<String, Object?>? json) => json == null ? null : ResponseDataVO_LARBESE.fromJson(json),
-        );
-  
-  factory HttpStore_login_and_register_by_email_send_email.fromJson(Map<String, Object?> json) =>
-      HttpStore_login_and_register_by_email_send_email(putRequestDataVO_LARBESE: () => null)
-        ..httpRequest = HttpRequest<RequestDataVO_LARBESE, RequestParamsVO>.fromJson(
-          json['httpRequest']! as Map<String, Object?>,
-          (Map<String, Object?>? reqvoJson) => reqvoJson == null ? null : RequestDataVO_LARBESE.fromJson(reqvoJson),
-          (Map<String, Object?>? reqpvoJson) => null,
-        )
-        ..httpResponse = HttpResponse<ResponseCodeCollect_LARBESE, ResponseDataVO_LARBESE>.fromJson(
-          json['httpResponse']! as Map<String, Object?>,
-          (Map<String, Object?>? respdvoJson) => respdvoJson == null ? null : ResponseDataVO_LARBESE.fromJson(respdvoJson),
-          (Map<String, Object?> respccolJson) => ResponseCodeCollect_LARBESE.fromJson(respccolJson),
+          putHttpRequest: () => HttpRequest<RequestHeadersVO_LARBESE, RequestParamsVO_LARBESE, RequestDataVO_LARBESE>(
+            method: 'POST',
+            path: r'no_jwt/login_and_register_by_email/send_email',
+            putRequestHeadersVO: requestHeadersVO_LARBESE.toJson(),
+            putRequestParamsVO: requestParamsVO_LARBESE.toJson(),
+            putRequestDataVO: requestDataVO_LARBESE.toJson(),
+          ),
+          putResponseCodeCollect: ResponseCodeCollect_LARBESE(),
         );
 
+  HttpStore_login_and_register_by_email_send_email.empty() : super.empty();
+
+  factory HttpStore_login_and_register_by_email_send_email.fromJson(Map<String, Object?> json) {
+    final HttpStore_login_and_register_by_email_send_email hs = HttpStore_login_and_register_by_email_send_email.empty()
+      ..httpRequest = HttpRequest.fromJson(json['httpRequest']! as Map<String, Object?>)
+      ..httpResponse = HttpResponse.fromJson(json['httpResponse']! as Map<String, Object?>);
+    hs.httpHandler = HttpHandler.fromJson(hs, json['httpHandler']! as Map<String, Object?>);
+    return hs;
+  }
 
   @override
   Map<String, Object?> toJson() => <String, Object?>{
         'httpRequest': httpRequest.toJson(),
         'httpResponse': httpResponse.toJson(),
+        'httpHandler': httpHandler.toJson(),
       };
 }
 
 @JsonSerializable()
+class RequestHeadersVO_LARBESE extends RequestHeadersVO {
+  RequestHeadersVO_LARBESE();
+
+  factory RequestHeadersVO_LARBESE.fromJson(Map<String, Object?> json) => _$RequestHeadersVO_LARBESEFromJson(json);
+
+  @override
+  Map<String, Object?> toJson() => _$RequestHeadersVO_LARBESEToJson(this);
+}
+
+@JsonSerializable()
+class RequestParamsVO_LARBESE extends RequestParamsVO {
+  RequestParamsVO_LARBESE();
+
+  factory RequestParamsVO_LARBESE.fromJson(Map<String, Object?> json) => _$RequestParamsVO_LARBESEFromJson(json);
+
+  @override
+  Map<String, Object?> toJson() => _$RequestParamsVO_LARBESEToJson(this);
+}
+
+@JsonSerializable()
 class RequestDataVO_LARBESE extends RequestDataVO {
-  RequestDataVO_LARBESE(
-    {required this.email,});
+  RequestDataVO_LARBESE({
+    required this.email,
+  });
 
   factory RequestDataVO_LARBESE.fromJson(Map<String, Object?> json) => _$RequestDataVO_LARBESEFromJson(json);
 
@@ -53,17 +80,23 @@ class RequestDataVO_LARBESE extends RequestDataVO {
 }
 
 @JsonSerializable()
+class ResponseHeadersVO_LARBESE extends ResponseHeadersVO {
+  ResponseHeadersVO_LARBESE();
+
+  factory ResponseHeadersVO_LARBESE.fromJson(Map<String, Object?> json) => _$ResponseHeadersVO_LARBESEFromJson(json);
+
+  @override
+  Map<String, Object?> toJson() => _$ResponseHeadersVO_LARBESEToJson(this);
+}
+
+@JsonSerializable()
 class ResponseDataVO_LARBESE extends ResponseDataVO {
-  ResponseDataVO_LARBESE(
-    
-  );
+  ResponseDataVO_LARBESE();
 
   factory ResponseDataVO_LARBESE.fromJson(Map<String, Object?> json) => _$ResponseDataVO_LARBESEFromJson(json);
 
   @override
   Map<String, Object?> toJson() => _$ResponseDataVO_LARBESEToJson(this);
-
-  
 }
 
 @JsonSerializable()
@@ -75,7 +108,6 @@ class ResponseCodeCollect_LARBESE extends ResponseCodeCollect {
   @override
   Map<String, Object?> toJson() => _$ResponseCodeCollect_LARBESEToJson(this);
 
-    /// 邮箱已发送, 请注意查收!
+  /// 邮箱已发送, 请注意查收!
   final int C2_01_01_01 = 2010101;
-  
 }

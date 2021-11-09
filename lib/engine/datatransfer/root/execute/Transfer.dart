@@ -3,6 +3,7 @@ import 'package:hybrid/engine/constant/execute/OToNative.dart';
 import 'package:hybrid/engine/constant/o/OUniform.dart';
 import 'package:hybrid/engine/datatransfer/root/execute/ExecuteHttpCurd.dart';
 import 'package:hybrid/util/SbHelper.dart';
+import 'package:hybrid/util/sblogger/SbLogger.dart';
 
 import '../DataTransferManager.dart';
 import 'ExecuteSomething.dart';
@@ -29,15 +30,15 @@ class Transfer {
   ///
   ///   > - 若为 [EngineEntryName.NATIVE]，则使用 [toNative] 代替。
   ///
-  /// 关于 [operationIdWhenEngineOnReady]：
+  /// 关于 [operationId]：
   ///
-  ///   > - 若引擎已启动或已触发启动，且其引擎第一帧被执行完成后，需要进行的 operation 操作。
+  ///   > - 若引擎【已启动】或【刚启动】，且其引擎【第一帧被执行完成】后，需要进行的 operation 操作。
   ///
-  ///   > - 若 [operationIdWhenEngineOnReady] 为空，即不传递 operation，则 [R] 必须为 [bool] 类型。
+  ///   > - 若 [operationId] 为空，即不传递 operation，则 [R] 必须为 [bool] 类型。
   ///
   /// 关于 [setOperationData]：
   ///
-  ///   > - 当 [operationIdWhenEngineOnReady] 不为空时要传递的数据。
+  ///   > - 当 [operationId] 不为空时要传递的数据。
   ///
   /// 关于 [startViewParams]：
   ///
@@ -57,38 +58,43 @@ class Transfer {
   ///
   Future<SingleResult<R>> execute<S, R extends Object>({
     required String executeForWhichEngine,
-    required String? operationIdWhenEngineOnReady,
+    required String? operationId,
     required S setOperationData(),
     required ViewParams startViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
     required ViewParams endViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
     required int? closeViewAfterSeconds,
     required R resultDataCast(Object resultData)?,
   }) async {
-    final SingleResult<R> executeResult = SingleResult<R>.empty();
+    final SingleResult<R> executeResult = SingleResult<R>();
 
     if (executeForWhichEngine == EngineEntryName.NATIVE || executeForWhichEngine == EngineEntryName.MAIN) {
-      return executeResult.setError(e: 'executeForWhichEngine 不能为 ${EngineEntryName.NATIVE} 或 ${EngineEntryName.MAIN}！', st: null);
+      return executeResult.setError(
+        vm: '入口函数错误！',
+        descp: Description(''),
+        e: Exception('executeForWhichEngine 不能为 ${EngineEntryName.NATIVE} 或 ${EngineEntryName.MAIN}！'),
+        st: null,
+      );
     }
 
     // 检测是否已启动引擎，若未启动，则启动。
-    final SingleResult<bool> messageResult = await DataTransferManager.instance.sendMessageToOther<Map<String, Object?>, bool>(
+    final SingleResult<bool> bootResult = await DataTransferManager.instance.sendMessageToOther<Map<String, Object?>, bool>(
       sendToWhichEngine: EngineEntryName.NATIVE,
       operationId: OToNative.START_ENGINE,
       setSendData: () => <String, Object?>{'start_which_engine': executeForWhichEngine},
       resultDataCast: null,
     );
-    await messageResult.handle<void>(
-      doSuccess: (bool successResult) async {
+    await bootResult.handle<void>(
+      doSuccess: (bool isBoot) async {
         // 引擎已启动或已触发启动引擎，则得到 true。
-        if (successResult) {
-          final SingleResult<bool> isReadyResult = await _isPushedEngineOnReady(executeForWhichEngine);
-          await isReadyResult.handle<void>(
-            doSuccess: (bool successResult) async {
-              if (successResult) {
+        if (isBoot) {
+          await (await _isPushedEngineOnReady(executeForWhichEngine)).handle<void>(
+            doSuccess: (bool isReadySuccess) async {
+              // 为 true 时，已准备好；为 false 时，准备失败。
+              if (isReadySuccess) {
                 await _handleViewAndOperation<S, R>(
                   executeResult: executeResult,
                   executeForWhichEngine: executeForWhichEngine,
-                  operationIdIfEngineFirstFrameInitialized: operationIdWhenEngineOnReady,
+                  operationId: operationId,
                   setOperationData: setOperationData,
                   startViewParams: startViewParams,
                   endViewParams: endViewParams,
@@ -96,22 +102,29 @@ class Transfer {
                   resultDataCast: resultDataCast,
                 );
               } else {
-                executeResult.setError(e: Exception('启动引擎后的检查第一帧是否已被初始化发生了异常：result 不为 true！'), st: null);
+                executeResult.setError(vm: '准备失败！', descp: Description(''), e: Exception('isReadySuccess 始终为 false！'), st: null);
               }
             },
-            doError: (Object? exception, StackTrace? stackTrace) async {
+            doError: (SingleResult<bool> errorResult) async {
               executeResult.setError(
-                e: Exception('启动引擎后的检查第一帧是否已被初始化发生了异常：未知异常！' + exception.toString()),
-                st: stackTrace,
+                vm: errorResult.getRequiredVm(),
+                descp: errorResult.getRequiredDescp(),
+                e: errorResult.getRequiredE(),
+                st: errorResult.stackTrace,
               );
             },
           );
         } else {
-          executeResult.setError(e: Exception('启动引擎发生了异常！result 不为 true！'), st: null);
+          executeResult.setError(vm: '启动失败！', descp: Description(''), e: Exception('启动引擎发生了异常！result 不为 true！'), st: null);
         }
       },
-      doError: (Object? exception, StackTrace? stackTrace) async {
-        executeResult.setError(e: exception, st: stackTrace);
+      doError: (SingleResult<bool> errorResult) async {
+        executeResult.setError(
+          vm: errorResult.getRequiredVm(),
+          descp: errorResult.getRequiredDescp(),
+          e: errorResult.getRequiredE(),
+          st: errorResult.stackTrace,
+        );
       },
     );
     return executeResult;
@@ -120,7 +133,7 @@ class Transfer {
   Future<void> _handleViewAndOperation<S, R extends Object>({
     required SingleResult<R> executeResult,
     required String executeForWhichEngine,
-    required String? operationIdIfEngineFirstFrameInitialized,
+    required String? operationId,
     required S setOperationData(),
     required ViewParams startViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
     required ViewParams endViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
@@ -136,25 +149,33 @@ class Transfer {
         doSuccess: (ViewParams successResult) async {
           return successResult;
         },
-        doError: (Object? exception, StackTrace? stackTrace) async {
-          executeResult.setError(e: 'lastViewParamsResult 异常！ $exception', st: stackTrace);
+        doError: (SingleResult<ViewParams> errorResult) async {
+          executeResult.setError(
+              vm: errorResult.getRequiredVm(), descp: errorResult.getRequiredDescp(), e: errorResult.getRequiredE(), st: errorResult.stackTrace);
           return null;
         },
       );
+      if (lastViewParams == null) {
+        return;
+      }
 
       final SingleResult<SizeInt> screenSizeResult = await DataTransferManager.instance.transfer.executeSomething.getScreenSize();
       screenSize = await screenSizeResult.handle<SizeInt?>(
         doSuccess: (SizeInt size) async {
           return size;
         },
-        doError: (Object? exception, StackTrace? stackTrace) async {
-          executeResult.setError(e: 'screenSizeResult 异常！ $exception', st: stackTrace);
+        doError: (SingleResult<SizeInt> errorResult) async {
+          executeResult.setError(
+              vm: errorResult.getRequiredVm(), descp: errorResult.getRequiredDescp(), e: errorResult.getRequiredE(), st: errorResult.stackTrace);
           return null;
         },
       );
+      if (screenSize == null) {
+        return;
+      }
     }
 
-    final SingleResult<bool> viewResult = await DataTransferManager.instance.sendMessageToOther<Map<String, Object?>, bool>(
+    final SingleResult<bool> setViewParamsResult = await DataTransferManager.instance.sendMessageToOther<Map<String, Object?>, bool>(
       sendToWhichEngine: EngineEntryName.NATIVE,
       operationId: OToNative.SET_VIEW_PARAMS,
       setSendData: () => <String, Object?>{
@@ -165,34 +186,50 @@ class Transfer {
       },
       resultDataCast: null,
     );
-    await viewResult.handle<void>(
-      doSuccess: (bool successResult) async {
-        // view set 完成。
-        if (successResult) {
-          if (operationIdIfEngineFirstFrameInitialized != null) {
+    await setViewParamsResult.handle<void>(
+      doSuccess: (bool isSetViewParamsSuccess) async {
+        if (isSetViewParamsSuccess) {
+          // 配置 view 成功，进行 operation 配置。
+          if (operationId != null) {
             final SingleResult<R> operationResult = await DataTransferManager.instance.sendMessageToOther<S, R>(
               sendToWhichEngine: executeForWhichEngine,
-              operationId: operationIdIfEngineFirstFrameInitialized,
+              operationId: operationId,
               setSendData: setOperationData,
               resultDataCast: resultDataCast,
             );
-            operationResult.cloneTo(executeResult);
-          } else {
-            await executeResult.setSuccess(setResult: () async => true as R);
+            await operationResult.handle(
+              doSuccess: (R successResult) async {
+                executeResult.setSuccess(setResult: () => successResult);
+              },
+              doError: (SingleResult<R> errorResult) async {
+                executeResult.setError(
+                    vm: errorResult.getRequiredVm(), descp: errorResult.getRequiredDescp(), e: errorResult.getRequiredE(), st: errorResult.stackTrace);
+              },
+            );
+          }
+
+          // 配置 view 成功，无需进行 operation 配置。
+          else {
+            executeResult.setSuccess(setResult: () => true as R);
           }
         } else {
-          executeResult.setError(e: Exception('data 不为 true！'), st: null);
+          // 配置 view 失败。
+          executeResult.setError(vm: '视口配置异常！', descp: Description(''), e: Exception('isSetViewParamsSuccess 不为 true'), st: null);
         }
       },
-      doError: (Object? exception, StackTrace? stackTrace) async {
-        executeResult.setError(e: exception, st: stackTrace);
+      doError: (SingleResult<bool> errorResult) async {
+        executeResult.setError(
+            vm: errorResult.getRequiredVm(), descp: errorResult.getRequiredDescp(), e: errorResult.getRequiredE(), st: errorResult.stackTrace);
+        ;
       },
     );
   }
 
   /// 检查对应引擎的第一帧是否已被初始化完成。
+  ///
+  /// 返回独立的 [SingleResult]。其中的 bool：为 true，则表示已准备好；为 false，则为准备失败。
   Future<SingleResult<bool>> _isPushedEngineOnReady(String whichEngine) async {
-    final Future<SingleResult<bool>> Function() send = () async {
+    final Future<SingleResult<bool>> Function() putIsOnReady = () async {
       return await DataTransferManager.instance.sendMessageToOther<void, bool>(
         sendToWhichEngine: whichEngine,
         operationId: OUniform.IS_ENGINE_ON_READY,
@@ -204,24 +241,30 @@ class Transfer {
     // 每0.5s检测一次。
     const Duration delayed = Duration(milliseconds: 500);
     for (int i = 0; i < 20; i++) {
-      final SingleResult<bool> sendResult = await send();
-      final SingleResult<bool>? singleResultBool = await sendResult.handle<SingleResult<bool>?>(
+      // 新的 SingleResult 对象。
+      // 为空表示未 onReady，并继续循环。
+      final SingleResult<bool>? isOnReadyResult = await (await putIsOnReady()).handle<SingleResult<bool>?>(
         doSuccess: (bool successResult) async {
           if (successResult) {
-            return await SingleResult<bool>.empty().setSuccess(setResult: () async => true);
+            return SingleResult<bool>().setSuccess(setResult: () => true);
           } else {
             await Future<void>.delayed(delayed);
           }
         },
-        doError: (Object? exception, StackTrace? stackTrace) async {
-          return SingleResult<bool>.empty().setError(e: 'singleResultBool 异常！$exception', st: stackTrace);
+        doError: (SingleResult<bool> errorResult) async {
+          return SingleResult<bool>().setError(
+            vm: errorResult.getRequiredVm(),
+            descp: errorResult.getRequiredDescp(),
+            e: errorResult.getRequiredE(),
+            st: errorResult.stackTrace,
+          );
         },
       );
-      if (singleResultBool != null) {
-        return singleResultBool;
+      if (isOnReadyResult != null) {
+        return isOnReadyResult;
       }
     }
-    return await SingleResult<bool>.empty().setSuccess(setResult: () async => false);
+    return SingleResult<bool>().setSuccess(setResult: () => false);
   }
 
   Future<SingleResult<R>> toNative<S, R extends Object>({

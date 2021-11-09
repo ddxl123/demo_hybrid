@@ -1,31 +1,54 @@
 import 'package:dio/dio.dart';
+import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
 import 'HttpResponseIntercept.dart';
 import 'HttpStore.dart';
 
-class HttpHandler {
+class HttpHandler implements DoSerializable {
   HttpHandler(this.httpStore);
 
   final HttpStore httpStore;
 
-  String? viewMessage;
+  String? _viewMessage;
 
-  Description? description;
+  String getRequiredViewMessage() => _viewMessage ?? '_viewMessage 为空！';
 
-  /// 用 [exception] 是否为 null 来判断是否 doContinue。
-  Object? exception;
+  Description? _description;
+
+  Description getRequiredDescription() => _description ?? Description('_description 为空！');
+
+  /// 用 [_exception] 是否为 null 来判断是否 doContinue。
+  Object? _exception;
+
+  Object getRequiredException() => _exception ?? Exception('_exception 为空！');
 
   StackTrace? stackTrace;
 
   bool isSet = false;
 
-  bool _hasError() => exception != null;
+  bool _hasError() => _exception != null;
+
+  factory HttpHandler.fromJson(HttpStore httpStore, Map<String, Object?> json) => HttpHandler(httpStore)
+    .._viewMessage = json['viewMessage'] as String?
+    .._description = json['description'] == null ? null : Description.fromJson(json['description']! as Map<String, Object?>)
+    .._exception = json['exception'] == null ? null : Exception(json['exception'])
+    ..stackTrace = json['stackTrace'] == null ? null : StackTrace.fromString(json['stackTrace']! as String)
+    ..isSet = json['isSet']! as bool;
+
+  @override
+  Map<String, Object?> toJson() => <String, Object?>{
+        'viewMessage': _viewMessage,
+        'description': _description?.toJson(),
+        'exception': _exception?.toString(),
+        'stackTrace': stackTrace?.toString(),
+        'isSet': isSet,
+      };
 
   void _reSetCancel() {
-    viewMessage = '重复处理异常！';
-    description = Description('');
-    exception = '重复处理异常！';
+    _viewMessage = '重复处理异常！';
+    _description = Description('');
+    _exception = '重复处理异常！';
     stackTrace = null;
   }
 
@@ -37,9 +60,9 @@ class HttpHandler {
     }
     isSet = true;
 
-    viewMessage = vm;
-    description = descp;
-    exception = e;
+    _viewMessage = vm;
+    _description = descp;
+    _exception = e;
     stackTrace = st;
     return httpStore;
   }
@@ -57,7 +80,7 @@ class HttpHandler {
         // 云端响应的 viewMessage 不能为空。
         viewMessage: response.data!['message']! as String,
         responseDataVO: response.data!['data'] == null ? <String, Object?>{} : response.data!['data']! as Map<String, Object?>,
-        responseHeaders: response.headers.map,
+        responseHeadersVO: response.headers.map,
       );
       isSet = true;
     } catch (e, st) {

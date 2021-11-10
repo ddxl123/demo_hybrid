@@ -1,9 +1,9 @@
+import 'package:hybrid/data/mysql/httpstore/handler/HttpHandler.dart';
 import 'package:hybrid/data/mysql/httpstore/handler/HttpStore.dart';
 import 'package:hybrid/engine/constant/execute/EngineEntryName.dart';
 import 'package:hybrid/engine/constant/o/OUniform.dart';
 import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
 import 'package:hybrid/util/SbHelper.dart';
-import 'package:hybrid/util/sblogger/SbLogger.dart';
 
 class ExecuteHttpCurd {
   /// [resultJson] 需要手动转换成 [HttpStore]。
@@ -24,14 +24,24 @@ class ExecuteHttpCurd {
       startViewParams: null,
       endViewParams: null,
       closeViewAfterSeconds: null,
-      resultDataCast: (Object resultData) => (resultData as Map<Object?, Object?>).cast<String, Object?>(),
+      resultDataCast: (Object httpStoreJsonResult) => (httpStoreJsonResult as Map<Object?, Object?>).cast<String, Object?>(),
     );
     return await executeResult.handle<HS>(
       doSuccess: (Map<String, Object?> successResult) async {
         return await resultHttpStoreJson2HS(successResult);
-      }, doError: (SingleResult<Map<String, Object?>> errorResult) async{
-        return
-    },
+      },
+      doError: (SingleResult<Map<String, Object?>> errorResult) async {
+        return await resultHttpStoreJson2HS(
+          <String, Object?>{
+            'httpHandler': HttpHandler.error(
+              vm: errorResult.getRequiredVm(),
+              descp: errorResult.getRequiredDescp(),
+              e: errorResult.getRequiredE(),
+              st: errorResult.stackTrace,
+            ).toJson(),
+          },
+        );
+      },
     );
   }
 }

@@ -25,10 +25,26 @@ abstract class HttpStore<REQHVO extends RequestHeadersVO, REQPVO extends Request
     }
   }
 
-  HttpStore.empty();
+  HttpStore.fromJson(Map<String, Object?> json) {
+    if (json['httpRequest'] == null && json['httpResponse'] == null) {
+      httpHandler = HttpHandler.fromJson(this, json['httpHandler']! as Map<String, Object?>);
+    } else {
+      httpRequest = HttpRequest.fromJson(json['httpRequest']! as Map<String, Object?>);
+      httpResponse = HttpResponse.fromJson(json['httpResponse']! as Map<String, Object?>);
+      httpHandler = HttpHandler.fromJson(this, json['httpHandler']! as Map<String, Object?>);
+    }
+  }
 
-  /// [HttpStore] 抽象类以及继承类，只能存在这两个熟悉，因为需要进行序列化和反序列化。
+  @override
+  Map<String, Object?> toJson() => <String, Object?>{
+        'httpRequest': httpRequest.toJson(),
+        'httpResponse': httpResponse.toJson(),
+        'httpHandler': httpHandler.toJson(),
+      };
+
   late final HttpRequest<REQHVO, REQPVO, REQVO> httpRequest;
+
   late final HttpResponse<RESPHVO, RESPDVO, RESPCCOL> httpResponse;
+
   late final HttpHandler httpHandler;
 }

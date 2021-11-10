@@ -3,10 +3,12 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:hybrid/data/mysql/httpstore/handler/HttpHandler.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:uuid/uuid.dart';
 
+/// 与 [HttpHandler] 基本一直。
 class SingleResult<R> {
   R? result;
   String? _viewMessage;
@@ -24,16 +26,8 @@ class SingleResult<R> {
 
   bool _hasError() => _exception != null;
 
-  void _reSetError() {
-    _viewMessage = '重复处理异常！';
-    _description = Description('');
-    _exception = '重复处理异常！';
-    stackTrace = null;
-  }
-
   SingleResult<R> setSuccess({required R setResult()}) {
     if (isSet) {
-      _reSetError();
       return this;
     }
     try {
@@ -48,7 +42,6 @@ class SingleResult<R> {
   /// [e] 不能为空，因为需要根据 [e] 来判断是否 [doCancel]。
   SingleResult<R> setError({required String vm, required Description descp, required Object e, required StackTrace? st}) {
     if (isSet) {
-      _reSetError();
       return this;
     }
     isSet = true;
@@ -60,6 +53,10 @@ class SingleResult<R> {
     return this;
   }
 
+  SingleResult<R> setErrorClone(SingleResult from) {
+    return setError(vm: from.getRequiredVm(), descp: from.getRequiredDescp(), e: from.getRequiredE(), st: from.stackTrace);
+  }
+
   /// 可以在 [doError] 内部进行 throw。
   ///
   /// [HR]：指定返回类型。
@@ -68,7 +65,7 @@ class SingleResult<R> {
   /// 必须先 [setSuccess]/[setError]，再 [doSuccess]/[doError]。
   Future<HR> handle<HR>({required Future<HR> doSuccess(R successResult), required Future<HR> doError(SingleResult<R> errorResult)}) async {
     if (!isSet) {
-      setError(vm: '请求未完全处理！', descp: Description(''), e: Exception('必须先进行 setCancel/setPass，才能进行 handle！'), st: null);
+      setError(vm: '未完全处理！', descp: Description(''), e: Exception('必须先进行 setCancel/setPass，才能进行 handle！'), st: null);
       return await doError(this);
     }
 

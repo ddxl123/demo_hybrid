@@ -5,10 +5,27 @@ import 'package:hybrid/util/sblogger/SbLogger.dart';
 import 'HttpResponseIntercept.dart';
 import 'HttpStore.dart';
 
+/// 与 [SingleResult] 基本一致。
 class HttpHandler implements DoSerializable {
   HttpHandler(this.httpStore);
 
-  final HttpStore httpStore;
+  /// 不能在这里面直接调用 [setCancel]，因为 [setCancel] 需要 [httpStore] 的支持。
+  HttpHandler.error({required String vm, required Description descp, required Object e, required StackTrace? st}) {
+    _viewMessage = vm;
+    _description = descp;
+    _exception = e;
+    stackTrace = st;
+    isSet = true;
+  }
+
+  factory HttpHandler.fromJson(HttpStore httpStore, Map<String, Object?> json) => HttpHandler(httpStore)
+    .._viewMessage = json['viewMessage'] as String?
+    .._description = json['description'] == null ? null : Description.fromJson(json['description']! as Map<String, Object?>)
+    .._exception = json['exception'] == null ? null : Exception(json['exception'])
+    ..stackTrace = json['stackTrace'] == null ? null : StackTrace.fromString(json['stackTrace']! as String)
+    ..isSet = json['isSet']! as bool;
+
+  late final HttpStore httpStore;
 
   String? _viewMessage;
 
@@ -25,16 +42,10 @@ class HttpHandler implements DoSerializable {
 
   StackTrace? stackTrace;
 
+  /// 只能被 [setCancel]/[setPass] 一次，第二次的话会保持第一次。
   bool isSet = false;
 
   bool _hasError() => _exception != null;
-
-  factory HttpHandler.fromJson(HttpStore httpStore, Map<String, Object?> json) => HttpHandler(httpStore)
-    .._viewMessage = json['viewMessage'] as String?
-    .._description = json['description'] == null ? null : Description.fromJson(json['description']! as Map<String, Object?>)
-    .._exception = json['exception'] == null ? null : Exception(json['exception'])
-    ..stackTrace = json['stackTrace'] == null ? null : StackTrace.fromString(json['stackTrace']! as String)
-    ..isSet = json['isSet']! as bool;
 
   @override
   Map<String, Object?> toJson() => <String, Object?>{
@@ -45,17 +56,9 @@ class HttpHandler implements DoSerializable {
         'isSet': isSet,
       };
 
-  void _reSetCancel() {
-    _viewMessage = '重复处理异常！';
-    _description = Description('');
-    _exception = '重复处理异常！';
-    stackTrace = null;
-  }
-
   /// [e] 不能为空，因为需要根据 [e] 来判断是否 [doCancel]。
   HttpStore setCancel({required String vm, required Description descp, required Object e, required StackTrace? st}) {
     if (isSet) {
-      _reSetCancel();
       return httpStore;
     }
     isSet = true;
@@ -69,7 +72,6 @@ class HttpHandler implements DoSerializable {
 
   HttpStore setPass(Response<Map<String, Object?>> response) {
     if (isSet) {
-      _reSetCancel();
       return httpStore;
     }
 

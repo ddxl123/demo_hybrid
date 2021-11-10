@@ -1,7 +1,6 @@
 // ignore_for_file: camel_case_types
 // ignore_for_file: non_constant_identifier_names
 
-import 'package:hybrid/data/mysql/httpstore/handler/HttpHandler.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../handler/HttpRequest.dart';
@@ -27,22 +26,7 @@ class HttpStore_login_and_register_by_email_send_email extends HttpStore<Request
           putResponseCodeCollect: ResponseCodeCollect_LARBESE(),
         );
 
-  HttpStore_login_and_register_by_email_send_email.empty() : super.empty();
-
-  factory HttpStore_login_and_register_by_email_send_email.fromJson(Map<String, Object?> json) {
-    final HttpStore_login_and_register_by_email_send_email hs = HttpStore_login_and_register_by_email_send_email.empty()
-      ..httpRequest = HttpRequest.fromJson(json['httpRequest']! as Map<String, Object?>)
-      ..httpResponse = HttpResponse.fromJson(json['httpResponse']! as Map<String, Object?>);
-    hs.httpHandler = HttpHandler.fromJson(hs, json['httpHandler']! as Map<String, Object?>);
-    return hs;
-  }
-
-  @override
-  Map<String, Object?> toJson() => <String, Object?>{
-        'httpRequest': httpRequest.toJson(),
-        'httpResponse': httpResponse.toJson(),
-        'httpHandler': httpHandler.toJson(),
-      };
+  HttpStore_login_and_register_by_email_send_email.fromJson(Map<String, Object?> json) : super.fromJson(json);
 }
 
 @JsonSerializable()

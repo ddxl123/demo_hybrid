@@ -63,6 +63,8 @@ class SingleResult<R> {
   ///
   /// 必须先 [setSuccess]/[setError]，再 [handle]。
   /// 必须先 [setSuccess]/[setError]，再 [doSuccess]/[doError]。
+  ///
+  /// 不捕获 [doError] 的异常。
   Future<HR> handle<HR>({required Future<HR> doSuccess(R successResult), required Future<HR> doError(SingleResult<R> errorResult)}) async {
     if (!isSet) {
       setError(vm: '未完全处理！', descp: Description(''), e: Exception('必须先进行 setCancel/setPass，才能进行 handle！'), st: null);

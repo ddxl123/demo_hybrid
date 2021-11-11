@@ -2,6 +2,7 @@ import 'package:hybrid/data/sqlite/mmodel/MUpload.dart';
 import 'package:hybrid/data/sqlite/mmodel/ModelBase.dart';
 import 'package:hybrid/data/sqlite/mmodel/ModelManager.dart';
 import 'package:hybrid/util/SbHelper.dart';
+import 'package:hybrid/util/sblogger/SbLogger.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -143,74 +144,91 @@ class SqliteCurd {
   /// 参数除了 connectTransaction，其他的与 db.query 相同
   static Future<SingleResult<List<Map<String, Object?>>>> queryRowsAsJsons({
     required QueryWrapper queryWrapper,
-    required Transaction? connectTransaction,
+    required TransactionMark? connectTransactionMark,
   }) async {
-    final SingleResult<List<Map<String, Object?>>> result = SingleResult<List<Map<String, Object?>>>.empty();
+    final SingleResult<List<Map<String, Object?>>> returnResult = SingleResult<List<Map<String, Object?>>>();
+    Future<void> handle(TransactionMark tm) async {
+      final List<Map<String, Object?>> query = await tm.transaction.query(
+        queryWrapper.tableName,
+        distinct: queryWrapper.distinct,
+        columns: queryWrapper.columns,
+        where: queryWrapper.where ?? queryWrapper.byTwoId?.whereByTwoId,
+        whereArgs: queryWrapper.whereArgs ?? queryWrapper.byTwoId?.whereArgsByTwoId,
+        groupBy: queryWrapper.groupBy,
+        having: queryWrapper.having,
+        orderBy: queryWrapper.orderBy,
+        limit: queryWrapper.limit,
+        offset: queryWrapper.offset,
+      );
+      returnResult.setSuccess(setResult: () => query);
+    }
+
     try {
-      if (connectTransaction != null) {
-        await result.setSuccess(
-          setResult: () async => await connectTransaction.query(
-            queryWrapper.tableName,
-            distinct: queryWrapper.distinct,
-            columns: queryWrapper.columns,
-            where: queryWrapper.where ?? queryWrapper.byTwoId?.whereByTwoId,
-            whereArgs: queryWrapper.whereArgs ?? queryWrapper.byTwoId?.whereArgsByTwoId,
-            groupBy: queryWrapper.groupBy,
-            having: queryWrapper.having,
-            orderBy: queryWrapper.orderBy,
-            limit: queryWrapper.limit,
-            offset: queryWrapper.offset,
-          ),
-        );
+      if (connectTransactionMark != null) {
+        await handle(connectTransactionMark);
       } else {
-        await result.setSuccess(
-          setResult: () async => await db.query(
-            queryWrapper.tableName,
-            distinct: queryWrapper.distinct,
-            columns: queryWrapper.columns,
-            where: queryWrapper.where ?? queryWrapper.byTwoId?.whereByTwoId,
-            whereArgs: queryWrapper.whereArgs ?? queryWrapper.byTwoId?.whereArgsByTwoId,
-            groupBy: queryWrapper.groupBy,
-            having: queryWrapper.having,
-            orderBy: queryWrapper.orderBy,
-            limit: queryWrapper.limit,
-            offset: queryWrapper.offset,
-          ),
+        await db.transaction<void>(
+          (Transaction txn) async {
+            await handle(TransactionMark(txn));
+          },
         );
       }
     } catch (e, st) {
-      result.setError(e: e, st: st);
+      if (connectTransactionMark != null) {
+        rethrow;
+      }
+      returnResult.setError(vm: '本地查询异常！', descp: Description(''), e: e, st: st);
     }
-    return result;
+    return returnResult;
   }
 
   /// [returnWhere]: 对每个 model 进行格外操作。
   static Future<SingleResult<List<M>>> queryRowsAsModels<M extends ModelBase>({
-    required Transaction? connectTransaction,
+    required TransactionMark? connectTransactionMark,
     void Function(M model)? returnWhere,
     required QueryWrapper queryWrapper,
   }) async {
-    final SingleResult<List<M>> result = SingleResult<List<M>>.empty();
-    final SingleResult<List<Map<String, Object?>>> queryRowsAsJsonsResult = await queryRowsAsJsons(
-      connectTransaction: connectTransaction,
-      queryWrapper: queryWrapper,
-    );
-    await queryRowsAsJsonsResult.handle(
-      doSuccess: (List<Map<String, Object?>> successResult) async {
-        final List<M> models = <M>[];
-        for (final Map<String, Object?> row in queryRowsAsJsonsResult.result!) {
-          final M newModel = ModelManager.createEmptyModelByTableName<M>(queryWrapper.tableName);
-          newModel.getRowJson.addAll(row);
-          models.add(newModel);
-          returnWhere?.call(newModel);
-        }
-        await result.setSuccess(setResult: () async => models);
-      },
-      doError: (Object? exception, StackTrace? stackTrace) async {
-        result.setError(e: queryRowsAsJsonsResult.exception, st: queryRowsAsJsonsResult.stackTrace);
-      },
-    );
-    return result;
+    final SingleResult<List<M>> returnResult = SingleResult<List<M>>();
+    Future<void> handle(TransactionMark tm) async {
+      final SingleResult<List<Map<String, Object?>>> queryRowsAsJsonsResult = await queryRowsAsJsons(
+        connectTransactionMark: tm,
+        queryWrapper: queryWrapper,
+      );
+      await queryRowsAsJsonsResult.handle(
+        doSuccess: (List<Map<String, Object?>> successResult) async {
+          final List<M> models = <M>[];
+          for (final Map<String, Object?> row in successResult) {
+            final M newModel = ModelManager.createEmptyModelByTableName<M>(queryWrapper.tableName);
+            newModel.getRowJson.addAll(row);
+            models.add(newModel);
+            returnWhere?.call(newModel);
+          }
+          returnResult.setSuccess(setResult: () => models);
+        },
+        doError: (SingleResult<List<Map<String, Object?>>> errorResult) async {
+          throw errorResult.getRequiredE();
+        },
+      );
+    }
+
+    try {
+      if (connectTransactionMark != null) {
+        await handle(connectTransactionMark);
+      } else {
+        await db.transaction<void>(
+          (Transaction txn) async {
+            await handle(TransactionMark(txn));
+          },
+        );
+      }
+    } catch (e, st) {
+      if (connectTransactionMark != null) {
+        rethrow;
+      } else {
+        returnResult.setError(vm: '本地查询异常！', descp: Description(''), e: e, st: st);
+      }
+    }
+    return returnResult;
   }
 
   /// 查看 [_toInsertRow] 注释。
@@ -218,145 +236,136 @@ class SqliteCurd {
   /// 会自动根据 [ModelManager.isLocal] 进行判断是使用原生非原生。
   static Future<SingleResult<T>> insertRow<T extends ModelBase>({
     required T model,
-    required TransactionMark? transactionMark,
+    required TransactionMark? connectTransactionMark,
   }) async {
-    final SingleResult<T> insertRowResult = SingleResult<T>.empty();
-    try {
-      Future<void> handle(TransactionMark txnM) async {
-        if (ModelManager.isLocal(model.tableName)) {
-          // 注意用事务进行插入
-          final int rowId = await txnM.transaction.insert(model.tableName, model.getRowJson);
-          model.getRowJson['id'] = rowId;
-        } else {
-          await _toInsertRow(model: model, transactionMark: txnM);
-        }
+    final SingleResult<T> returnResult = SingleResult<T>();
+    Future<void> handle(TransactionMark tm) async {
+      if (ModelManager.isLocal(model.tableName)) {
+        // 注意用事务进行插入
+        final int rowId = await tm.transaction.insert(model.tableName, model.getRowJson);
+        model.getRowJson['id'] = rowId;
+      } else {
+        await _toInsertRow(model: model, transactionMark: tm);
       }
+      returnResult.setSuccess(setResult: () => model);
+    }
 
-      if (transactionMark == null) {
-        // 开始事务。
+    try {
+      if (connectTransactionMark != null) {
+        await handle(connectTransactionMark);
+      } else {
         await db.transaction<void>(
           (Transaction txn) async {
             await handle(TransactionMark(txn));
           },
         );
-        await insertRowResult.setSuccess(setResult: () async => model);
-      } else {
-        // 继续事务。
-        await handle(transactionMark);
-        await insertRowResult.setSuccess(setResult: () async => model);
       }
     } catch (e, st) {
-      if (transactionMark != null) {
+      if (connectTransactionMark != null) {
         rethrow;
       } else {
-        insertRowResult.setError(e: e, st: st);
+        returnResult.setError(vm: '本地插入异常！', descp: Description(''), e: e, st: st);
       }
     }
-    return insertRowResult;
+    return returnResult;
   }
 
   /// 查看 [_toUpdateRow] 注释。
   ///
-  /// 当 [transactionMark] 不为空时，内部的异常会 rethrow。
+  /// 当 [connectTransactionMark] 不为空时，内部的异常会 rethrow。
   ///
-  /// 无论 [transactionMark] 是否为空，[onError] 都会接收到内部的异常。
+  /// 无论 [connectTransactionMark] 是否为空，[onError] 都会接收到内部的异常。
   static Future<SingleResult<T>> updateRow<T extends ModelBase>({
     required String modelTableName,
     required int modelId,
     required Map<String, Object?> updateContent,
-    required TransactionMark? transactionMark,
+    required TransactionMark? connectTransactionMark,
   }) async {
-    final SingleResult<T> updateRowResult = SingleResult<T>.empty();
-    try {
-      Future<T> handle(TransactionMark txnM) async {
-        if (ModelManager.isLocal(modelTableName)) {
-          await txnM.transaction.update(modelTableName, updateContent, where: 'id = ?', whereArgs: <Object?>[modelId]);
-          final SingleResult<List<T>> queryRowsAsModelsResult = await queryRowsAsModels<T>(
-            connectTransaction: txnM.transaction,
-            queryWrapper: QueryWrapper(tableName: modelTableName, where: 'id = ?', whereArgs: <Object?>[modelId]),
-          );
-          return await queryRowsAsModelsResult.handle<T>(
-            doSuccess: (List<T> successResult) async {
-              return successResult.first;
-            },
-            doError: (Object? exception, StackTrace? stackTrace) async {
-              throw exception!;
-            },
-          );
-        } else {
-          return await _toUpdateRow(modelTableName: modelTableName, modelId: modelId, updateContent: updateContent, transactionMark: txnM);
-        }
-      }
-
-      if (transactionMark == null) {
-        // 开始事务。
-        final T newModel = await db.transaction<T>(
-          (Transaction txn) async {
-            return await handle(TransactionMark(txn));
+    final SingleResult<T> returnResult = SingleResult<T>();
+    Future<void> handle(TransactionMark tm) async {
+      if (ModelManager.isLocal(modelTableName)) {
+        await tm.transaction.update(modelTableName, updateContent, where: 'id = ?', whereArgs: <Object?>[modelId]);
+        final SingleResult<List<T>> queryRowsAsModelsResult = await queryRowsAsModels<T>(
+          connectTransactionMark: tm,
+          queryWrapper: QueryWrapper(tableName: modelTableName, where: 'id = ?', whereArgs: <Object?>[modelId]),
+        );
+        await queryRowsAsModelsResult.handle<void>(
+          doSuccess: (List<T> successResult) async {
+            returnResult.setSuccess(setResult: () => successResult.first);
+          },
+          doError: (SingleResult<List<T>> errorResult) async {
+            throw errorResult.getRequiredE();
           },
         );
-        await updateRowResult.setSuccess(setResult: () async => newModel);
       } else {
-        // 继续事务。
-        final T newModel = await handle(transactionMark);
-        await updateRowResult.setSuccess(setResult: () async => newModel);
-      }
-    } catch (e, st) {
-      if (transactionMark != null) {
-        rethrow;
-      } else {
-        updateRowResult.setError(e: e, st: st);
+        final T tur = await _toUpdateRow(modelTableName: modelTableName, modelId: modelId, updateContent: updateContent, connectTransactionMark: tm);
+        returnResult.setSuccess(setResult: () => tur);
       }
     }
-    return updateRowResult;
+
+    try {
+      if (connectTransactionMark != null) {
+        await handle(connectTransactionMark);
+      } else {
+        await db.transaction<void>(
+          (Transaction txn) async {
+            await handle(TransactionMark(txn));
+          },
+        );
+      }
+    } catch (e, st) {
+      if (connectTransactionMark != null) {
+        rethrow;
+      } else {
+        returnResult.setError(vm: '本地更新异常！', descp: Description(''), e: e, st: st);
+      }
+    }
+    return returnResult;
   }
 
   /// {@macro RSqliteCurd.deleteRow}
   ///
   /// 返回的结果要么为 true，要么为异常，并不存在为 false 的情况。
   ///
-  /// 当 [transactionMark] 不为空时，内部的异常始终会 rethrow。
+  /// 当 [connectTransactionMark] 不为空时，内部的异常始终会 rethrow。
   ///
-  /// 无论 [transactionMark] 是否为空，[onError] 都会接收到内部的异常。
+  /// 无论 [connectTransactionMark] 是否为空，[onError] 都会接收到内部的异常。
   static Future<SingleResult<bool>> deleteRow({
     required String modelTableName,
     required int? modelId,
-    required TransactionMark? transactionMark,
+    required TransactionMark? connectTransactionMark,
   }) async {
-    final SingleResult<bool> deleteRowResult = SingleResult<bool>.empty();
-    try {
-      Future<void> handle(TransactionMark txnM) async {
-        if (ModelManager.isLocal(modelTableName)) {
-          final int deleteCount = await txnM.transaction.delete(modelTableName, where: 'id = ?', whereArgs: <Object?>[modelId]);
-          if (deleteCount != 1) {
-            throw '删除数量异常！$deleteCount';
-          }
-        } else {
-          await _toDeleteRow(modelTableName: modelTableName, modelId: modelId, transactionMark: txnM);
+    final SingleResult<bool> returnResult = SingleResult<bool>();
+    Future<void> handle(TransactionMark tm) async {
+      if (ModelManager.isLocal(modelTableName)) {
+        final int deleteCount = await tm.transaction.delete(modelTableName, where: 'id = ?', whereArgs: <Object?>[modelId]);
+        if (deleteCount != 1) {
+          throw '删除数量异常！$deleteCount';
         }
+      } else {
+        await _toDeleteRow(modelTableName: modelTableName, modelId: modelId, connectTransactionMark: tm);
       }
+      returnResult.setSuccess(setResult: () => true);
+    }
 
-      if (transactionMark == null) {
-        // 开始事务。
+    try {
+      if (connectTransactionMark != null) {
+        await handle(connectTransactionMark);
+      } else {
         await db.transaction<void>(
           (Transaction txn) async {
             await handle(TransactionMark(txn));
           },
         );
-        await deleteRowResult.setSuccess(setResult: () async => true);
-      } else {
-        // 继续事务。
-        await handle(transactionMark);
-        await deleteRowResult.setSuccess(setResult: () async => true);
       }
     } catch (e, st) {
-      if (transactionMark != null) {
+      if (connectTransactionMark != null) {
         rethrow;
       } else {
-        deleteRowResult.setError(e: e, st: st);
+        returnResult.setError(vm: '本地删除异常！', descp: Description(''), e: e, st: st);
       }
     }
-    return deleteRowResult;
+    return returnResult;
   }
 
   ///
@@ -389,10 +398,10 @@ class SqliteCurd {
     }
     // 检查该模型的 uuid 是否已存在。
     final SingleResult<List<Map<String, Object?>>> queryRowsAsJsonsResult = await queryRowsAsJsons(
-      connectTransaction: transactionMark.transaction,
+      connectTransactionMark: transactionMark,
       queryWrapper: QueryWrapper(tableName: model.tableName, where: '${model.uuid} = ?', whereArgs: <Object>[model.get_uuid!]),
     );
-    return await queryRowsAsJsonsResult.handle<T>(
+    await queryRowsAsJsonsResult.handle<void>(
       doSuccess: (List<Map<String, Object?>> successResult) async {
         if (successResult.isNotEmpty) {
           throw 'The model already exits.';
@@ -417,12 +426,12 @@ class SqliteCurd {
           mark: transactionMark.mark,
         );
         await transactionMark.transaction.insert(upload.tableName, upload.getRowJson);
-        return model;
       },
-      doError: (Object? exception, StackTrace? stackTrace) async {
-        throw exception!;
+      doError: (SingleResult<List<Map<String, Object?>>> errorResult) async {
+        throw errorResult.getRequiredE();
       },
     );
+    return model;
   }
 
   /// {@template RSqliteCurd.updateRow}
@@ -450,14 +459,14 @@ class SqliteCurd {
     required String modelTableName,
     required int modelId,
     required Map<String, Object?> updateContent,
-    required TransactionMark transactionMark,
+    required TransactionMark connectTransactionMark,
   }) async {
     // uploadModel 可空，若不可空不会抛异常，而会做下面的判断。
     MUpload? uploadModel;
     final CheckResult checkResult = await _check<T>(
       modelTableName: modelTableName,
       modelId: modelId,
-      transactionMark: transactionMark,
+      connectTransactionMark: connectTransactionMark,
       getModel: (T model) {},
       getUploadModel: (MUpload um) {
         uploadModel = um;
@@ -473,10 +482,10 @@ class SqliteCurd {
     final String allUpdatedColumns = <String>{...updateContent.keys, ...updatedColumns}.toList().join(',');
 
     // 更新 model
-    await transactionMark.transaction.update(modelTableName, updateContent, where: 'id = ?', whereArgs: <Object?>[modelId]);
+    await connectTransactionMark.transaction.update(modelTableName, updateContent, where: 'id = ?', whereArgs: <Object?>[modelId]);
 
     final SingleResult<List<T>> queryRowsAsModelsResult = await queryRowsAsModels<T>(
-      connectTransaction: transactionMark.transaction,
+      connectTransactionMark: connectTransactionMark,
       queryWrapper: QueryWrapper(tableName: modelTableName, where: 'id = ?', whereArgs: <Object?>[modelId]),
     );
 
@@ -484,8 +493,8 @@ class SqliteCurd {
       doSuccess: (List<T> successResult) async {
         return successResult.first;
       },
-      doError: (Object? exception, StackTrace? stackTrace) async {
-        throw exception!;
+      doError: (SingleResult<List<T>> errorResult) async {
+        throw errorResult.getRequiredE();
       },
     );
 
@@ -503,20 +512,20 @@ class SqliteCurd {
         updated_columns: allUpdatedColumns,
         curd_status: CurdStatus.U.index,
         upload_status: UploadStatus.notUploaded.index,
-        mark: transactionMark.mark,
+        mark: connectTransactionMark.mark,
       );
-      await transactionMark.transaction.insert(mUpload.tableName, mUpload.getRowJson);
+      await connectTransactionMark.transaction.insert(mUpload.tableName, mUpload.getRowJson);
     }
 
     // C U
     // curd_status 都保持不变。
     else if (uploadModel!.get_curd_status == CurdStatus.U.index || uploadModel!.get_curd_status == CurdStatus.C.index) {
-      await transactionMark.transaction.update(
+      await connectTransactionMark.transaction.update(
         uploadModel!.tableName,
         <String, Object?>{
           uploadModel!.updated_columns: allUpdatedColumns,
           uploadModel!.updated_at: SbHelper.newTimestamp,
-          uploadModel!.mark: transactionMark.mark,
+          uploadModel!.mark: connectTransactionMark.mark,
         },
         where: '${uploadModel!.id} = ?',
         whereArgs: <Object>[uploadModel!.get_id!],
@@ -540,11 +549,13 @@ class SqliteCurd {
   ///
   /// - [modelId] 要删除的模型 id，非 aiid/uuid。
   ///
+  /// 要么删除成功，要么删除异常。
+  ///
   /// {@endtemplate}
   static Future<void> _toDeleteRow<T extends ModelBase>({
     required String modelTableName,
     required int? modelId,
-    required TransactionMark transactionMark,
+    required TransactionMark connectTransactionMark,
   }) async {
     // 若为空必然抛异常，因此必然不可空。
     late T model;
@@ -553,7 +564,7 @@ class SqliteCurd {
     final CheckResult checkResult = await _check(
       modelTableName: modelTableName,
       modelId: modelId,
-      transactionMark: transactionMark,
+      connectTransactionMark: connectTransactionMark,
       getModel: (T m) {
         model = m;
       },
@@ -567,7 +578,7 @@ class SqliteCurd {
     }
 
     // 无论 CURD 都需要删除本体
-    final int deleteCount = await transactionMark.transaction.delete(modelTableName, where: 'id = ?', whereArgs: <Object?>[modelId]);
+    final int deleteCount = await connectTransactionMark.transaction.delete(modelTableName, where: 'id = ?', whereArgs: <Object?>[modelId]);
     if (deleteCount != 1) {
       throw '删除数量异常！$deleteCount';
     }
@@ -586,15 +597,15 @@ class SqliteCurd {
         updated_columns: null,
         curd_status: CurdStatus.D.index,
         upload_status: UploadStatus.notUploaded.index,
-        mark: transactionMark.mark,
+        mark: connectTransactionMark.mark,
       );
-      await transactionMark.transaction.insert(mUpload.tableName, mUpload.getRowJson);
+      await connectTransactionMark.transaction.insert(mUpload.tableName, mUpload.getRowJson);
     }
 
     // C
     else if (uploadModel!.get_curd_status == CurdStatus.C.index) {
       // 直接删除
-      await transactionMark.transaction.delete(
+      await connectTransactionMark.transaction.delete(
         uploadModel!.tableName,
         where: '${uploadModel!.id} = ?',
         whereArgs: <Object?>[uploadModel!.get_id],
@@ -604,11 +615,11 @@ class SqliteCurd {
     // U
     else if (uploadModel!.get_curd_status == CurdStatus.U.index) {
       // 无需设 aiid，因为原本就有。
-      await transactionMark.transaction.update(
+      await connectTransactionMark.transaction.update(
         uploadModel!.tableName,
         <String, Object?>{
           uploadModel!.curd_status: CurdStatus.D.index,
-          uploadModel!.mark: transactionMark.mark,
+          uploadModel!.mark: connectTransactionMark.mark,
           uploadModel!.updated_at: SbHelper.newTimestamp,
         },
       );
@@ -620,7 +631,7 @@ class SqliteCurd {
     }
 
     // 同时删除关联该模型的外表 row。
-    await _toDeleteMany<T>(model: model, transactionMark: transactionMark);
+    await _toDeleteMany<T>(model: model, connectTransactionMark: connectTransactionMark);
   }
 
   ///
@@ -632,7 +643,7 @@ class SqliteCurd {
   static Future<CheckResult> _check<T extends ModelBase>({
     required String modelTableName,
     required int? modelId,
-    required TransactionMark transactionMark,
+    required TransactionMark connectTransactionMark,
     required void Function(T model) getModel,
     required void Function(MUpload uploadModel) getUploadModel,
   }) async {
@@ -642,7 +653,7 @@ class SqliteCurd {
 
     // 获取要更新的 model
     final SingleResult<List<T>> ofModelResult = await queryRowsAsModels<T>(
-      connectTransaction: transactionMark.transaction,
+      connectTransactionMark: connectTransactionMark,
       queryWrapper: QueryWrapper(tableName: modelTableName, where: 'id = ?', whereArgs: <Object?>[modelId]),
     );
 
@@ -650,8 +661,8 @@ class SqliteCurd {
       doSuccess: (List<T> successResult) async {
         return successResult;
       },
-      doError: (Object? exception, StackTrace? stackTrace) async {
-        throw exception!;
+      doError: (SingleResult<List<T>> errorResult) async {
+        throw errorResult.getRequiredE();
       },
     );
 
@@ -673,7 +684,7 @@ class SqliteCurd {
     // 必须新建一个 MUpload 来获取 key，因为变量 uploadModel 还未被赋值。
     final MUpload forKey = MUpload();
     final SingleResult<List<MUpload>> ofUploadModelResult = await queryRowsAsModels<MUpload>(
-      connectTransaction: transactionMark.transaction,
+      connectTransactionMark: connectTransactionMark,
       queryWrapper: QueryWrapper(
         tableName: forKey.tableName,
         where: '${forKey.for_row_id} = ? AND ${forKey.for_table_name} = ?',
@@ -693,8 +704,8 @@ class SqliteCurd {
           return CheckResult.uploadModelIsNotExist;
         }
       },
-      doError: (Object? exception, StackTrace? stackTrace) async {
-        throw exception!;
+      doError: (SingleResult<List<MUpload>> errorResult) async {
+        throw errorResult.getRequiredE();
       },
     );
 
@@ -714,7 +725,7 @@ class SqliteCurd {
   /// 筛选出需要同时删除的 关联该表的其他表对应的 row。
   static Future<void> _toDeleteMany<T extends ModelBase>({
     required T model,
-    required TransactionMark transactionMark,
+    required TransactionMark connectTransactionMark,
   }) async {
     // for single
     for (int i = 0; i < model.getDeleteManyForSingle().length; i++) {
@@ -730,7 +741,7 @@ class SqliteCurd {
         fkTableName: fkTableName,
         fkColumnName: fkColumnName,
         fkColumnValue: fkColumnValue,
-        transactionMark: transactionMark,
+        connectTransactionMark: connectTransactionMark,
       );
     }
 
@@ -750,7 +761,7 @@ class SqliteCurd {
           fkTableName: fkTableName,
           fkColumnName: fkColumnName,
           fkColumnValue: fkColumnValue,
-          transactionMark: transactionMark,
+          connectTransactionMark: connectTransactionMark,
         );
       } else if (model.get_aiid != null && model.get_uuid == null) {
         fkColumnName += '_aiid';
@@ -759,7 +770,7 @@ class SqliteCurd {
           fkTableName: fkTableName,
           fkColumnName: fkColumnName,
           fkColumnValue: fkColumnValue,
-          transactionMark: transactionMark,
+          connectTransactionMark: connectTransactionMark,
         );
       }
     }
@@ -770,11 +781,11 @@ class SqliteCurd {
     required String fkTableName,
     required String fkColumnName,
     required Object fkColumnValue,
-    required TransactionMark transactionMark,
+    required TransactionMark connectTransactionMark,
   }) async {
     // 查询关联该表的对应 row 模型
     final SingleResult<List<ModelBase>> queryRowsAsModelsResult = await queryRowsAsModels<ModelBase>(
-      connectTransaction: transactionMark.transaction,
+      connectTransactionMark: connectTransactionMark,
       queryWrapper: QueryWrapper(
         tableName: fkTableName,
         where: '$fkColumnName = ?',
@@ -788,7 +799,7 @@ class SqliteCurd {
           final SingleResult<bool> deleteRowResult = await SqliteCurd.deleteRow(
             modelTableName: successResult[i].tableName,
             modelId: successResult[i].get_id!,
-            transactionMark: transactionMark,
+            connectTransactionMark: connectTransactionMark,
           );
           await deleteRowResult.handle(
             doSuccess: (bool successResult) async {
@@ -796,14 +807,14 @@ class SqliteCurd {
                 throw Exception('result 不为 true！');
               }
             },
-            doError: (Object? exception, StackTrace? stackTrace) async {
-              throw exception!;
+            doError: (SingleResult<bool> errorResult) async {
+              throw errorResult.getRequiredE();
             },
           );
         }
       },
-      doError: (Object? exception, StackTrace? stackTrace) async {
-        throw exception!;
+      doError: (SingleResult<List<ModelBase>> errorResult) async {
+        throw errorResult.getRequiredE();
       },
     );
   }

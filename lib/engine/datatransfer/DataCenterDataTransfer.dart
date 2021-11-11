@@ -49,7 +49,7 @@ class DataCenterDataTransfer extends BaseDataTransfer {
           modelTableName: dataMap['model_table_name']! as String,
           modelId: dataMap['model_id']! as int,
           updateContent: dataMap['update_content']! as Map<String, Object?>,
-          transactionMark: null,
+          connectTransactionMark: null,
         );
         return await updateRowResult.handle<Map<String, Object?>>(
           doSuccess: (ModelBase successResult) async {
@@ -64,7 +64,7 @@ class DataCenterDataTransfer extends BaseDataTransfer {
         final SingleResult<bool> deleteRowResult = await SqliteCurd.deleteRow(
           modelTableName: dataMap['model_table_name']! as String,
           modelId: dataMap['model_id']! as int,
-          transactionMark: null,
+          connectTransactionMark: null,
         );
         return await deleteRowResult.handle<bool>(
           doSuccess: (bool successResult) async {

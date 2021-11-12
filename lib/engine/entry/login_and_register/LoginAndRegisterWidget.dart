@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:hybrid/data/mysql/httpstore/handler/HttpResponse.dart';
+import 'package:hybrid/data/mysql/httpstore/handler/HttpHandler.dart';
 import 'package:hybrid/data/mysql/httpstore/store/HttpStore_login_and_register_by_email_send_email.dart';
 import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
 import 'package:hybrid/engine/push/PushTo.dart';
@@ -103,10 +103,11 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
                   state.refresh();
                 },
               );
-
               final HttpStore_login_and_register_by_email_send_email requestResult = await DataTransferManager.instance.transfer.executeHttpCurd.sendRequest(
                 httpStore: HttpStore_login_and_register_by_email_send_email(
-                  putRequestDataVO_LARBESE: () => RequestDataVO_LARBESE(
+                  requestHeadersVO_LARBESE: RequestHeadersVO_LARBESE(),
+                  requestParamsVO_LARBESE: RequestParamsVO_LARBESE(),
+                  requestDataVO_LARBESE: RequestDataVO_LARBESE(
                     email: emailTextEditingController.text,
                   ),
                 ),
@@ -114,16 +115,15 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
                 isBanAllOtherRequest: true,
                 resultHttpStoreJson2HS: (Map<String, Object?> json) async => HttpStore_login_and_register_by_email_send_email.fromJson(json),
               );
-
-              await requestResult.httpResponse.intercept(
-                doContinue: (HttpResponse<ResponseCodeCollect_LARBESE, ResponseDataVO_LARBESE> hr) async {
+              await requestResult.httpHandler.handle<HttpStore_login_and_register_by_email_send_email>(
+                doContinue: (HttpStore_login_and_register_by_email_send_email hs) async {
                   // 发送成功。
-                  if (hr.code == hr.responseCodeCollect.C2_01_01_01) {
+                  if (hs.httpResponse.code == hs.httpResponse.getResponseCodeCollect(hs).C2_01_01_01) {
                     SbLogger(
                       c: null,
-                      vm: hr.viewMessage,
+                      vm: hs.httpResponse.viewMessage,
                       data: null,
-                      descp: hr.text,
+                      descp: Description(''),
                       e: null,
                       st: null,
                     ).withToast(false);
@@ -131,18 +131,18 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
                   }
                   return false;
                 },
-                doCancel: (HttpResponse<ResponseCodeCollect_LARBESE, ResponseDataVO_LARBESE> hr) async {
+                doCancel: (HttpHandler hh) async {
                   timer?.cancel();
                   timer = null;
                   text = '重新发送';
                   state.refresh();
                   SbLogger(
-                    c: hr.code,
-                    vm: hr.viewMessage,
-                    data: hr,
-                    descp: Description(''),
-                    e: hr._exception,
-                    st: hr.stackTrace,
+                    c: -1,
+                    vm: hh.getRequiredViewMessage(),
+                    data: null,
+                    descp: hh.getRequiredDescription(),
+                    e: hh.getRequiredException(),
+                    st: hh.stackTrace,
                   ).withAll(true);
                 },
               );

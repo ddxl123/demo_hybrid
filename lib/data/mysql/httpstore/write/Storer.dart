@@ -3,28 +3,36 @@
 import 'HttpStoreWriter.dart';
 
 void Storer() {
-  StoreWrapperPost(
-    pathType: WritePathType.no_jwt,
+  StoreWrapper(
+    method: WriteMethodType.POST,
     path: '/login_and_register_by_email/send_email',
-    requestDataVOKeys: <DataVOWrapper>[
-      DataVOWrapper(keyName: 'email', type: DataVOType.STRING, isRequired: true),
+    pathType: WritePathType.no_jwt,
+    requestHeadersVOKeys: [],
+    requestParamsVOKeys: [],
+    requestDataVOKeys: <VOWrapper>[
+      VOWrapper(keyName: 'email', type: WriteDataType.STRING, isRequired: true),
     ],
-    responseDataVOKeys: <DataVOWrapper>[],
+    responseHeadersVOKeys: [],
+    responseDataVOKeys: [],
     responseCodeCollect: <CodeWrapper>[
       CodeWrapper(code: 2010101, tip: '邮箱已发送, 请注意查收!'),
     ],
   );
 
-  StoreWrapperPost(
-    pathType: WritePathType.no_jwt,
+  StoreWrapper(
+    method: WriteMethodType.POST,
     path: '/login_and_register_by_email/verify_email',
-    requestDataVOKeys: <DataVOWrapper>[
-      DataVOWrapper(keyName: 'email', type: DataVOType.STRING, isRequired: true),
-      DataVOWrapper(keyName: 'code', type: DataVOType.INT, isRequired: true),
+    pathType: WritePathType.no_jwt,
+    requestHeadersVOKeys: [],
+    requestParamsVOKeys: [],
+    requestDataVOKeys: <VOWrapper>[
+      VOWrapper(keyName: 'email', type: WriteDataType.STRING, isRequired: true),
+      VOWrapper(keyName: 'code', type: WriteDataType.INT, isRequired: true),
     ],
-    responseDataVOKeys: <DataVOWrapper>[
-      DataVOWrapper(keyName: 'user_id', type: DataVOType.INT, isRequired: true),
-      DataVOWrapper(keyName: 'token', type: DataVOType.STRING, isRequired: true),
+    responseHeadersVOKeys: [],
+    responseDataVOKeys: <VOWrapper>[
+      VOWrapper(keyName: 'user_id', type: WriteDataType.INT, isRequired: true),
+      VOWrapper(keyName: 'token', type: WriteDataType.STRING, isRequired: true),
     ],
     responseCodeCollect: <CodeWrapper>[
       CodeWrapper(code: 2010201, tip: '注册成功。'),
@@ -34,15 +42,19 @@ void Storer() {
     ],
   );
 
-  StoreWrapperPost(
-    pathType: WritePathType.no_jwt,
+  StoreWrapper(
+    method: WriteMethodType.POST,
     path: '/verify_token',
-    requestDataVOKeys: <DataVOWrapper>[
-      DataVOWrapper(keyName: 'token', type: DataVOType.STRING, isRequired: true),
+    pathType: WritePathType.no_jwt,
+    requestHeadersVOKeys: [],
+    requestParamsVOKeys: [],
+    requestDataVOKeys: <VOWrapper>[
+      VOWrapper(keyName: 'token', type: WriteDataType.STRING, isRequired: true),
     ],
-    responseDataVOKeys: <DataVOWrapper>[
-      DataVOWrapper(keyName: 'new_token', type: DataVOType.STRING, isRequired: true),
+    responseHeadersVOKeys: [],
+    responseDataVOKeys: <VOWrapper>[
+      VOWrapper(keyName: 'new_token', type: WriteDataType.STRING, isRequired: true),
     ],
-    responseCodeCollect: <CodeWrapper>[],
+    responseCodeCollect: [],
   );
 }

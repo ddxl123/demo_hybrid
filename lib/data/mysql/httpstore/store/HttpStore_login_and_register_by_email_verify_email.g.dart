@@ -8,6 +8,24 @@ part of 'HttpStore_login_and_register_by_email_verify_email.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+RequestHeadersVO_LARBEVE _$RequestHeadersVO_LARBEVEFromJson(
+    Map<String, dynamic> json) {
+  return RequestHeadersVO_LARBEVE();
+}
+
+Map<String, dynamic> _$RequestHeadersVO_LARBEVEToJson(
+        RequestHeadersVO_LARBEVE instance) =>
+    <String, dynamic>{};
+
+RequestParamsVO_LARBEVE _$RequestParamsVO_LARBEVEFromJson(
+    Map<String, dynamic> json) {
+  return RequestParamsVO_LARBEVE();
+}
+
+Map<String, dynamic> _$RequestParamsVO_LARBEVEToJson(
+        RequestParamsVO_LARBEVE instance) =>
+    <String, dynamic>{};
+
 RequestDataVO_LARBEVE _$RequestDataVO_LARBEVEFromJson(
     Map<String, dynamic> json) {
   return RequestDataVO_LARBEVE(
@@ -22,6 +40,15 @@ Map<String, dynamic> _$RequestDataVO_LARBEVEToJson(
       'email': instance.email,
       'code': instance.code,
     };
+
+ResponseHeadersVO_LARBEVE _$ResponseHeadersVO_LARBEVEFromJson(
+    Map<String, dynamic> json) {
+  return ResponseHeadersVO_LARBEVE();
+}
+
+Map<String, dynamic> _$ResponseHeadersVO_LARBEVEToJson(
+        ResponseHeadersVO_LARBEVE instance) =>
+    <String, dynamic>{};
 
 ResponseDataVO_LARBEVE _$ResponseDataVO_LARBEVEFromJson(
     Map<String, dynamic> json) {

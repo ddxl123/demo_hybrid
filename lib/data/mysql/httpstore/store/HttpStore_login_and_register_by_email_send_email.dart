@@ -27,60 +27,85 @@ class HttpStore_login_and_register_by_email_send_email extends HttpStore<Request
         );
 
   HttpStore_login_and_register_by_email_send_email.fromJson(Map<String, Object?> json) : super.fromJson(json);
+
+  @override
+  RequestHeadersVO_LARBESE toVOForRequestHeadersVO(Map<String, Object?> json) => RequestHeadersVO_LARBESE.fromJson(json);
+
+  @override
+  RequestParamsVO_LARBESE toVOForRequestParamsVO(Map<String, Object?> json) => RequestParamsVO_LARBESE.fromJson(json);
+
+  @override
+  RequestDataVO_LARBESE toVOForRequestDataVO(Map<String, Object?> json) => RequestDataVO_LARBESE.fromJson(json);
+
+  @override
+  ResponseCodeCollect_LARBESE toVOForResponseCodeCollect(Map<String, Object?> json) => ResponseCodeCollect_LARBESE.fromJson(json);
+
+  @override
+  ResponseDataVO_LARBESE toVOForResponseDataVO(Map<String, Object?> json) => ResponseDataVO_LARBESE.fromJson(json);
+
+  @override
+  ResponseHeadersVO_LARBESE toVOForResponseHeadersVO(Map<String, Object?> json) => ResponseHeadersVO_LARBESE.fromJson(json);
 }
 
 @JsonSerializable()
 class RequestHeadersVO_LARBESE extends RequestHeadersVO {
   RequestHeadersVO_LARBESE();
-
+    
   factory RequestHeadersVO_LARBESE.fromJson(Map<String, Object?> json) => _$RequestHeadersVO_LARBESEFromJson(json);
 
   @override
   Map<String, Object?> toJson() => _$RequestHeadersVO_LARBESEToJson(this);
+  
+  
 }
 
 @JsonSerializable()
 class RequestParamsVO_LARBESE extends RequestParamsVO {
   RequestParamsVO_LARBESE();
-
+    
   factory RequestParamsVO_LARBESE.fromJson(Map<String, Object?> json) => _$RequestParamsVO_LARBESEFromJson(json);
 
   @override
   Map<String, Object?> toJson() => _$RequestParamsVO_LARBESEToJson(this);
+    
+  
 }
 
 @JsonSerializable()
 class RequestDataVO_LARBESE extends RequestDataVO {
-  RequestDataVO_LARBESE({
-    required this.email,
-  });
-
+  RequestDataVO_LARBESE({required this.email,});
+    
   factory RequestDataVO_LARBESE.fromJson(Map<String, Object?> json) => _$RequestDataVO_LARBESEFromJson(json);
 
   @override
   Map<String, Object?> toJson() => _$RequestDataVO_LARBESEToJson(this);
-
+    
   final String email;
+
 }
 
 @JsonSerializable()
 class ResponseHeadersVO_LARBESE extends ResponseHeadersVO {
   ResponseHeadersVO_LARBESE();
-
+    
   factory ResponseHeadersVO_LARBESE.fromJson(Map<String, Object?> json) => _$ResponseHeadersVO_LARBESEFromJson(json);
 
   @override
   Map<String, Object?> toJson() => _$ResponseHeadersVO_LARBESEToJson(this);
+    
+  
 }
 
 @JsonSerializable()
 class ResponseDataVO_LARBESE extends ResponseDataVO {
   ResponseDataVO_LARBESE();
-
+    
   factory ResponseDataVO_LARBESE.fromJson(Map<String, Object?> json) => _$ResponseDataVO_LARBESEFromJson(json);
 
   @override
   Map<String, Object?> toJson() => _$ResponseDataVO_LARBESEToJson(this);
+    
+  
 }
 
 @JsonSerializable()
@@ -93,5 +118,6 @@ class ResponseCodeCollect_LARBESE extends ResponseCodeCollect {
   Map<String, Object?> toJson() => _$ResponseCodeCollect_LARBESEToJson(this);
 
   /// 邮箱已发送, 请注意查收!
-  final int C2_01_01_01 = 2010101;
-}
+    final int C2_01_01_01 = 2010101;
+
+}    

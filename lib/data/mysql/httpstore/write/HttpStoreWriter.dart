@@ -2,10 +2,78 @@
 import 'dart:io';
 
 import 'package:hybrid/data/mysql/httpstore/write/HttpStoreContext.dart';
+import 'package:meta/meta.dart';
 
-enum WritePathType {
-  jwt,
-  no_jwt,
+@immutable
+class WriteMethodType {
+  const WriteMethodType(this.name);
+
+  final String name;
+  static WriteMethodType GET = const WriteMethodType('GET');
+  static WriteMethodType POST = const WriteMethodType('POST');
+
+  @override
+  bool operator ==(Object other) {
+    return other is WriteMethodType && other.name == name;
+  }
+
+  @override
+  int get hashCode => name.hashCode;
+
+  @override
+  String toString() => name;
+}
+
+@immutable
+class WritePathType {
+  const WritePathType(this.name);
+
+  final String name;
+  static WritePathType jwt = const WritePathType('jwt');
+  static WritePathType no_jwt = const WritePathType('no_jwt');
+
+  @override
+  bool operator ==(Object other) {
+    return other is WritePathType && other.name == name;
+  }
+
+  @override
+  int get hashCode => name.hashCode;
+
+  @override
+  String toString() => name;
+}
+
+@immutable
+class WriteDataType {
+  const WriteDataType(this.name);
+
+  final String name;
+  static WriteDataType STRING = const WriteDataType('String');
+  static WriteDataType INT = const WriteDataType('int');
+
+  @override
+  bool operator ==(Object other) {
+    return other is WriteDataType && other.name == name;
+  }
+
+  @override
+  int get hashCode => name.hashCode;
+
+  @override
+  String toString() => name;
+}
+
+class VOWrapper {
+  VOWrapper({
+    required this.keyName,
+    required this.type,
+    required this.isRequired,
+  });
+
+  String keyName;
+  WriteDataType type;
+  bool isRequired;
 }
 
 class CodeWrapper {
@@ -15,95 +83,43 @@ class CodeWrapper {
   final String tip;
 }
 
-class DataVOType {
-  DataVOType(this.name);
-
-  final String name;
-  static DataVOType STRING = DataVOType('String');
-  static DataVOType INT = DataVOType('int');
-}
-
-class DataVOWrapper {
-  DataVOWrapper({
-    required this.keyName,
-    required this.type,
-    required this.isRequired,
-  });
-
-  String keyName;
-  DataVOType type;
-  bool isRequired;
-}
-
-abstract class StoreWrapper {
-  StoreWrapper(
-    this.method,
-    this.path,
-    this.pathType,
-    this.requestDataVOKeys,
-    this.responseCodeCollect,
-    this.responseDataVOKeys,
-    this.requestParamsVOKeys,
-  ) {
-    if (pathType == WritePathType.jwt) {
-      path = 'jwt' + path;
-    } else if (pathType == WritePathType.no_jwt) {
-      path = 'no_jwt' + path;
+class StoreWrapper {
+  StoreWrapper({
+    required this.method,
+    required this.path,
+    required this.pathType,
+    required this.requestHeadersVOKeys,
+    required this.requestParamsVOKeys,
+    required this.requestDataVOKeys,
+    required this.responseHeadersVOKeys,
+    required this.responseDataVOKeys,
+    required this.responseCodeCollect,
+  }) {
+    if (pathType == WritePathType.jwt || pathType == WritePathType.no_jwt) {
+      path = pathType.name + path;
     } else {
       throw 'pathType error: $pathType';
     }
     Writer.storeWriters.add(this);
   }
 
-  String method;
+  WriteMethodType method;
 
   WritePathType pathType;
 
   String path;
 
-  List<DataVOWrapper>? requestDataVOKeys;
+  List<VOWrapper> requestHeadersVOKeys;
 
-  List<DataVOWrapper>? requestParamsVOKeys;
+  List<VOWrapper> requestParamsVOKeys;
+
+  List<VOWrapper> requestDataVOKeys;
+
+  List<VOWrapper> responseHeadersVOKeys;
+
+  List<VOWrapper> responseDataVOKeys;
 
   List<CodeWrapper> responseCodeCollect;
-
-  List<DataVOWrapper> responseDataVOKeys;
-}
-
-class StoreWrapperPost extends StoreWrapper {
-  StoreWrapperPost({
-    required WritePathType pathType,
-    required String path,
-    required List<DataVOWrapper> requestDataVOKeys,
-    required List<CodeWrapper> responseCodeCollect,
-    required List<DataVOWrapper> responseDataVOKeys,
-  }) : super(
-          'POST',
-          path,
-          pathType,
-          requestDataVOKeys,
-          responseCodeCollect,
-          responseDataVOKeys,
-          null,
-        );
-}
-
-class StoreWrapperGet extends StoreWrapper {
-  StoreWrapperGet({
-    required WritePathType pathType,
-    required String path,
-    required List<DataVOWrapper> requestParamsVOKeys,
-    required List<CodeWrapper> responseCodeCollect,
-    required List<DataVOWrapper> responseDataVOKeys,
-  }) : super(
-          'GET',
-          path,
-          pathType,
-          null,
-          responseCodeCollect,
-          responseDataVOKeys,
-          requestParamsVOKeys,
-        );
 }
 
 class Writer {

@@ -1,5 +1,6 @@
 // ignore_for_file: camel_case_types
 
+import 'package:hybrid/data/mysql/httpstore/handler/HttpStore.dart';
 import 'package:hybrid/util/SbHelper.dart';
 
 abstract class ResponseHeadersVO extends DoSerializable {}
@@ -18,7 +19,7 @@ class HttpResponse<RESPHVO extends ResponseHeadersVO, RESPDVO extends ResponseDa
     responseCodeCollect.addAll(putResponseCodeCollect);
   }
 
-  factory HttpResponse.fromJson(Map<String, Object?> json) {
+  factory HttpResponse.fromJson(Map json) {
     return HttpResponse<RESPHVO, RESPDVO, RESPCCOL>(
       putResponseCodeCollect: (json['responseCodeCollect'] as Map<String, Object?>?) ?? <String, Object?>{},
     )
@@ -76,11 +77,9 @@ class HttpResponse<RESPHVO extends ResponseHeadersVO, RESPDVO extends ResponseDa
     this.responseHeadersVO.addAll(responseHeadersVO);
   }
 
-  RESPCCOL toVOForResponseCodeCollect(RESPCCOL respccol(Map<String, Object?> json)) {
-    return respccol(responseCodeCollect);
-  }
+  RESPHVO getResponseHeadersVO(HttpStore hs) => hs.toVOForResponseHeadersVO(responseHeadersVO) as RESPHVO;
 
-  RESPDVO toVOForResponseDataVO(RESPDVO respdvo(Map<String, Object?> json)) {
-    return respdvo(responseDataVO);
-  }
+  RESPDVO getResponseDataVO(HttpStore hs) => hs.toVOForResponseDataVO(responseDataVO) as RESPDVO;
+
+  RESPCCOL getResponseCodeCollect(HttpStore hs) => hs.toVOForResponseCodeCollect(responseCodeCollect) as RESPCCOL;
 }

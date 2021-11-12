@@ -3,8 +3,7 @@ void main() {
 }
 
 void a() {
-  Object? o = <String,Object?>{};
-  if(o is Map){
-    print(o);
-  }
+  Object? aa = <Object, Object?>{};
+  Object? o = <String, Object?>{'a': aa};
+  print((o as Map)['a']['mm']);
 }

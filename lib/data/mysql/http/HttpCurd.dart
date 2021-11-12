@@ -60,32 +60,43 @@ class HttpCurd {
         /// 当相同请求未并发时，对当前请求做阻断标记
         _sameNotConcurrentMap[sameNotConcurrent] = true;
       }
-      late final SingleResult<List<MUser>> usersResult;
+      late final MUser user;
+      // 前提是用户已经在本地是已登陆状态，因为未登陆状态的请求是 no_jwt。
       if (httpStore.httpRequest.pathType() == PathType.jwt) {
         // 检测本地是否存在账号信息？
-        usersResult = await SqliteCurd.queryRowsAsModels<MUser>(
+        final SingleResult<List<MUser>> queryUsersResult = await SqliteCurd.queryRowsAsModels<MUser>(
           connectTransactionMark: null,
           queryWrapper: QueryWrapper(tableName: MUser().tableName),
         );
 
-        // 返回空则继续，即存在账号。
-        final HS? usersResultHandle = await usersResult.handle<HS?>(
+        // 返回空则继续，即存在账号(同时获取 token)。
+        final bool isReturn = await queryUsersResult.handle<bool>(
           doSuccess: (List<MUser> result) async {
             if (result.isEmpty) {
               //TODO: 不存在账号信息，则弹出【登陆界面引擎】
-              return httpStore.httpHandler.setCancel(vm: '未登录！', descp: Description(''), e: Exception('本地不存在账号信息！'), st: null) as HS;
+              httpStore.httpHandler.setCancel(vm: '未登录！', descp: Description(''), e: Exception('本地不存在账号信息！'), st: null) as HS;
+              return true;
             }
-            return null;
+            user = result.first;
+            httpStore.httpRequest.requestHeadersVO.addAll(
+              <String, Object?>{'authorization': 'bearer ' + (user.get_token ?? '')},
+            );
+            return false;
           },
           doError: (SingleResult<List<MUser>> errorResult) async {
-            return httpStore.httpHandler.setCancel(
+            httpStore.httpHandler.setCancel(
                 vm: errorResult.getRequiredVm(), descp: errorResult.getRequiredDescp(), e: errorResult.getRequiredE(), st: errorResult.stackTrace) as HS;
+            return true;
           },
         );
 
-        if (usersResultHandle != null) {
-          return usersResultHandle;
+        if (isReturn) {
+          return httpStore;
         }
+      } else if (httpStore.httpRequest.pathType() == PathType.no_jwt) {
+      } else {
+        return httpStore.httpHandler.setCancel(vm: '请求异常！', descp: Description(''), e: Exception('PathType：${httpStore.httpRequest.pathType()}'), st: null)
+            as HS;
       }
 
       SbLogger(c: null, vm: null, data: null, descp: Description(Httper.dio.options.baseUrl + httpStore.httpRequest.path), e: null, st: null);
@@ -106,18 +117,38 @@ class HttpCurd {
 
       SbLogger(c: 0, vm: 'vm', data: response, descp: Description('dddd'), e: null, st: null);
 
+      // 前提是用户已经在本地是已登陆状态，因为未登陆状态的请求是 no_jwt。
       if (httpStore.httpRequest.pathType() == PathType.jwt) {
         // 说明 token 刷新成功，即验证用户身份成功。
-        // 前提是用户已经在本地是被登陆状态。
         if (response.headers.map['authorization'] != null) {
+          final SingleResult<MUser> updateUserResult = await SqliteCurd.updateRow<MUser>(
+            modelTableName: user.tableName,
+            modelId: user.get_id!,
+            updateContent: <String, Object?>{'authorization': (response.headers.map['authorization']! as String).split(' ')[1]},
+            connectTransactionMark: null,
+          );
+          final bool isReturn = await updateUserResult.handle<bool>(
+            doSuccess: (MUser successResult) async {
+              return false;
+            },
+            doError: (SingleResult<MUser> errorResult) async {
+              httpStore.httpHandler
+                  .setCancel(vm: errorResult.getRequiredVm(), descp: errorResult.getRequiredDescp(), e: errorResult.getRequiredE(), st: errorResult.stackTrace);
+              return true;
+            },
+          );
+          if (isReturn) {
+            return httpStore;
+          }
+
           // 检测本地初始化数据是否已下载？
-          if (usersResult.result!.first.get_is_downloaded_init_data != 1) {
+          if (user.get_is_downloaded_init_data != 1) {
             //TODO: 未下载，则弹出下载的相关页面，下载前删除除了 user 数据外的其他全部数据。
             return httpStore.httpHandler.setCancel(vm: '数据未下载！', descp: Description(''), e: Exception('Token 刷新成功，但未下载初始化数据！'), st: null) as HS;
           }
         } else {
-          return httpStore.httpHandler
-              .setCancel(vm: '用户验证失败，请重新尝试！', descp: Description(''), e: Exception('需要登陆验证的请求，响应(刷新)的 authorization(token) 为 null！'), st: null) as HS;
+          return httpStore.httpHandler.setCancel(vm: '用户验证失败，请重新尝试！', descp: Description(''), e: Exception('响应(刷新)的 authorization(token) 为 null！'), st: null)
+              as HS;
         }
       }
 

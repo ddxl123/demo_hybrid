@@ -18,9 +18,9 @@ class HttpHandler implements DoSerializable {
     isSet = true;
   }
 
-  factory HttpHandler.fromJson(HttpStore httpStore, Map<String, Object?> json) => HttpHandler(httpStore)
+  factory HttpHandler.fromJson(HttpStore httpStore, Map json) => HttpHandler(httpStore)
     .._viewMessage = json['viewMessage'] as String?
-    .._description = json['description'] == null ? null : Description.fromJson(json['description']! as Map<String, Object?>)
+    .._description = json['description'] == null ? null : Description.fromJson(json['description']! as Map)
     .._exception = json['exception'] == null ? null : Exception(json['exception'])
     ..stackTrace = json['stackTrace'] == null ? null : StackTrace.fromString(json['stackTrace']! as String)
     ..isSet = json['isSet']! as bool;
@@ -93,9 +93,9 @@ class HttpHandler implements DoSerializable {
 
   /// 必须先 [setCancel]/[setPass]，再 [handle]。
   /// 必须先 [setCancel]/[setPass]，再 [doContinue]/[doCancel]。
-  Future<void> handle({
-    required Future<bool> doContinue(HttpStore httpStore),
-    required Future<void> doCancel(HttpHandler httpHandler),
+  Future<void> handle<HS extends HttpStore>({
+    required Future<bool> doContinue(HS hs),
+    required Future<void> doCancel(HttpHandler hh),
   }) async {
     if (!isSet) {
       setCancel(vm: '请求未完全处理！', descp: Description(''), e: Exception('必须先进行 setCancel/setPass，才能进行 handle！'), st: null);
@@ -109,7 +109,7 @@ class HttpHandler implements DoSerializable {
         await doCancel(this);
       } else {
         try {
-          final bool isFinal = await doContinue(httpStore);
+          final bool isFinal = await doContinue(httpStore as HS);
           if (!isFinal) {
             setCancel(vm: '响应 code 未处理！', descp: Description(''), e: Exception('未处理的响应code: ${httpStore.httpResponse.code}'), st: null);
             await doCancel(this);

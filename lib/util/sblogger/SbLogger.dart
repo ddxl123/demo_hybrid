@@ -8,7 +8,7 @@ class Description extends DoSerializable {
     stackTrace = StackTrace.current;
   }
 
-  factory Description.fromJson(Map<String, Object?> json) =>
+  factory Description.fromJson(Map json) =>
       Description(json['text']! as String)..stackTrace = json['stackTrace'] == null ? null : StackTrace.fromString(json['stackTrace']! as String);
 
   @override

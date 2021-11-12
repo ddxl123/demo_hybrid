@@ -32,103 +32,200 @@ class HttpStoreContent {
     return 'HttpStore_${parsePathToSnake(storeWriter)}';
   }
 
+  /// 2010101 -> C2_01_01_01
+  static String parseCode(CodeWrapper codeWrapper) {
+    final String codeStr = codeWrapper.code.toString();
+    return 'C${codeStr[0]}_${codeStr[1]}${codeStr[2]}_${codeStr[3]}${codeStr[4]}_${codeStr[5]}${codeStr[6]}';
+  }
+
   static String contentAll(StoreWrapper storeWriter) {
     return '''
 // ignore_for_file: camel_case_types
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:json_annotation/json_annotation.dart';
+
 import '../handler/HttpRequest.dart';
 import '../handler/HttpResponse.dart';
 import '../handler/HttpStore.dart';
 
 part '${parsePathToClassName(storeWriter)}.g.dart';
 
-class ${parsePathToClassName(storeWriter)} extends HttpStore_${storeWriter.method}<RequestDataVO_${parsePathToSimple(storeWriter)}, ResponseCodeCollect_${parsePathToSimple(storeWriter)}, ResponseDataVO_${parsePathToSimple(storeWriter)}> {
+class ${parsePathToClassName(storeWriter)} extends HttpStore<RequestHeadersVO_${parsePathToSimple(storeWriter)}, RequestParamsVO_${parsePathToSimple(storeWriter)}, RequestDataVO_${parsePathToSimple(storeWriter)},
+    ResponseHeadersVO_${parsePathToSimple(storeWriter)}, ResponseDataVO_${parsePathToSimple(storeWriter)}, ResponseCodeCollect_${parsePathToSimple(storeWriter)}> {
   ${parsePathToClassName(storeWriter)}({
-    required RequestDataVO_${parsePathToSimple(storeWriter)}? putRequestDataVO_${parsePathToSimple(storeWriter)}(),
+    required RequestHeadersVO_${parsePathToSimple(storeWriter)} requestHeadersVO_${parsePathToSimple(storeWriter)},
+    required RequestParamsVO_${parsePathToSimple(storeWriter)} requestParamsVO_${parsePathToSimple(storeWriter)},
+    required RequestDataVO_${parsePathToSimple(storeWriter)} requestDataVO_${parsePathToSimple(storeWriter)},
   }) : super(
-          r'${storeWriter.path}',
-          putRequestDataVO_${parsePathToSimple(storeWriter)},
-          ResponseCodeCollect_${parsePathToSimple(storeWriter)}(),
-          (Map<String, Object?>? json) => json == null ? null : ResponseDataVO_${parsePathToSimple(storeWriter)}.fromJson(json),
-        );
-  
-  factory ${parsePathToClassName(storeWriter)}.fromJson(Map<String, Object?> json) =>
-      ${parsePathToClassName(storeWriter)}(putRequestDataVO_${parsePathToSimple(storeWriter)}: () => null)
-        ..httpRequest = HttpRequest<RequestDataVO_${parsePathToSimple(storeWriter)}, RequestParamsVO>.fromJson(
-          json['httpRequest']! as Map<String, Object?>,
-          (Map<String, Object?>? reqvoJson) => reqvoJson == null ? null : RequestDataVO_${parsePathToSimple(storeWriter)}.fromJson(reqvoJson),
-          (Map<String, Object?>? reqpvoJson) => null,
-        )
-        ..httpResponse = HttpResponse<ResponseCodeCollect_${parsePathToSimple(storeWriter)}, ResponseDataVO_${parsePathToSimple(storeWriter)}>.fromJson(
-          json['httpResponse']! as Map<String, Object?>,
-          (Map<String, Object?>? respdvoJson) => respdvoJson == null ? null : ResponseDataVO_${parsePathToSimple(storeWriter)}.fromJson(respdvoJson),
-          (Map<String, Object?> respccolJson) => ResponseCodeCollect_${parsePathToSimple(storeWriter)}.fromJson(respccolJson),
+          putHttpRequest: () => HttpRequest<RequestHeadersVO_${parsePathToSimple(storeWriter)}, RequestParamsVO_${parsePathToSimple(storeWriter)}, RequestDataVO_${parsePathToSimple(storeWriter)}>(
+            method: '${storeWriter.method}',
+            path: r'${storeWriter.pathType}${parsePathToA(storeWriter)}',
+            putRequestHeadersVO: requestHeadersVO_${parsePathToSimple(storeWriter)}.toJson(),
+            putRequestParamsVO: requestParamsVO_${parsePathToSimple(storeWriter)}.toJson(),
+            putRequestDataVO: requestDataVO_${parsePathToSimple(storeWriter)}.toJson(),
+          ),
+          putResponseCodeCollect: ResponseCodeCollect_${parsePathToSimple(storeWriter)}(),
         );
 
+  ${parsePathToClassName(storeWriter)}.fromJson(Map<String, Object?> json) : super.fromJson(json);
 
   @override
-  Map<String, Object?> toJson() => <String, Object?>{
-        'httpRequest': httpRequest.toJson(),
-        'httpResponse': httpResponse.toJson(),
-      };
+  RequestHeadersVO_${parsePathToSimple(storeWriter)} toVOForRequestHeadersVO(Map<String, Object?> json) => RequestHeadersVO_${parsePathToSimple(storeWriter)}.fromJson(json);
+
+  @override
+  RequestParamsVO_${parsePathToSimple(storeWriter)} toVOForRequestParamsVO(Map<String, Object?> json) => RequestParamsVO_${parsePathToSimple(storeWriter)}.fromJson(json);
+
+  @override
+  RequestDataVO_${parsePathToSimple(storeWriter)} toVOForRequestDataVO(Map<String, Object?> json) => RequestDataVO_${parsePathToSimple(storeWriter)}.fromJson(json);
+
+  @override
+  ResponseCodeCollect_${parsePathToSimple(storeWriter)} toVOForResponseCodeCollect(Map<String, Object?> json) => ResponseCodeCollect_${parsePathToSimple(storeWriter)}.fromJson(json);
+
+  @override
+  ResponseDataVO_${parsePathToSimple(storeWriter)} toVOForResponseDataVO(Map<String, Object?> json) => ResponseDataVO_${parsePathToSimple(storeWriter)}.fromJson(json);
+
+  @override
+  ResponseHeadersVO_${parsePathToSimple(storeWriter)} toVOForResponseHeadersVO(Map<String, Object?> json) => ResponseHeadersVO_${parsePathToSimple(storeWriter)}.fromJson(json);
+}
+
+@JsonSerializable()
+class RequestHeadersVO_${parsePathToSimple(storeWriter)} extends RequestHeadersVO {
+  RequestHeadersVO_${parsePathToSimple(storeWriter)}(${() {
+      if (storeWriter.requestHeadersVOKeys.isEmpty) {
+        return '';
+      }
+      String content = '';
+      for (final VOWrapper value in storeWriter.requestHeadersVOKeys) {
+        content += 'required this.${value.keyName},';
+      }
+      content = '{$content}';
+      return content;
+    }()});
+    
+  factory RequestHeadersVO_${parsePathToSimple(storeWriter)}.fromJson(Map<String, Object?> json) => _\$RequestHeadersVO_${parsePathToSimple(storeWriter)}FromJson(json);
+
+  @override
+  Map<String, Object?> toJson() => _\$RequestHeadersVO_${parsePathToSimple(storeWriter)}ToJson(this);
+  
+  ${() {
+      String content = '';
+      for (final VOWrapper value in storeWriter.requestHeadersVOKeys) {
+        content += 'final ${value.type.name} ${value.keyName};\n';
+      }
+      return content;
+    }()}
+}
+
+@JsonSerializable()
+class RequestParamsVO_${parsePathToSimple(storeWriter)} extends RequestParamsVO {
+  RequestParamsVO_${parsePathToSimple(storeWriter)}(${() {
+      if (storeWriter.requestParamsVOKeys.isEmpty) {
+        return '';
+      }
+      String content = '';
+      for (final VOWrapper value in storeWriter.requestParamsVOKeys) {
+        content += 'required this.${value.keyName},';
+      }
+      content = '{$content}';
+      return content;
+    }()});
+    
+  factory RequestParamsVO_${parsePathToSimple(storeWriter)}.fromJson(Map<String, Object?> json) => _\$RequestParamsVO_${parsePathToSimple(storeWriter)}FromJson(json);
+
+  @override
+  Map<String, Object?> toJson() => _\$RequestParamsVO_${parsePathToSimple(storeWriter)}ToJson(this);
+    
+  ${() {
+      String content = '';
+      for (final VOWrapper value in storeWriter.requestParamsVOKeys) {
+        content += 'final ${value.type.name} ${value.keyName};\n';
+      }
+      return content;
+    }()}
 }
 
 @JsonSerializable()
 class RequestDataVO_${parsePathToSimple(storeWriter)} extends RequestDataVO {
-  RequestDataVO_${parsePathToSimple(storeWriter)}(
-    ${() {
-      if (storeWriter.requestDataVOKeys == null || storeWriter.requestDataVOKeys!.isEmpty) {
+  RequestDataVO_${parsePathToSimple(storeWriter)}(${() {
+      if (storeWriter.requestDataVOKeys.isEmpty) {
         return '';
       }
-      String keyNames = '';
-      for (final DataVOWrapper dataVOKT in storeWriter.requestDataVOKeys!) {
-        keyNames += 'required this.${dataVOKT.keyName},';
+      String content = '';
+      for (final VOWrapper value in storeWriter.requestDataVOKeys) {
+        content += 'required this.${value.keyName},';
       }
-      return '{$keyNames}';
+      content = '{$content}';
+      return content;
     }()});
-
+    
   factory RequestDataVO_${parsePathToSimple(storeWriter)}.fromJson(Map<String, Object?> json) => _\$RequestDataVO_${parsePathToSimple(storeWriter)}FromJson(json);
 
   @override
   Map<String, Object?> toJson() => _\$RequestDataVO_${parsePathToSimple(storeWriter)}ToJson(this);
-
+    
   ${() {
-      String members = '';
-      for (final DataVOWrapper dataVOKT in storeWriter.requestDataVOKeys!) {
-        members += 'final ${dataVOKT.type.name} ${dataVOKT.keyName};';
+      String content = '';
+      for (final VOWrapper value in storeWriter.requestDataVOKeys) {
+        content += 'final ${value.type.name} ${value.keyName};\n';
       }
-      return members;
+      return content;
+    }()}
+}
+
+@JsonSerializable()
+class ResponseHeadersVO_${parsePathToSimple(storeWriter)} extends ResponseHeadersVO {
+  ResponseHeadersVO_${parsePathToSimple(storeWriter)}(${() {
+      if (storeWriter.responseHeadersVOKeys.isEmpty) {
+        return '';
+      }
+      String content = '';
+      for (final VOWrapper value in storeWriter.responseHeadersVOKeys) {
+        content += 'required this.${value.keyName},';
+      }
+      content = '{$content}';
+      return content;
+    }()});
+    
+  factory ResponseHeadersVO_${parsePathToSimple(storeWriter)}.fromJson(Map<String, Object?> json) => _\$ResponseHeadersVO_${parsePathToSimple(storeWriter)}FromJson(json);
+
+  @override
+  Map<String, Object?> toJson() => _\$ResponseHeadersVO_${parsePathToSimple(storeWriter)}ToJson(this);
+    
+  ${() {
+      String content = '';
+      for (final VOWrapper value in storeWriter.responseHeadersVOKeys) {
+        content += 'final ${value.type.name} ${value.keyName};\n';
+      }
+      return content;
     }()}
 }
 
 @JsonSerializable()
 class ResponseDataVO_${parsePathToSimple(storeWriter)} extends ResponseDataVO {
-  ResponseDataVO_${parsePathToSimple(storeWriter)}(
-    ${() {
+  ResponseDataVO_${parsePathToSimple(storeWriter)}(${() {
       if (storeWriter.responseDataVOKeys.isEmpty) {
         return '';
       }
-      String keyNames = '';
-      for (final DataVOWrapper dataVOKT in storeWriter.responseDataVOKeys) {
-        keyNames += 'required this.${dataVOKT.keyName},';
+      String content = '';
+      for (final VOWrapper value in storeWriter.responseDataVOKeys) {
+        content += 'required this.${value.keyName},';
       }
-      return '{$keyNames}';
-    }()}
-  );
-
+      content = '{$content}';
+      return content;
+    }()});
+    
   factory ResponseDataVO_${parsePathToSimple(storeWriter)}.fromJson(Map<String, Object?> json) => _\$ResponseDataVO_${parsePathToSimple(storeWriter)}FromJson(json);
 
   @override
   Map<String, Object?> toJson() => _\$ResponseDataVO_${parsePathToSimple(storeWriter)}ToJson(this);
-
+    
   ${() {
-      String members = '';
-      for (final DataVOWrapper dataVOKT in storeWriter.responseDataVOKeys) {
-        members += 'late ${dataVOKT.type.name} ${dataVOKT.keyName};';
+      String content = '';
+      for (final VOWrapper value in storeWriter.responseDataVOKeys) {
+        content += 'final ${value.type.name} ${value.keyName};\n';
       }
-      return members;
+      return content;
     }()}
 }
 
@@ -142,16 +239,13 @@ class ResponseCodeCollect_${parsePathToSimple(storeWriter)} extends ResponseCode
   Map<String, Object?> toJson() => _\$ResponseCodeCollect_${parsePathToSimple(storeWriter)}ToJson(this);
 
   ${() {
-      String members = '';
-      for (final CodeWrapper codeWrapper in storeWriter.responseCodeCollect) {
-        final String codeStr = codeWrapper.code.toString();
-        members += '''
-  /// ${codeWrapper.tip}
-  final int C${codeStr[0]}_${codeStr[1]}${codeStr[2]}_${codeStr[3]}${codeStr[4]}_${codeStr[5]}${codeStr[6]} = $codeStr;
-  ''';
+      String content = '';
+      for (final CodeWrapper value in storeWriter.responseCodeCollect) {
+        content += '/// ${value.tip}\n    final int ${parseCode(value)} = ${value.code};\n';
       }
-      return members;
+      return content;
     }()}
-}''';
+}    
+''';
   }
 }

@@ -1,5 +1,6 @@
 // ignore_for_file: camel_case_types
 
+import 'package:hybrid/data/mysql/httpstore/handler/HttpStore.dart';
 import 'package:hybrid/util/SbHelper.dart';
 
 abstract class RequestHeadersVO extends DoSerializable {}
@@ -50,7 +51,7 @@ class HttpRequest<REQHVO extends RequestHeadersVO, REQPVO extends RequestParamsV
     requestParamsVO.addAll(putRequestParamsVO);
   }
 
-  factory HttpRequest.fromJson(Map<String, Object?> json) {
+  factory HttpRequest.fromJson(Map json) {
     return HttpRequest<REQHVO, REQPVO, REQVO>(
       method: json['method']! as String,
       path: json['path']! as String,
@@ -79,23 +80,17 @@ class HttpRequest<REQHVO extends RequestHeadersVO, REQPVO extends RequestParamsV
   /// 请求头。
   final Map<String, Object?> requestHeadersVO = <String, Object?>{};
 
-  /// 请求体 body VO 模型。
-  final Map<String, Object?> requestDataVO = <String, Object?>{};
-
   /// 请求体 params VO 模型。
   final Map<String, Object?> requestParamsVO = <String, Object?>{};
 
-  REQHVO toVOForRequestHeadersVO(REQHVO reqhvo(Map<String, Object?> json)) {
-    return reqhvo(requestDataVO);
-  }
+  /// 请求体 body VO 模型。
+  final Map<String, Object?> requestDataVO = <String, Object?>{};
 
-  REQVO toVOForRequestDataVO(REQVO reqvo(Map<String, Object?> json)) {
-    return reqvo(requestDataVO);
-  }
+  REQHVO getRequestHeadersVO(HttpStore hs) => hs.toVOForRequestHeadersVO(requestHeadersVO) as REQHVO;
 
-  REQPVO toVOForRequestParamsVO(REQPVO reqpvo(Map<String, Object?> json)) {
-    return reqpvo(requestParamsVO);
-  }
+  REQPVO getRequestParamsVO(HttpStore hs) => hs.toVOForRequestParamsVO(requestParamsVO) as REQPVO;
+
+  REQVO getRequestDataVO(HttpStore hs) => hs.toVOForRequestDataVO(requestDataVO) as REQVO;
 
   /// path type
   PathType pathType() {

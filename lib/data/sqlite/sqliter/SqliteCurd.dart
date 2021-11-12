@@ -434,8 +434,6 @@ class SqliteCurd {
     return model;
   }
 
-  /// {@template RSqliteCurd.updateRow}
-  ///
   /// 对 [model] 的 [update] 操作。
   ///
   /// 只有需要在 [MUpload] 中 CURD 的表才能使用 [_toUpdateRow]。
@@ -453,8 +451,6 @@ class SqliteCurd {
   /// - [updateContent] 更新的内容。
   ///
   /// - [T]、[return] 返回更新后的 model。
-  ///
-  /// {@endtemplate}
   static Future<T> _toUpdateRow<T extends ModelBase>({
     required String modelTableName,
     required int modelId,

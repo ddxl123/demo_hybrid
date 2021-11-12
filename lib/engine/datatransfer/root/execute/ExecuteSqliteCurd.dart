@@ -12,23 +12,22 @@ class ExecuteSqliteCurd {
   ///
 
   /// 查看 [SqliteCurd.queryRowsAsJsons]
-  Future<SingleResult<List<Map<String, Object?>>>> queryRowsAsJsons<T extends ModelBase>(QueryWrapper queryWrapper) async {
-    final SingleResult<List<Map<String, Object?>>> queryRowsAsJsonsResult = SingleResult<List<Map<String, Object?>>>();
-    final SingleResult<List<Map<String, Object?>>> result =
-        await DataTransferManager.instance.transfer.execute<Map<String, Object?>, List<Map<String, Object?>>>(
+  Future<SingleResult<List<Map>>> queryRowsAsJsons<T extends ModelBase>(QueryWrapper queryWrapper) async {
+    final SingleResult<List<Map>> queryRowsAsJsonsResult = SingleResult<List<Map>>();
+    final SingleResult<List<Map>> result = await DataTransferManager.instance.transfer.execute<Map, List<Map>>(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
       operationId: OUniform.SQLITE_QUERY_ROW_AS_JSONS,
       setOperationData: () => queryWrapper.toJson(),
       startViewParams: null,
       endViewParams: null,
       closeViewAfterSeconds: null,
-      resultDataCast: (Object resultData) => (resultData as List<Object?>).cast<Map<String, Object?>>(),
+      resultDataCast: (Object resultData) => (resultData as List).cast<Map>(),
     );
     await result.handle<void>(
-      doSuccess: (List<Map<String, Object?>> successResult) async {
+      doSuccess: (List<Map> successResult) async {
         queryRowsAsJsonsResult.setSuccess(setResult: () => successResult);
       },
-      doError: (SingleResult<List<Map<String, Object?>>> errorResult) async {
+      doError: (SingleResult<List<Map>> errorResult) async {
         queryRowsAsJsonsResult.setErrorClone(errorResult);
       },
     );
@@ -38,18 +37,18 @@ class ExecuteSqliteCurd {
   /// 查看 [SqliteCurd.queryRowsAsModels]
   Future<SingleResult<List<T>>> queryRowsAsModels<T extends ModelBase>(QueryWrapper queryWrapper) async {
     final SingleResult<List<T>> queryRowsAsModelsResult = SingleResult<List<T>>();
-    final SingleResult<List<Map<String, Object?>>> result = await queryRowsAsJsons(queryWrapper);
+    final SingleResult<List<Map>> result = await queryRowsAsJsons(queryWrapper);
     await result.handle<void>(
-      doSuccess: (List<Map<String, Object?>> successResult) async {
+      doSuccess: (List<Map> successResult) async {
         queryRowsAsModelsResult.setSuccess(setResult: () {
           final List<T> list = <T>[];
-          for (final Map<String, Object?> item in successResult) {
-            list.add(ModelManager.createEmptyModelByTableName<T>(queryWrapper.tableName)..setRowJson = item);
+          for (final Map item in successResult) {
+            list.add(ModelManager.createEmptyModelByTableName<T>(queryWrapper.tableName)..setRowJson = item.cast());
           }
           return list;
         });
       },
-      doError: (SingleResult<List<Map<String, Object?>>> errorResult) async {
+      doError: (SingleResult<List<Map>> errorResult) async {
         queryRowsAsModelsResult.setErrorClone(errorResult);
       },
     );
@@ -59,7 +58,7 @@ class ExecuteSqliteCurd {
   /// 查看 [SqliteCurd.insertRow] 注释。
   Future<SingleResult<T>> insertRow<T extends ModelBase>(T insertModel) async {
     final SingleResult<T> insertRowResult = SingleResult<T>();
-    final SingleResult<Map<String, Object?>> result = await DataTransferManager.instance.transfer.execute<Map<String, Object?>, Map<String, Object?>>(
+    final SingleResult<Map> result = await DataTransferManager.instance.transfer.execute<Map, Map>(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
       operationId: OUniform.SQLITE_INSERT_ROW,
       setOperationData: () => <String, Object?>{
@@ -69,17 +68,17 @@ class ExecuteSqliteCurd {
       startViewParams: null,
       endViewParams: null,
       closeViewAfterSeconds: null,
-      resultDataCast: (Object resultData) => (resultData as Map<Object?, Object?>).cast<String, Object?>(),
+      resultDataCast: (Object resultData) => resultData as Map,
     );
     await result.handle<void>(
-      doSuccess: (Map<String, Object?> successResult) async {
+      doSuccess: (Map successResult) async {
         try {
-          insertRowResult.setSuccess(setResult: () => ModelManager.createEmptyModelByTableName<T>(insertModel.tableName)..setRowJson = successResult);
+          insertRowResult.setSuccess(setResult: () => ModelManager.createEmptyModelByTableName<T>(insertModel.tableName)..setRowJson = successResult.cast());
         } catch (e, st) {
           insertRowResult.setError(vm: '插入异常！', descp: Description(''), e: e, st: st);
         }
       },
-      doError: (SingleResult<Map<String, Object?>> errorResult) async {
+      doError: (SingleResult<Map> errorResult) async {
         insertRowResult.setErrorClone(errorResult);
       },
     );
@@ -90,7 +89,7 @@ class ExecuteSqliteCurd {
   Future<SingleResult<T>> updateRow<T extends ModelBase>(
       {required String modelTableName, required int modelId, required Map<String, Object?> updateContent}) async {
     final SingleResult<T> updateRowResult = SingleResult<T>();
-    final SingleResult<Map<String, Object?>> result = await DataTransferManager.instance.transfer.execute<Map<String, Object?>, Map<String, Object?>>(
+    final SingleResult<Map> result = await DataTransferManager.instance.transfer.execute<Map, Map>(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
       operationId: OUniform.SQLITE_UPDATE_ROW,
       setOperationData: () => <String, Object?>{
@@ -101,13 +100,13 @@ class ExecuteSqliteCurd {
       startViewParams: null,
       endViewParams: null,
       closeViewAfterSeconds: null,
-      resultDataCast: (Object resultData) => (resultData as Map<Object?, Object?>).cast<String, Object?>(),
+      resultDataCast: (Object resultData) => resultData as Map,
     );
     await result.handle<void>(
-      doSuccess: (Map<String, Object?> successResult) async {
-        updateRowResult.setSuccess(setResult: () => ModelManager.createEmptyModelByTableName(modelTableName)..setRowJson = successResult);
+      doSuccess: (Map successResult) async {
+        updateRowResult.setSuccess(setResult: () => ModelManager.createEmptyModelByTableName(modelTableName)..setRowJson = successResult.cast());
       },
-      doError: (SingleResult<Map<String, Object?>> errorResult) async {
+      doError: (SingleResult<Map> errorResult) async {
         updateRowResult.setErrorClone(errorResult);
       },
     );
@@ -117,7 +116,7 @@ class ExecuteSqliteCurd {
   /// 查看 [SqliteCurd.deleteRow] 注释
   Future<SingleResult<bool>> deleteRow({required String modelTableName, required int? modelId}) async {
     final SingleResult<bool> deleteRowResult = SingleResult<bool>();
-    final SingleResult<bool> result = await DataTransferManager.instance.transfer.execute<Map<String, Object?>, bool>(
+    final SingleResult<bool> result = await DataTransferManager.instance.transfer.execute<Map, bool>(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
       operationId: OUniform.SQLITE_DELETE_ROW,
       setOperationData: () => <String, Object?>{

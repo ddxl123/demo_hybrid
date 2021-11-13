@@ -58,14 +58,14 @@ abstract class AbstractMoreRoute<FDM extends ModelBase> extends AbstractPoolEntr
             doSuccess: (FDM successResult) async {
               fatherRoute.sheetPageController.bodyData.add(successResult);
             },
-            doError: (Object? exception, StackTrace? stackTrace) async {
+            doError: (SingleResult<FDM> errorResult) async {
               SbLogger(
                 c: null,
-                vm: '添加失败！',
+                vm: errorResult.getRequiredVm(),
                 data: null,
-                descp: Description('添加失败！'),
-                e: insertResult.exception,
-                st: insertResult.stackTrace,
+                descp: errorResult.getRequiredDescp(),
+                e: errorResult.getRequiredE(),
+                st: errorResult.stackTrace,
               );
             },
           );

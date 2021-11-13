@@ -117,14 +117,14 @@ class _TableForTableDataState extends State<TableForTableData> {
         doSuccess: (List<ModelBase> successResult) async {
           body.addAll(successResult);
         },
-        doError: (Object? exception, StackTrace? stackTrace) async {
+        doError: (SingleResult<List<ModelBase>> errorResult) async {
           SbLogger(
             c: null,
-            vm: '获取失败！',
+            vm: errorResult.getRequiredVm(),
             data: null,
-            descp: null,
-            e: queryResult.exception,
-            st: queryResult.stackTrace,
+            descp: errorResult.getRequiredDescp(),
+            e: errorResult.getRequiredE(),
+            st: errorResult.stackTrace,
           );
         },
       );

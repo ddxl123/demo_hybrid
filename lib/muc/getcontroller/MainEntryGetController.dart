@@ -76,15 +76,15 @@ class MainEntryGetController extends GetxController {
           SbHelper.getNavigator!.push(FloatingWindowPermissionRoute());
         }
       },
-      doError: (Object? exception, StackTrace? stackTrace) async {
+      doError: (SingleResult<bool> errorResult) async {
         await setInitStatus(MainEntryInitStatus.error, '权限检查发生异常！');
         SbLogger(
           c: null,
-          vm: null,
+          vm: errorResult.getRequiredVm(),
           data: null,
-          descp: Description('发生异常！'),
-          e: exception,
-          st: stackTrace,
+          descp: errorResult.getRequiredDescp(),
+          e: errorResult.getRequiredE(),
+          st: errorResult.stackTrace,
         ).withRecord();
       },
     );
@@ -120,15 +120,15 @@ class MainEntryGetController extends GetxController {
           ).withRecord();
         }
       },
-      doError: (Object? exception, StackTrace? stackTrace) async {
+      doError: (SingleResult<bool> errorResult) async {
         await setInitStatus(MainEntryInitStatus.error, '应用数据初始化异常！');
         SbLogger(
           c: null,
-          vm: null,
+          vm: errorResult.getRequiredVm(),
           data: null,
-          descp: Description('发生异常！'),
-          e: exception,
-          st: stackTrace,
+          descp: errorResult.getRequiredDescp(),
+          e: errorResult.getRequiredE(),
+          st: errorResult.stackTrace,
         ).withRecord();
       },
     );

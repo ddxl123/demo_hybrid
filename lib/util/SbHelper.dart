@@ -9,20 +9,46 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:uuid/uuid.dart';
 
 /// 与 [HttpHandler] 基本一直。
-class SingleResult<R> {
+///
+/// [R] 必须是个可序列化类型。
+class SingleResult<R> extends DoSerializable {
+  SingleResult();
+
+  factory SingleResult.fromJson(Map json) => SingleResult<R>()
+    ..result = json['result'] as R?
+    .._viewMessage = json['viewMessage'] as String?
+    .._description = json['description'] == null ? null : Description.fromJson(json['description']! as Map)
+    .._exception = json['exception'] == null ? null : Exception(json['exception']! as String)
+    ..stackTrace = json['stackTrace'] == null ? null : StackTrace.fromString(json['stackTrace']! as String)
+    ..isSet = json['isSet']! as bool;
+
+  @override
+  Map<String, Object?> toJson() => <String, Object?>{
+        'result': result,
+        'viewMessage': _viewMessage,
+        'description': _description?.toJson(),
+        'exception': _exception?.toString(),
+        'stackTrace': stackTrace?.toString(),
+        'isSet': isSet,
+      };
+
   R? result;
+
   String? _viewMessage;
 
-  String getRequiredVm() => _viewMessage ?? '_viewMessage 为空！';
   Description? _description;
 
-  Description getRequiredDescp() => _description ?? Description('_description 为空！');
   Object? _exception;
 
-  Object getRequiredE() => _exception ?? Exception('_exception 为空！');
   StackTrace? stackTrace;
 
   bool isSet = false;
+
+  String getRequiredVm() => _viewMessage ?? '_viewMessage 为空！';
+
+  Description getRequiredDescp() => _description ?? Description('_description 为空！');
+
+  Object getRequiredE() => _exception ?? Exception('_exception 为空！');
 
   bool _hasError() => _exception != null;
 

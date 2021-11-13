@@ -45,14 +45,14 @@ class NodeSheetRouteForMemory extends AbstractNodeSheetRoute<MFMemory> {
       doSuccess: (List<MFMemory> successResult) async {
         bodyData.addAll(successResult);
       },
-      doError: (Object? exception, StackTrace? stackTrace) async {
+      doError: (SingleResult<List<MFMemory>> errorResult) async {
         SbLogger(
           c: null,
-          vm: '获取失败！',
+          vm: errorResult.getRequiredVm(),
           data: null,
-          descp: null,
-          e: exception,
-          st: stackTrace,
+          descp: errorResult.getRequiredDescp(),
+          e: errorResult.getRequiredE(),
+          st: errorResult.stackTrace,
         );
       },
     );

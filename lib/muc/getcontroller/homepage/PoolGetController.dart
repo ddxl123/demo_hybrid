@@ -193,14 +193,14 @@ class PoolGetController extends GetxController {
         doSuccess: (List<ModelBase> successResult) async {
           return successResult;
         },
-        doError: (Object? exception, StackTrace? stackTrace) async {
+        doError: (SingleResult<List<ModelBase>> errorResult) async {
           SbLogger(
             c: null,
-            vm: '加载数据失败！',
+            vm: errorResult.getRequiredVm(),
             data: null,
-            descp: Description('读取数据时发生异常'),
-            e: queryResult.exception,
-            st: queryResult.stackTrace,
+            descp: errorResult.getRequiredDescp(),
+            e: errorResult.getRequiredE(),
+            st: errorResult.stackTrace,
           ).withToast(false);
           return <ModelBase>[];
         },

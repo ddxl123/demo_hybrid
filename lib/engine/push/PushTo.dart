@@ -32,14 +32,14 @@ class PushTo {
           );
         }
       },
-      doError: (Object? exception, StackTrace? stackTrace) async {
+      doError: (SingleResult<bool> errorResult) async {
         SbLogger(
           c: null,
           vm: '新入口弹出异常！',
           data: null,
-          descp: null,
-          e: exception,
-          st: stackTrace,
+          descp: errorResult.getRequiredDescp(),
+          e: errorResult.getRequiredE(),
+          st: errorResult.stackTrace,
         );
       },
     );

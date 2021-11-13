@@ -29,14 +29,14 @@ class LongPressedPoolRouteForFragment extends AbstractLongPressedPoolRoute {
       doSuccess: (MPnFragment successResult) async {
         newModel = successResult;
       },
-      doError: (Object? exception, StackTrace? stackTrace) async {
+      doError: (SingleResult<MPnFragment> errorResult) async {
         SbLogger(
           c: null,
-          vm: '添加失败！',
+          vm: errorResult.getRequiredVm(),
           data: null,
-          descp: null,
-          e: insertResult.exception,
-          st: insertResult.stackTrace,
+          descp: errorResult.getRequiredDescp(),
+          e: errorResult.getRequiredE(),
+          st: errorResult.stackTrace,
         );
       },
     );
@@ -65,14 +65,14 @@ class LongPressedPoolRouteForMemory extends AbstractLongPressedPoolRoute {
       doSuccess: (MPnMemory successResult) async {
         newModel = successResult;
       },
-      doError: (Object? exception, StackTrace? stackTrace) async {
+      doError: (SingleResult<MPnMemory> errorResult) async {
         SbLogger(
           c: null,
-          vm: '添加失败！',
+          vm: errorResult.getRequiredVm(),
           data: null,
-          descp: null,
-          e: exception,
-          st: stackTrace,
+          descp: errorResult.getRequiredDescp(),
+          e: errorResult.getRequiredE(),
+          st: errorResult.stackTrace,
         );
       },
     );
@@ -101,14 +101,14 @@ class LongPressedPoolRouteForComplete extends AbstractLongPressedPoolRoute {
       doSuccess: (MPnComplete successResult) async {
         newModel = successResult;
       },
-      doError: (Object? exception, StackTrace? stackTrace) async {
+      doError: (SingleResult<MPnComplete> errorResult) async {
         SbLogger(
           c: null,
-          vm: '添加失败！',
+          vm: errorResult.getRequiredVm(),
           data: null,
-          descp: null,
-          e: exception,
-          st: stackTrace,
+          descp: errorResult.getRequiredDescp(),
+          e: errorResult.getRequiredE(),
+          st: errorResult.stackTrace,
         );
       },
     );
@@ -135,14 +135,14 @@ class LongPressedPoolRouteForRule extends AbstractLongPressedPoolRoute {
       doSuccess: (MPnRule successResult) async {
         newModel = successResult;
       },
-      doError: (Object? exception, StackTrace? stackTrace) async {
+      doError: (SingleResult<MPnRule> errorResult) async {
         SbLogger(
           c: null,
           vm: '添加失败！',
           data: null,
           descp: null,
-          e: exception,
-          st: stackTrace,
+          e: errorResult.getRequiredE(),
+          st: errorResult.stackTrace,
         );
       },
     );

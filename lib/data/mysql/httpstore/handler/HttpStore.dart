@@ -1,3 +1,4 @@
+// ignore_for_file: camel_case_types
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
@@ -59,4 +60,44 @@ abstract class HttpStore<REQHVO extends RequestHeadersVO, REQPVO extends Request
   RESPDVO toVOForResponseDataVO(Map<String, Object?> json);
 
   RESPCCOL toVOForResponseCodeCollect(Map<String, Object?> json);
+}
+
+class HttpStore_Single extends HttpStore {
+  HttpStore_Single.fromJson(Map json) : super.fromJson(json);
+
+  @override
+  RequestDataVO toVOForRequestDataVO(Map<String, Object?> json) {
+    // TODO: implement toVOForRequestDataVO
+    throw UnimplementedError();
+  }
+
+  @override
+  RequestHeadersVO toVOForRequestHeadersVO(Map<String, Object?> json) {
+    // TODO: implement toVOForRequestHeadersVO
+    throw UnimplementedError();
+  }
+
+  @override
+  RequestParamsVO toVOForRequestParamsVO(Map<String, Object?> json) {
+    // TODO: implement toVOForRequestParamsVO
+    throw UnimplementedError();
+  }
+
+  @override
+  ResponseCodeCollect toVOForResponseCodeCollect(Map<String, Object?> json) {
+    // TODO: implement toVOForResponseCodeCollect
+    throw UnimplementedError();
+  }
+
+  @override
+  ResponseDataVO toVOForResponseDataVO(Map<String, Object?> json) {
+    // TODO: implement toVOForResponseDataVO
+    throw UnimplementedError();
+  }
+
+  @override
+  ResponseHeadersVO toVOForResponseHeadersVO(Map<String, Object?> json) {
+    // TODO: implement toVOForResponseHeadersVO
+    throw UnimplementedError();
+  }
 }

@@ -35,17 +35,17 @@ class FloatingWindowPermissionRoute extends SbRoute {
       doSuccess: (bool successResult) async {
         // 无论 true 或 false，都不进行处理，都已经交付给 timer 处理了。
       },
-      doError: (Object? exception, StackTrace? stackTrace) async {
+      doError: (SingleResult<bool> errorResult) async {
         // 该错误提示最多存在一秒，因为 timer 每秒一次。
         isAllowed = null;
         sbRouteSetState();
         SbLogger(
           c: null,
-          vm: null,
+          vm: errorResult.getRequiredVm(),
           data: null,
-          descp: Description('检查是否已允许悬浮窗权限（若未允许则弹出权限设置页面）发生异常！'),
-          e: checkAndPushResult.exception,
-          st: checkAndPushResult.stackTrace,
+          descp: errorResult.getRequiredDescp(),
+          e: errorResult.getRequiredE(),
+          st: errorResult.stackTrace,
         ).withRecord();
       },
     );
@@ -80,17 +80,17 @@ class FloatingWindowPermissionRoute extends SbRoute {
               sbRouteSetState();
             }
           },
-          doError: (Object? exception, StackTrace? stackTrace) async {
+          doError: (SingleResult<bool> errorResult) async {
             // 该错误提示最多存在一秒，因为 timer 每秒一次。
             isAllowed = null;
             sbRouteSetState();
             SbLogger(
               c: null,
-              vm: null,
+              vm: errorResult.getRequiredVm(),
               data: null,
-              descp: Description('检查悬浮窗时发生了异常！'),
-              e: exception,
-              st: stackTrace,
+              descp: errorResult.getRequiredDescp(),
+              e: errorResult.getRequiredE(),
+              st: errorResult.stackTrace,
             );
           },
         );

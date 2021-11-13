@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:hybrid/data/mysql/httpstore/handler/HttpResponse.dart';
+import 'package:hybrid/data/mysql/httpstore/handler/HttpHandler.dart';
 import 'package:hybrid/data/mysql/httpstore/store/HttpStore_login_and_register_by_email_send_email.dart';
 import 'package:hybrid/data/mysql/httpstore/store/HttpStore_login_and_register_by_email_verify_email.dart';
 import 'package:hybrid/data/sqlite/mmodel/MUser.dart';
@@ -112,7 +112,9 @@ class LoginPage extends SbRoute {
 
               final HttpStore_login_and_register_by_email_send_email requestResult = await DataTransferManager.instance.transfer.executeHttpCurd.sendRequest(
                 httpStore: HttpStore_login_and_register_by_email_send_email(
-                  putRequestDataVO_LARBESE: () => RequestDataVO_LARBESE(
+                  requestHeadersVO_LARBESE: RequestHeadersVO_LARBESE(),
+                  requestParamsVO_LARBESE: RequestParamsVO_LARBESE(),
+                  requestDataVO_LARBESE: RequestDataVO_LARBESE(
                     email: emailTextEditingController.text,
                   ),
                 ),
@@ -120,15 +122,15 @@ class LoginPage extends SbRoute {
                 isBanAllOtherRequest: true,
                 resultHttpStoreJson2HS: (Map<String, Object?> json) async => HttpStore_login_and_register_by_email_send_email.fromJson(json),
               );
-              requestResult.httpResponse.intercept(
-                doContinue: (HttpResponse<ResponseCodeCollect_LARBESE, ResponseDataVO_LARBESE> hr) async {
+              await requestResult.httpHandler.handle<HttpStore_login_and_register_by_email_send_email>(
+                doContinue: (HttpStore_login_and_register_by_email_send_email hs) async {
                   // 发送成功。
-                  if (hr.code == hr.responseCodeCollect.C2_01_01_01) {
+                  if (hs.httpResponse.code == hs.httpResponse.getResponseCodeCollect(hs).C2_01_01_01) {
                     SbLogger(
-                      c: null,
-                      vm: hr.viewMessage,
+                      c: hs.httpResponse.code,
+                      vm: hs.httpResponse.viewMessage,
                       data: null,
-                      descp: hr.text,
+                      descp: Description(''),
                       e: null,
                       st: null,
                     ).withToast(false);
@@ -136,18 +138,18 @@ class LoginPage extends SbRoute {
                   }
                   return false;
                 },
-                doCancel: (HttpResponse<ResponseCodeCollect_LARBESE, ResponseDataVO_LARBESE> hr) async {
+                doCancel: (HttpHandler hh) async {
                   timer?.cancel();
                   timer = null;
                   text = '重新发送';
                   state.refresh();
                   SbLogger(
-                    c: hr.code,
-                    vm: hr.viewMessage,
+                    c: null,
+                    vm: hh.getRequiredViewMessage(),
                     data: null,
-                    descp: hr.text,
-                    e: hr._exception,
-                    st: hr.stackTrace,
+                    descp: hh.getRequiredDescription(),
+                    e: hh.getRequiredException(),
+                    st: hh.stackTrace,
                   ).withAll(true);
                 },
               );
@@ -170,7 +172,9 @@ class LoginPage extends SbRoute {
           onPressed: () async {
             final HttpStore_login_and_register_by_email_verify_email requestResult = await DataTransferManager.instance.transfer.executeHttpCurd.sendRequest(
               httpStore: HttpStore_login_and_register_by_email_verify_email(
-                putRequestDataVO_LARBEVE: () => RequestDataVO_LARBEVE(
+                requestHeadersVO_LARBEVE: RequestHeadersVO_LARBEVE(),
+                requestParamsVO_LARBEVE: RequestParamsVO_LARBEVE(),
+                requestDataVO_LARBEVE: RequestDataVO_LARBEVE(
                   email: emailTextEditingController.text,
                   code: int.parse(codeTextEditingController.text),
                 ),
@@ -179,21 +183,11 @@ class LoginPage extends SbRoute {
               isBanAllOtherRequest: true,
               resultHttpStoreJson2HS: (Map<String, Object?> json) async => HttpStore_login_and_register_by_email_verify_email.fromJson(json),
             );
-            await requestResult.httpResponse.intercept(
-              doCancel: (HttpResponse<ResponseCodeCollect_LARBEVE, ResponseDataVO_LARBEVE> hr) async {
-                // 登陆/注册失败
-                SbLogger(
-                  c: hr.code,
-                  vm: hr.viewMessage,
-                  data: null,
-                  descp: hr.text,
-                  e: hr._exception,
-                  st: hr.stackTrace,
-                ).withAll(true);
-              },
-              doContinue: (HttpResponse<ResponseCodeCollect_LARBEVE, ResponseDataVO_LARBEVE> hr) async {
+            await requestResult.httpHandler.handle<HttpStore_login_and_register_by_email_verify_email>(
+              doContinue: (HttpStore_login_and_register_by_email_verify_email hs) async {
                 // 登陆/注册成功
-                if (hr.code == hr.responseCodeCollect.C2_01_02_01 || hr.code == hr.responseCodeCollect.C2_01_02_02) {
+                if (hs.httpResponse.code == hs.httpResponse.getResponseCodeCollect(hs).C2_01_02_01 ||
+                    hs.httpResponse.code == hs.httpResponse.getResponseCodeCollect(hs).C2_01_02_02) {
                   // TODO:
                   // 云端 token 生成成功，存储至本地。
                   final MUser newToken = MUser.createModel(
@@ -205,7 +199,7 @@ class LoginPage extends SbRoute {
                     email: null,
                     age: null,
                     // 无论 token 值是否有问题，都进行存储。
-                    token: hr.responseDataVO!.token,
+                    token: hs.httpResponse.getResponseDataVO(hs).token,
                     is_downloaded_init_data: null,
                     created_at: SbHelper.newTimestamp,
                     updated_at: SbHelper.newTimestamp,
@@ -216,7 +210,7 @@ class LoginPage extends SbRoute {
 
                   SbLogger(
                     c: null,
-                    vm: hr.viewMessage,
+                    vm: hs.httpResponse.viewMessage,
                     data: null,
                     descp: null,
                     e: null,
@@ -225,10 +219,10 @@ class LoginPage extends SbRoute {
                   return true;
                 }
                 // 邮箱重复异常
-                if (hr.code == hr.responseCodeCollect.C2_01_02_03) {
+                if (hs.httpResponse.code == hs.httpResponse.getResponseCodeCollect(hs).C2_01_02_03) {
                   SbLogger(
-                    c: hr.code,
-                    vm: hr.viewMessage,
+                    c: hs.httpResponse.code,
+                    vm: hs.httpResponse.viewMessage,
                     data: null,
                     descp: null,
                     e: null,
@@ -237,10 +231,10 @@ class LoginPage extends SbRoute {
                   return true;
                 }
                 // 验证码不正确
-                else if (hr.code == hr.responseCodeCollect.C2_01_02_04) {
+                else if (hs.httpResponse.code == hs.httpResponse.getResponseCodeCollect(hs).C2_01_02_04) {
                   SbLogger(
                     c: null,
-                    vm: hr.viewMessage,
+                    vm: hs.httpResponse.viewMessage,
                     data: null,
                     descp: null,
                     e: null,
@@ -249,6 +243,17 @@ class LoginPage extends SbRoute {
                   return true;
                 }
                 return false;
+              },
+              doCancel: (HttpHandler hh) async {
+                // 登陆/注册失败
+                SbLogger(
+                  c: null,
+                  vm: hh.getRequiredViewMessage(),
+                  data: null,
+                  descp: hh.getRequiredDescription(),
+                  e: hh.getRequiredException(),
+                  st: hh.stackTrace,
+                ).withAll(true);
               },
             );
           },

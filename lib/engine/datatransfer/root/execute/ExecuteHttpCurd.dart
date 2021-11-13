@@ -13,7 +13,7 @@ class ExecuteHttpCurd {
     bool isBanAllOtherRequest = false,
     required Future<HS> resultHttpStoreJson2HS(Map<String, Object?> resultJson),
   }) async {
-    final SingleResult<Map> executeResult = await DataTransferManager.instance.transfer.execute<Map, Map>(
+    final SingleResult<Map<String, Object?>> executeResult = await DataTransferManager.instance.transfer.execute<Map<String, Object?>, Map<String, Object?>>(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
       operationId: OUniform.HTTP_CURD,
       setOperationData: () => <String, Object?>{
@@ -24,13 +24,13 @@ class ExecuteHttpCurd {
       startViewParams: null,
       endViewParams: null,
       closeViewAfterSeconds: null,
-      resultDataCast: (Object httpStoreJsonResult) => httpStoreJsonResult as Map,
+      resultDataCast: (Object httpStoreJsonResult) => httpStoreJsonResult.quickCast(),
     );
     return await executeResult.handle<HS>(
-      doSuccess: (Map successResult) async {
-        return await resultHttpStoreJson2HS(successResult.cast());
+      doSuccess: (Map<String, Object?> successResult) async {
+        return await resultHttpStoreJson2HS(successResult);
       },
-      doError: (SingleResult<Map> errorResult) async {
+      doError: (SingleResult<Map<String, Object?>> errorResult) async {
         return await resultHttpStoreJson2HS(
           <String, Object?>{
             'httpHandler': HttpHandler.error(

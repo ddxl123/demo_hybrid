@@ -19,14 +19,14 @@ class HttpResponse<RESPHVO extends ResponseHeadersVO, RESPDVO extends ResponseDa
     responseCodeCollect.addAll(putResponseCodeCollect);
   }
 
-  factory HttpResponse.fromJson(Map json) {
+  factory HttpResponse.fromJson(Map<String, Object?> json) {
     return HttpResponse<RESPHVO, RESPDVO, RESPCCOL>(
-      putResponseCodeCollect: (json['responseCodeCollect'] as Map<String, Object?>?) ?? <String, Object?>{},
+      putResponseCodeCollect: json['responseCodeCollect'].quickCastNull() ?? <String, Object?>{},
     )
       ..code = (json['code'] as int?) ?? -1
       ..viewMessage = (json['viewMessage'] as String?) ?? '异常消息(空)'
-      ..responseDataVO.addAll((json['responseDataVO'] as Map<String, Object?>?) ?? <String, Object?>{})
-      ..responseHeadersVO.addAll((json['responseHeadersVO'] as Map<String, Object?>?) ?? <String, Object?>{});
+      ..responseDataVO.addAll(json['responseDataVO'].quickCastNull() ?? <String, Object?>{})
+      ..responseHeadersVO.addAll(json['responseHeadersVO'].quickCastNull() ?? <String, Object?>{});
   }
 
   @override

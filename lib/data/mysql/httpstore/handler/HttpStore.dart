@@ -26,13 +26,13 @@ abstract class HttpStore<REQHVO extends RequestHeadersVO, REQPVO extends Request
     }
   }
 
-  HttpStore.fromJson(Map json) {
+  HttpStore.fromJson(Map<String, Object?> json) {
     if (json['httpRequest'] == null && json['httpResponse'] == null) {
-      httpHandler = HttpHandler.fromJson(this, json['httpHandler']! as Map);
+      httpHandler = HttpHandler.fromJson(this, json['httpHandler']!.quickCast());
     } else {
-      httpRequest = HttpRequest.fromJson(json['httpRequest']! as Map);
-      httpResponse = HttpResponse.fromJson(json['httpResponse']! as Map);
-      httpHandler = HttpHandler.fromJson(this, json['httpHandler']! as Map);
+      httpRequest = HttpRequest.fromJson(json['httpRequest']!.quickCast());
+      httpResponse = HttpResponse.fromJson(json['httpResponse']!.quickCast());
+      httpHandler = HttpHandler.fromJson(this, json['httpHandler']!.quickCast());
     }
   }
 
@@ -63,7 +63,7 @@ abstract class HttpStore<REQHVO extends RequestHeadersVO, REQPVO extends Request
 }
 
 class HttpStore_Single extends HttpStore {
-  HttpStore_Single.fromJson(Map json) : super.fromJson(json);
+  HttpStore_Single.fromJson(Map<String, Object?> json) : super.fromJson(json);
 
   @override
   RequestDataVO toVOForRequestDataVO(Map<String, Object?> json) {

@@ -14,10 +14,55 @@ import 'package:uuid/uuid.dart';
 class SingleResult<R> extends DoSerializable {
   SingleResult();
 
-  factory SingleResult.fromJson(Map json) => SingleResult<R>()
-    ..result = json['result'] as R?
+  factory SingleResult.fromJson(Map<String, Object?> json) => SingleResult<R>()
+    ..result = () {
+      final Object? resultValue = json['result'];
+      if (resultValue == null) {
+        return resultValue as R?;
+      }
+
+      final String rTypeName = R.toString();
+      if (!rTypeName.contains('<')) {
+        return resultValue as R?;
+      }
+
+      if (rTypeName.startsWith('List')) {
+        final String rNameSb = rTypeName.substring(5);
+        final String rName2 = rNameSb.substring(0, rNameSb.length - 1);
+        if (rName2 == 'int') {
+          return (resultValue as List<Object?>).cast<int>() as R;
+        }
+        if (rName2 == 'int?') {
+          return (resultValue as List<Object?>).cast<int?>() as R;
+        }
+        if (rName2 == 'bool') {
+          return (resultValue as List<Object?>).cast<bool>() as R;
+        }
+        if (rName2 == 'bool?') {
+          return (resultValue as List<Object?>).cast<bool?>() as R;
+        }
+        if (rName2 == 'String') {
+          return (resultValue as List<Object?>).cast<String>() as R;
+        }
+        if (rName2 == 'String?') {
+          return (resultValue as List<Object?>).cast<String?>() as R;
+        }
+        if (rName2 == 'double') {
+          return (resultValue as List<Object?>).cast<double>() as R;
+        }
+        if (rName2 == 'double?') {
+          return (resultValue as List<Object?>).cast<double?>() as R;
+        }
+        if (rName2.startsWith('Map') && !rName2.endsWith('?')) {
+          return List.castFrom<Object?, Map<String, Object?>>(resultValue as List<Object?>) as R;
+        }
+      }
+      if (rTypeName.startsWith('Map')) {
+        return (resultValue as Map<Object?, Object?>).cast<String, Object>() as R;
+      }
+    }()
     .._viewMessage = json['viewMessage'] as String?
-    .._description = json['description'] == null ? null : Description.fromJson(json['description']! as Map)
+    .._description = json['description'] == null ? null : Description.fromJson((json['description']! as Map<Object?, Object?>).cast<String, Object?>())
     .._exception = json['exception'] == null ? null : Exception(json['exception']! as String)
     ..stackTrace = json['stackTrace'] == null ? null : StackTrace.fromString(json['stackTrace']! as String)
     ..isSet = json['isSet']! as bool;
@@ -204,4 +249,16 @@ class StackTraceConverter implements JsonConverter<StackTrace?, String?> {
 
   @override
   String? toJson(StackTrace? object) => object?.toString();
+}
+
+extension QuickCast on Object {
+  Map<String, Object?> quickCast() {
+    return (this as Map<Object?, Object?>).cast<String, Object?>();
+  }
+}
+
+extension QuickCastNull on Object? {
+  Map<String, Object?>? quickCastNull() {
+    return (this as Map<Object?, Object?>?)?.cast<String, Object?>();
+  }
 }

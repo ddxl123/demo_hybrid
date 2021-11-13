@@ -18,9 +18,9 @@ class HttpHandler implements DoSerializable {
     isSet = true;
   }
 
-  factory HttpHandler.fromJson(HttpStore httpStore, Map json) => HttpHandler(httpStore)
+  factory HttpHandler.fromJson(HttpStore httpStore, Map<String, Object?> json) => HttpHandler(httpStore)
     .._viewMessage = json['viewMessage'] as String?
-    .._description = json['description'] == null ? null : Description.fromJson(json['description']! as Map)
+    .._description = json['description'] == null ? null : Description.fromJson(json['description']!.quickCast())
     .._exception = json['exception'] == null ? null : Exception(json['exception'])
     ..stackTrace = json['stackTrace'] == null ? null : StackTrace.fromString(json['stackTrace']! as String)
     ..isSet = json['isSet']! as bool;
@@ -81,7 +81,7 @@ class HttpHandler implements DoSerializable {
         code: response.data!['code']! as int,
         // 云端响应的 viewMessage 不能为空。
         viewMessage: response.data!['message']! as String,
-        responseDataVO: response.data!['data'] == null ? <String, Object?>{} : response.data!['data']! as Map<String, Object?>,
+        responseDataVO: response.data!['data'] == null ? <String, Object?>{} : response.data!['data']!.quickCast(),
         responseHeadersVO: response.headers.map,
       );
       isSet = true;

@@ -3,6 +3,7 @@ import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
 import 'package:hybrid/engine/constant/execute/EngineEntryName.dart';
 import 'package:hybrid/engine/constant/execute/OToNative.dart';
 import 'package:hybrid/util/SbHelper.dart';
+import 'package:hybrid/util/sblogger/SbLogger.dart';
 
 import '../DataTransferManager.dart';
 
@@ -67,6 +68,7 @@ class ExecuteSomething {
               },
               doError: (SingleResult<bool> errorResult) async {
                 // TODO: 弹出的成功与失败，不能配置 checkUserResult，而需要另其独立配置。
+                SbLogger(c: null, vm: null, data: null, descp: errorResult.getRequiredDescp(), e: errorResult.getRequiredE(), st: errorResult.stackTrace);
                 // checkUserResult.setError(
                 //     vm: errorResult.getRequiredVm(), descp: errorResult.getRequiredDescp(), e: errorResult.getRequiredE(), st: errorResult.stackTrace);
               },
@@ -81,11 +83,13 @@ class ExecuteSomething {
             if (!isCheckOnly) {
               // TODO: 弹出初始化数据下载页面引擎。
               // TODO: 弹出的成功与失败，不能配置 checkUserResult，而需要另其独立配置。
+              SbLogger(c: null, vm: null, data: null, descp: Description(''), e: Exception('弹出失败！'), st: null);
             }
           }
         }
       },
       doError: (SingleResult<List<MUser>> errorResult) async {
+        SbLogger(c: null, vm: null, data: null, descp: errorResult.getRequiredDescp(), e: errorResult.getRequiredE(), st: errorResult.stackTrace);
         checkUserResult.setError(
             vm: errorResult.getRequiredVm(), descp: errorResult.getRequiredDescp(), e: errorResult.getRequiredE(), st: errorResult.stackTrace);
       },
@@ -98,7 +102,7 @@ class ExecuteSomething {
     return await DataTransferManager.instance.transfer.toNative<String, ViewParams>(
       operationId: OToNative.GET_NATIVE_WINDOW_VIEW_PARAMS,
       setSendData: () => whichEngine,
-      resultDataCast: (Object result) => ViewParams.fromJson((result as Map<Object?, Object?>).cast<String, dynamic>()),
+      resultDataCast: (Object result) => ViewParams.fromJson(result.quickCast()),
     );
   }
 
@@ -108,7 +112,7 @@ class ExecuteSomething {
       operationId: OToNative.GET_SCREEN_SIZE,
       setSendData: () {},
       resultDataCast: (Object resultData) {
-        final Map<String, int> castData = (resultData as Map<Object?, Object?>).cast<String, int>();
+        final Map<String, int> castData = resultData.quickCast().cast<String, int>();
         return SizeInt(castData['width']!, castData['height']!);
       },
     );

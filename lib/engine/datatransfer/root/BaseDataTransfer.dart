@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:hybrid/engine/constant/o/OUniform.dart';
 import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
+import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
 /// 需在引擎入口执行前创建该 [BaseDataTransfer] 实例，之后使用 [DataTransferManager.instance] 对该实例进行操作。
@@ -38,7 +39,7 @@ abstract class BaseDataTransfer {
     basicMessageChannel.setMessageHandler(
       (Object? message) async {
         try {
-          final Map<Object?, Object?> messageMap = message! as Map<Object?, Object?>;
+          final Map<String, Object?> messageMap = message!.quickCast();
           return await listenerMessageFormOtherFlutterEngineUniform(messageMap['operation_id']! as String, messageMap['data']);
         } catch (e, st) {
           SbLogger(c: null, vm: null, data: null, descp: Description('接收的引擎发生了异常！'), e: e, st: st);

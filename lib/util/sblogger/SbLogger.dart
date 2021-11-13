@@ -8,11 +8,11 @@ class Description extends DoSerializable {
     stackTrace = StackTrace.current;
   }
 
-  factory Description.fromJson(Map json) =>
+  factory Description.fromJson(Map<String, Object?> json) =>
       Description(json['text']! as String)..stackTrace = json['stackTrace'] == null ? null : StackTrace.fromString(json['stackTrace']! as String);
 
   @override
-  Map<String, Object?> toJson() => <String, dynamic>{
+  Map<String, Object?> toJson() => <String, Object?>{
         'text': text,
         'stackTrace': stackTrace?.toString(),
       };
@@ -60,41 +60,43 @@ class SbLogger {
   bool get isAllNull => c == null && vm == null && descp == null && data == null && e == null && st == null;
 
   SbLogger _withDebug() {
+    String content = '\n';
     try {
       if (isAllNull) {
-        log('> — — ${_entryName ?? 'Warning: The log information to be output is all empty!'}');
+        content += '> — — ${_entryName ?? 'Warning: The log information to be output is all empty!'}\n';
         return this;
       }
 
-      log('> — — ${_entryName ?? 'Warning: unassigned engine entry!'}');
+      content += '> — — ${_entryName ?? 'Warning: unassigned engine entry!'}\n';
       if (c != null) {
-        log('  | $_entryName | code: $c');
+        content += '  | $_entryName | code: $c\n';
       }
       if (vm != null) {
-        log('  | $_entryName | viewMessage: $vm');
+        content += '  | $_entryName | viewMessage: $vm\n';
       }
       if (descp != null) {
-        log('  | $_entryName | description: ${descp!.text} ${'(package:' + descp!.stackTrace.toString().split('(package:')[2].split(')')[0] + ')'}');
+        content += '  | $_entryName | description: ${descp!.text} ${'(package:' + descp!.stackTrace.toString().split('(package:')[2].split(')')[0] + ')'}\n';
       }
       if (data != null) {
         try {
-          log('  | $_entryName | data: ${const JsonEncoder.withIndent('  ').convert(data)}');
+          content += '  | $_entryName | data: ${const JsonEncoder.withIndent('  ').convert(data)}\n';
         } catch (e) {
-          log('  | $_entryName | data: $data');
+          content += '  | $_entryName | data: $data\n';
         }
       }
 
-      log('  | $_entryName | loggerOutputSt: (package:' + StackTrace.current.toString().split('(package:')[3].split(')')[0] + ')');
+      content += '  | $_entryName | loggerOutputSt: (package:' + StackTrace.current.toString().split('(package:')[3].split(')')[0] + ')\n';
 
       if (e != null) {
-        log('  | $_entryName | exception: \n$e');
+        content += '  | $_entryName | exception: \n$e\n';
       }
       if (st != null) {
-        log('  | $_entryName | stackTrace: \n$st');
+        content += '  | $_entryName | stackTrace: \n$st\n';
       }
     } catch (e, st) {
-      log('  | $_entryName | logger internal error: ↓', error: e, stackTrace: st);
+      content += '  | $_entryName | logger internal error: $e $st\n';
     }
+    log(content);
     return this;
   }
 

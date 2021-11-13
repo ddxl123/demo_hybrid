@@ -51,13 +51,13 @@ class HttpRequest<REQHVO extends RequestHeadersVO, REQPVO extends RequestParamsV
     requestParamsVO.addAll(putRequestParamsVO);
   }
 
-  factory HttpRequest.fromJson(Map json) {
+  factory HttpRequest.fromJson(Map<String, Object?> json) {
     return HttpRequest<REQHVO, REQPVO, REQVO>(
       method: json['method']! as String,
       path: json['path']! as String,
-      putRequestHeadersVO: (json['requestHeadersVO'] as Map<String, Object?>?) ?? <String, Object?>{},
-      putRequestDataVO: (json['requestDataVO'] as Map<String, Object?>?) ?? <String, Object?>{},
-      putRequestParamsVO: (json['requestParamsVO'] as Map<String, Object?>?) ?? <String, Object?>{},
+      putRequestHeadersVO: json['requestHeadersVO'].quickCastNull() ?? <String, Object?>{},
+      putRequestDataVO: json['requestDataVO'].quickCastNull() ?? <String, Object?>{},
+      putRequestParamsVO: json['requestParamsVO'].quickCastNull() ?? <String, Object?>{},
     );
   }
 

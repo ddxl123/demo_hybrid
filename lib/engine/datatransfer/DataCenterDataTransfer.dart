@@ -17,7 +17,6 @@ class DataCenterDataTransfer extends BaseDataTransfer {
     switch (operationId) {
       case OUniform.SQLITE_QUERY_ROW_AS_JSONS:
         final Map<String, Object?> dataMap = data!.quickCast();
-        SbLogger(c: null, vm: null, data: data, descp: Description(''), e: null, st: null);
         return (await SqliteCurd.queryRowsAsJsons(
           queryWrapper: QueryWrapper.fromJson(dataMap),
           connectTransactionMark: null,

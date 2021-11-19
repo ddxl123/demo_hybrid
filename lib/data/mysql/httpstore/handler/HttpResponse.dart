@@ -66,12 +66,12 @@ class HttpResponse<RESPHVO extends ResponseHeadersVO, RESPDVO extends ResponseDa
     this.code = code;
     this.viewMessage = viewMessage;
 
-    if (responseDataVO.isNotEmpty) {
-      throw '_responseDataVO 已被添加过！';
+    if (this.responseDataVO.isNotEmpty) {
+      throw 'responseDataVO 已被添加过！';
     }
     this.responseDataVO.addAll(responseDataVO);
 
-    if (responseHeadersVO.isNotEmpty) {
+    if (this.responseHeadersVO.isNotEmpty) {
       throw 'responseHeadersVO 已被添加过！';
     }
     this.responseHeadersVO.addAll(responseHeadersVO);

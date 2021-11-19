@@ -1,24 +1,24 @@
-import 'HttpStoreWriter.dart';
+import 'HttpStoreWriteWrapper.dart';
 
 class HttpStoreContent {
   /// no_jwt/a_aa/b_bb -> /a_aa/b_bb
-  static String parsePathToA(StoreWrapper storeWriter) {
+  static String parsePathToA(WriteStoreWrapper storeWriter) {
     // 链接是左斜杆。
     return '/' + ((storeWriter.path.split('/')..removeAt(0)).join('/'));
   }
 
   /// no_jwt/a_aa/b_bb -> ['a_aa', 'b_bb']
-  static List<String> parsePathToList(StoreWrapper storeWriter) {
+  static List<String> parsePathToList(WriteStoreWrapper storeWriter) {
     return parsePathToA(storeWriter).split('/')..removeAt(0);
   }
 
   /// no_jwt/a_aa/b_bb -> a_aa_b_bb
-  static String parsePathToSnake(StoreWrapper storeWriter) {
+  static String parsePathToSnake(WriteStoreWrapper storeWriter) {
     return parsePathToList(storeWriter).join('_');
   }
 
   /// no_jwt/a_bc/d_ef -> ABDE
-  static String parsePathToSimple(StoreWrapper storeWriter) {
+  static String parsePathToSimple(WriteStoreWrapper storeWriter) {
     String d = '';
     for (final String value in parsePathToSnake(storeWriter).split('_')) {
       d += value[0].toUpperCase();
@@ -27,18 +27,18 @@ class HttpStoreContent {
   }
 
   /// no_jwt/a_aa/b_bb -> HttpStore_a_aa_b_bb
-  static String parsePathToClassName(StoreWrapper storeWriter) {
+  static String parsePathToClassName(WriteStoreWrapper storeWriter) {
     // 去掉前缀的 jwt 或 no_jwt。
     return 'HttpStore_${parsePathToSnake(storeWriter)}';
   }
 
   /// 2010101 -> C2_01_01_01
-  static String parseCode(CodeWrapper codeWrapper) {
+  static String parseCode(WriteCodeWrapper codeWrapper) {
     final String codeStr = codeWrapper.code.toString();
     return 'C${codeStr[0]}_${codeStr[1]}${codeStr[2]}_${codeStr[3]}${codeStr[4]}_${codeStr[5]}${codeStr[6]}';
   }
 
-  static String contentAll(StoreWrapper storeWriter) {
+  static String contentAll(WriteStoreWrapper storeWriter) {
     return '''
 // ignore_for_file: camel_case_types
 // ignore_for_file: non_constant_identifier_names
@@ -96,7 +96,7 @@ class RequestHeadersVO_${parsePathToSimple(storeWriter)} extends RequestHeadersV
         return '';
       }
       String content = '';
-      for (final VOWrapper value in storeWriter.requestHeadersVOKeys) {
+      for (final WriteVOWrapper value in storeWriter.requestHeadersVOKeys) {
         content += 'required this.${value.keyName},';
       }
       content = '{$content}';
@@ -110,7 +110,7 @@ class RequestHeadersVO_${parsePathToSimple(storeWriter)} extends RequestHeadersV
   
   ${() {
       String content = '';
-      for (final VOWrapper value in storeWriter.requestHeadersVOKeys) {
+      for (final WriteVOWrapper value in storeWriter.requestHeadersVOKeys) {
         content += 'final ${value.type.name} ${value.keyName};\n';
       }
       return content;
@@ -124,7 +124,7 @@ class RequestParamsVO_${parsePathToSimple(storeWriter)} extends RequestParamsVO 
         return '';
       }
       String content = '';
-      for (final VOWrapper value in storeWriter.requestParamsVOKeys) {
+      for (final WriteVOWrapper value in storeWriter.requestParamsVOKeys) {
         content += 'required this.${value.keyName},';
       }
       content = '{$content}';
@@ -138,7 +138,7 @@ class RequestParamsVO_${parsePathToSimple(storeWriter)} extends RequestParamsVO 
     
   ${() {
       String content = '';
-      for (final VOWrapper value in storeWriter.requestParamsVOKeys) {
+      for (final WriteVOWrapper value in storeWriter.requestParamsVOKeys) {
         content += 'final ${value.type.name} ${value.keyName};\n';
       }
       return content;
@@ -152,7 +152,7 @@ class RequestDataVO_${parsePathToSimple(storeWriter)} extends RequestDataVO {
         return '';
       }
       String content = '';
-      for (final VOWrapper value in storeWriter.requestDataVOKeys) {
+      for (final WriteVOWrapper value in storeWriter.requestDataVOKeys) {
         content += 'required this.${value.keyName},';
       }
       content = '{$content}';
@@ -166,7 +166,7 @@ class RequestDataVO_${parsePathToSimple(storeWriter)} extends RequestDataVO {
     
   ${() {
       String content = '';
-      for (final VOWrapper value in storeWriter.requestDataVOKeys) {
+      for (final WriteVOWrapper value in storeWriter.requestDataVOKeys) {
         content += 'final ${value.type.name} ${value.keyName};\n';
       }
       return content;
@@ -180,7 +180,7 @@ class ResponseHeadersVO_${parsePathToSimple(storeWriter)} extends ResponseHeader
         return '';
       }
       String content = '';
-      for (final VOWrapper value in storeWriter.responseHeadersVOKeys) {
+      for (final WriteVOWrapper value in storeWriter.responseHeadersVOKeys) {
         content += 'required this.${value.keyName},';
       }
       content = '{$content}';
@@ -194,7 +194,7 @@ class ResponseHeadersVO_${parsePathToSimple(storeWriter)} extends ResponseHeader
     
   ${() {
       String content = '';
-      for (final VOWrapper value in storeWriter.responseHeadersVOKeys) {
+      for (final WriteVOWrapper value in storeWriter.responseHeadersVOKeys) {
         content += 'final ${value.type.name} ${value.keyName};\n';
       }
       return content;
@@ -208,7 +208,7 @@ class ResponseDataVO_${parsePathToSimple(storeWriter)} extends ResponseDataVO {
         return '';
       }
       String content = '';
-      for (final VOWrapper value in storeWriter.responseDataVOKeys) {
+      for (final WriteVOWrapper value in storeWriter.responseDataVOKeys) {
         content += 'required this.${value.keyName},';
       }
       content = '{$content}';
@@ -222,7 +222,7 @@ class ResponseDataVO_${parsePathToSimple(storeWriter)} extends ResponseDataVO {
     
   ${() {
       String content = '';
-      for (final VOWrapper value in storeWriter.responseDataVOKeys) {
+      for (final WriteVOWrapper value in storeWriter.responseDataVOKeys) {
         content += 'final ${value.type.name} ${value.keyName};\n';
       }
       return content;
@@ -240,12 +240,25 @@ class ResponseCodeCollect_${parsePathToSimple(storeWriter)} extends ResponseCode
 
   ${() {
       String content = '';
-      for (final CodeWrapper value in storeWriter.responseCodeCollect) {
+      for (final WriteCodeWrapper value in storeWriter.responseCodeCollect) {
         content += '/// ${value.tip}\n    final int ${parseCode(value)} = ${value.code};\n';
       }
       return content;
     }()}
 }    
 ''';
+  }
+
+  static String configContent(WriteConfigWrapper writeConfigWrapper) {
+    return '''
+class HttpStoreConfig {
+  static const String baseUrl = '${writeConfigWrapper.baseUrl}';
+
+  /// ms
+  static const int connectTimeout = ${writeConfigWrapper.connectTimeout};
+
+  /// ms
+  static const int receiveTimeout = ${writeConfigWrapper.receiveTimeout};
+}''';
   }
 }

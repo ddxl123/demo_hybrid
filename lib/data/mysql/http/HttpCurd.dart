@@ -98,8 +98,17 @@ class HttpCurd {
         return httpStore.httpHandler.setCancel(vm: '请求异常！', descp: Description(''), e: Exception('PathType：${httpStore.httpRequest.pathType()}'), st: null)
             as HS;
       }
-
-      SbLogger(c: null, vm: null, data: null, descp: Description(Httper.dio.options.baseUrl + httpStore.httpRequest.path), e: null, st: null);
+      SbLogger(
+        c: null,
+        vm: null,
+        data: <String, Object?>{
+          'basePath': Httper.dio.options.baseUrl,
+          'httpStore': httpStore.toJson(),
+        },
+        descp: Description(''),
+        e: null,
+        st: null,
+      );
 
       if (isDev) {
         await Future<void>.delayed(const Duration(seconds: 2));
@@ -115,7 +124,7 @@ class HttpCurd {
         ),
       );
 
-      SbLogger(c: 0, vm: 'vm', data: response, descp: Description('dddd'), e: null, st: null);
+      SbLogger(c: null, vm: null, data: response, descp: Description('响应结果'), e: null, st: null);
 
       // 前提是用户已经在本地是已登陆状态，因为未登陆状态的请求是 no_jwt。
       if (httpStore.httpRequest.pathType() == PathType.jwt) {
@@ -162,7 +171,7 @@ class HttpCurd {
         if (e.type == DioErrorType.sendTimeout || e.type == DioErrorType.connectTimeout || e.type == DioErrorType.receiveTimeout) {
           return httpStore.httpHandler.setCancel(vm: '请求超时！', descp: Description('dio 异常！可能是发送超时、连接超时、接收超时'), e: e, st: st) as HS;
         }
-        return httpStore.httpHandler.setCancel(vm: '请求异常！', descp: Description('dio 异常！'), e: e, st: st) as HS;
+        return httpStore.httpHandler.setCancel(vm: '请求异常！', descp: Description('dio 异常！可能是 url 异常(不能为 127.0.0.1)'), e: e, st: st) as HS;
       }
       return httpStore.httpHandler.setCancel(vm: '发生错误！', descp: Description('1. 未知错误！'), e: e, st: st) as HS;
     }

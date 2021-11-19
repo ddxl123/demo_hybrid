@@ -1,7 +1,4 @@
 // ignore_for_file: non_constant_identifier_names
-import 'dart:io';
-
-import 'package:hybrid/data/mysql/httpstore/write/HttpStoreContext.dart';
 import 'package:meta/meta.dart';
 
 @immutable
@@ -64,8 +61,8 @@ class WriteDataType {
   String toString() => name;
 }
 
-class VOWrapper {
-  VOWrapper({
+class WriteVOWrapper {
+  WriteVOWrapper({
     required this.keyName,
     required this.type,
     required this.isRequired,
@@ -76,15 +73,15 @@ class VOWrapper {
   bool isRequired;
 }
 
-class CodeWrapper {
-  CodeWrapper({required this.code, required this.tip});
+class WriteCodeWrapper {
+  WriteCodeWrapper({required this.code, required this.tip});
 
   final int code;
   final String tip;
 }
 
-class StoreWrapper {
-  StoreWrapper({
+class WriteStoreWrapper {
+  WriteStoreWrapper({
     required this.method,
     required this.path,
     required this.pathType,
@@ -100,7 +97,6 @@ class StoreWrapper {
     } else {
       throw 'pathType error: $pathType';
     }
-    Writer.storeWriters.add(this);
   }
 
   WriteMethodType method;
@@ -109,48 +105,31 @@ class StoreWrapper {
 
   String path;
 
-  List<VOWrapper> requestHeadersVOKeys;
+  List<WriteVOWrapper> requestHeadersVOKeys;
 
-  List<VOWrapper> requestParamsVOKeys;
+  List<WriteVOWrapper> requestParamsVOKeys;
 
-  List<VOWrapper> requestDataVOKeys;
+  List<WriteVOWrapper> requestDataVOKeys;
 
-  List<VOWrapper> responseHeadersVOKeys;
+  List<WriteVOWrapper> responseHeadersVOKeys;
 
-  List<VOWrapper> responseDataVOKeys;
+  List<WriteVOWrapper> responseDataVOKeys;
 
-  List<CodeWrapper> responseCodeCollect;
+  List<WriteCodeWrapper> responseCodeCollect;
 }
 
-class Writer {
-  Writer({required this.outputFolder}) {
-    execute();
-  }
+class WriteConfigWrapper {
+  WriteConfigWrapper({
+    required this.baseUrl,
+    required this.connectTimeout,
+    required this.receiveTimeout,
+  });
 
-  static final List<StoreWrapper> storeWriters = <StoreWrapper>[];
+  final String baseUrl;
 
-  /// 要输出的文件夹的 [绝对路径]。
-  String outputFolder;
+  /// ms
+  final int connectTimeout;
 
-  void execute() {
-    setOutputPath();
-    runWriteList();
-  }
-
-  void setOutputPath() {
-    // ignore: avoid_slow_async_io
-    if (Directory(outputFolder).existsSync()) {
-      throw '文件夹已存在！';
-    } else {
-      Directory(outputFolder).createSync();
-    }
-  }
-
-  void runWriteList() {
-    for (final StoreWrapper storeWriter in storeWriters) {
-      final String writeContent = HttpStoreContent.contentAll(storeWriter);
-      File(outputFolder + r'\' + HttpStoreContent.parsePathToClassName(storeWriter) + '.dart').writeAsStringSync(writeContent);
-      print('${HttpStoreContent.parsePathToClassName(storeWriter)} file is created successfully!');
-    }
-  }
+  /// ms
+  final int receiveTimeout;
 }

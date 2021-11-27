@@ -26,7 +26,7 @@ class FloatingWindowPermissionRoute extends SbRoute {
 
   // 进入该 route 时，立即检查并弹出悬浮窗权限页面。
   Future<void> _checkAndPush() async {
-    final SingleResult<bool> checkAndPushResult = await DataTransferManager.instance.transfer.toNative<void, bool>(
+    final SingleResult<bool> checkAndPushResult = await DataTransferManager.instance.transferTool.toNative<void, bool>(
       operationId: OToNative.check_and_push_page_floating_window_permission,
       setSendData: () {},
       resultDataCast: null,
@@ -57,7 +57,7 @@ class FloatingWindowPermissionRoute extends SbRoute {
     Timer.periodic(
       const Duration(seconds: 1),
       (Timer timer) async {
-        final SingleResult<bool> checkResult = await DataTransferManager.instance.transfer.toNative<void, bool>(
+        final SingleResult<bool> checkResult = await DataTransferManager.instance.transferTool.toNative<void, bool>(
           operationId: OToNative.check_floating_window_permission,
           setSendData: () {},
           resultDataCast: null,

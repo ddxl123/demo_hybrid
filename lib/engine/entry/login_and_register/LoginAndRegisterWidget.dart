@@ -2,8 +2,11 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:hybrid/data/mysql/http/HttpCurd.dart';
 import 'package:hybrid/data/mysql/httpstore/handler/HttpHandler.dart';
 import 'package:hybrid/data/mysql/httpstore/store/HttpStore_login_and_register_by_email_send_email.dart';
+import 'package:hybrid/data/mysql/httpstore/store/HttpStore_login_and_register_by_email_verify_email.dart';
+import 'package:hybrid/data/sqlite/mmodel/MUser.dart';
 import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
 import 'package:hybrid/engine/push/PushTo.dart';
 import 'package:hybrid/util/SbHelper.dart';
@@ -103,7 +106,7 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
                   state.refresh();
                 },
               );
-              final HttpStore_login_and_register_by_email_send_email requestResult = await DataTransferManager.instance.transfer.executeHttpCurd.sendRequest(
+              final HttpStore_login_and_register_by_email_send_email requestResult = await DataTransferManager.instance.transferTool.executeHttpCurd.sendRequest(
                 httpStore: HttpStore_login_and_register_by_email_send_email(
                   requestHeadersVO_LARBESE: RequestHeadersVO_LARBESE(),
                   requestParamsVO_LARBESE: RequestParamsVO_LARBESE(),
@@ -111,7 +114,7 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
                     email: emailTextEditingController.text,
                   ),
                 ),
-                sameNotConcurrent: null,
+                sameNotConcurrent: '_sendEmailButtonHttpStore_login_and_register_by_email_send_email',
                 isBanAllOtherRequest: true,
                 resultHttpStoreJson2HS: (Map<String, Object?> json) async => HttpStore_login_and_register_by_email_send_email.fromJson(json),
               );
@@ -162,116 +165,177 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
         ),
         child: const Text('登陆/注册'),
         onPressed: () async {
-          await PushTo.withEntryName(
-            entryName: 'dddddddddddddd',
-            startViewParams: (ViewParams lastViewParams, SizeInt screenSize) {
-              final SizeInt viewSize = screenSize.multi(2 / 3, 1);
-              final SizeInt halfSize = screenSize.multi(1 / 2, 1 / 2);
-              print('$viewSize');
-              return ViewParams(
-                width: viewSize.width,
-                height: viewSize.height,
-                x: halfSize.width - viewSize.width ~/ 2,
-                y: halfSize.height - viewSize.height ~/ 2,
-                isFocus: true,
-              );
+          final HttpStore_login_and_register_by_email_verify_email result = await HttpCurd.sendRequest<HttpStore_login_and_register_by_email_verify_email>(
+            httpStore: HttpStore_login_and_register_by_email_verify_email(
+              requestHeadersVO_LARBEVE: RequestHeadersVO_LARBEVE(),
+              requestParamsVO_LARBEVE: RequestParamsVO_LARBEVE(),
+              requestDataVO_LARBEVE: RequestDataVO_LARBEVE(email: emailTextEditingController.text, code: int.parse(codeTextEditingController.text)),
+            ),
+            sameNotConcurrent: '_verifyEmailButtonHttpStore_login_and_register_by_email_verify_email',
+          );
+          await result.httpHandler.handle(
+            doContinue: (HttpStore_login_and_register_by_email_verify_email hs) async {
+              // 登陆/注册成功
+              if (hs.httpResponse.code == hs.httpResponse.getResponseCodeCollect(hs).C2_01_02_01 ||
+                  hs.httpResponse.code == hs.httpResponse.getResponseCodeCollect(hs).C2_01_02_02) {
+                // 云端 token 生成成功，存储至本地。
+                final MUser newToken = MUser.createModel(
+                  id: null,
+                  aiid: hs.httpResponse.getResponseDataVO(hs).user_id,
+                  uuid: null,
+                  username: null,
+                  password: null,
+                  email: null,
+                  age: null,
+                  // 无论 token 值是否有问题，都进行存储。
+                  token: hs.httpResponse.getResponseDataVO(hs).token,
+                  is_downloaded_init_data: null,
+                  created_at: SbHelper.newTimestamp,
+                  updated_at: SbHelper.newTimestamp,
+                );
+
+                // TODO: clearToken 与 insertNewToken 必须进行事务处理。
+                // 清空本地 token 信息。
+                final SingleResult<bool> clearToken =
+                    await DataTransferManager.instance.transferTool.executeSqliteCurd.deleteRow(modelTableName: newToken.tableName, modelId: null);
+
+                final bool hasClearTokenError = await clearToken.handle<bool>(
+                  doSuccess: (bool successResult) async {
+                    if (!successResult) {
+                      throw Exception('successResult is false');
+                    }
+                    return false;
+                  },
+                  doError: (SingleResult<bool> errorResult) async {
+                    hs.httpHandler.setCancel(
+                        vm: errorResult.getRequiredVm(), descp: errorResult.getRequiredDescp(), e: errorResult.getRequiredE(), st: errorResult.stackTrace);
+                    return true;
+                  },
+                );
+                if (hasClearTokenError) {
+                  return false;
+                }
+
+                // 插入心的 token。
+                final SingleResult<MUser> insertNewToken = await DataTransferManager.instance.transferTool.executeSqliteCurd.insertRow(newToken);
+                final bool hasInsertNewTokenError = await insertNewToken.handle<bool>(
+                  doSuccess: (MUser successResult) async {
+                    SbLogger(c: null, vm: null, data: successResult.getRowJson, descp: Description('对 user 插入新 token 成功！'), e: null, st: null);
+                    return false;
+                  },
+                  doError: (SingleResult<MUser> errorResult) async {
+                    hs.httpHandler.setCancel(
+                        vm: errorResult.getRequiredVm(), descp: errorResult.getRequiredDescp(), e: errorResult.getRequiredE(), st: errorResult.stackTrace);
+                    return true;
+                  },
+                );
+                if (hasInsertNewTokenError) {
+                  return false;
+                }
+
+                SbLogger(c: null, vm: '登陆/注册成功！', data: null, descp: descp, e: e, st: st)
+                return true;
+              }
+              // 邮箱重复异常
+              if (hr.code == hr.responseCodeCollect.C2_01_02_03) {
+                SbLogger(
+                  code: hr.code,
+                  viewMessage: hr.viewMessage,
+                  data: null,
+                  description: null,
+                  exception: null,
+                  stackTrace: null,
+                ).withToast(true);
+                return true;
+              }
+              // 验证码不正确
+              else if (hr.code == hr.responseCodeCollect.C2_01_02_04) {
+                SbLogger(
+                  code: null,
+                  viewMessage: hr.viewMessage,
+                  data: null,
+                  description: null,
+                  exception: null,
+                  stackTrace: null,
+                ).withToast(false);
+                return true;
+              }
+              return false;
             },
-            endViewParams: (ViewParams lastViewParams, SizeInt screenSize) {
-              final SizeInt viewSize = screenSize.multi(2 / 3, 1);
-              final SizeInt halfSize = screenSize.multi(1 / 2, 1 / 2);
-              print('$viewSize');
-              return ViewParams(
-                width: viewSize.width,
-                height: viewSize.height,
-                x: halfSize.width - viewSize.width ~/ 2,
-                y: halfSize.height - viewSize.height ~/ 2,
-                isFocus: true,
-              );
+            doCancel: (HttpHandler hh) async {},
+          );
+          await httpStore.httpResponse.handle(
+            doCancel: (HttpResponse<ResponseCodeCollect_LARBEVE, ResponseDataVO_LARBEVE> hr) async {
+              // 登陆/注册失败
+              SbLogger(
+                code: hr.code,
+                viewMessage: hr.viewMessage,
+                data: null,
+                description: hr.description,
+                exception: hr.exception,
+                stackTrace: hr.stackTrace,
+              ).withAll(true);
+            },
+            doContinue: (HttpResponse<ResponseCodeCollect_LARBEVE, ResponseDataVO_LARBEVE> hr) async {
+              // 登陆/注册成功
+              if (hr.code == hr.responseCodeCollect.C2_01_02_01 || hr.code == hr.responseCodeCollect.C2_01_02_02) {
+                // TODO:
+                // 云端 token 生成成功，存储至本地。
+                final MUser newToken = MUser.createModel(
+                  id: null,
+                  aiid: null,
+                  uuid: null,
+                  username: null,
+                  password: null,
+                  email: null,
+                  age: null,
+                  // 无论 token 值是否有问题，都进行存储。
+                  token: hr.responseDataVO.token,
+                  is_downloaded_init_data: null,
+                  created_at: SbHelper.newTimestamp,
+                  updated_at: SbHelper.newTimestamp,
+                );
+
+                await db.delete(newToken.tableName);
+                await db.insert(newToken.tableName, newToken.getRowJson);
+
+                SbLogger(
+                  code: null,
+                  viewMessage: hr.viewMessage,
+                  data: null,
+                  description: null,
+                  exception: null,
+                  stackTrace: null,
+                ).withToast(false);
+                return true;
+              }
+              // 邮箱重复异常
+              if (hr.code == hr.responseCodeCollect.C2_01_02_03) {
+                SbLogger(
+                  code: hr.code,
+                  viewMessage: hr.viewMessage,
+                  data: null,
+                  description: null,
+                  exception: null,
+                  stackTrace: null,
+                ).withToast(true);
+                return true;
+              }
+              // 验证码不正确
+              else if (hr.code == hr.responseCodeCollect.C2_01_02_04) {
+                SbLogger(
+                  code: null,
+                  viewMessage: hr.viewMessage,
+                  data: null,
+                  description: null,
+                  exception: null,
+                  stackTrace: null,
+                ).withToast(false);
+                return true;
+              }
+              return false;
             },
           );
-
-          // final HttpStore_login_and_register_by_email_verify_email httpStore = await HttpCurd.sendRequest(
-          //   httpStore: HttpStore_login_and_register_by_email_verify_email(
-          //     setRequestDataVO_LARBEVE: () => RequestDataVO_LARBEVE(
-          //       email: emailTextEditingController.text,
-          //       code: int.parse(codeTextEditingController.text),
-          //     ),
-          //   ),
-          //   sameNotConcurrent: null,
-          //   isBanAllOtherRequest: true,
-          // );
-          // await httpStore.httpResponse.handle(
-          //   doCancel: (HttpResponse<ResponseCodeCollect_LARBEVE, ResponseDataVO_LARBEVE> hr) async {
-          //     // 登陆/注册失败
-          //     SbLogger(
-          //       code: hr.code,
-          //       viewMessage: hr.viewMessage,
-          //       data: null,
-          //       description: hr.description,
-          //       exception: hr.exception,
-          //       stackTrace: hr.stackTrace,
-          //     ).withAll(true);
-          //   },
-          //   doContinue: (HttpResponse<ResponseCodeCollect_LARBEVE, ResponseDataVO_LARBEVE> hr) async {
-          //     // 登陆/注册成功
-          //     if (hr.code == hr.responseCodeCollect.C2_01_02_01 || hr.code == hr.responseCodeCollect.C2_01_02_02) {
-          //       // TODO:
-          //       // 云端 token 生成成功，存储至本地。
-          //       final MUser newToken = MUser.createModel(
-          //         id: null,
-          //         aiid: null,
-          //         uuid: null,
-          //         username: null,
-          //         password: null,
-          //         email: null,
-          //         age: null,
-          //         // 无论 token 值是否有问题，都进行存储。
-          //         token: hr.responseDataVO.token,
-          //         is_downloaded_init_data: null,
-          //         created_at: SbHelper.newTimestamp,
-          //         updated_at: SbHelper.newTimestamp,
-          //       );
-          //
-          //       await db.delete(newToken.tableName);
-          //       await db.insert(newToken.tableName, newToken.getRowJson);
-          //
-          //       SbLogger(
-          //         code: null,
-          //         viewMessage: hr.viewMessage,
-          //         data: null,
-          //         description: null,
-          //         exception: null,
-          //         stackTrace: null,
-          //       ).withToast(false);
-          //       return true;
-          //     }
-          //     // 邮箱重复异常
-          //     if (hr.code == hr.responseCodeCollect.C2_01_02_03) {
-          //       SbLogger(
-          //         code: hr.code,
-          //         viewMessage: hr.viewMessage,
-          //         data: null,
-          //         description: null,
-          //         exception: null,
-          //         stackTrace: null,
-          //       ).withToast(true);
-          //       return true;
-          //     }
-          //     // 验证码不正确
-          //     else if (hr.code == hr.responseCodeCollect.C2_01_02_04) {
-          //       SbLogger(
-          //         code: null,
-          //         viewMessage: hr.viewMessage,
-          //         data: null,
-          //         description: null,
-          //         exception: null,
-          //         stackTrace: null,
-          //       ).withToast(false);
-          //       return true;
-          //     }
-          //     return false;
-          //   },
-          // );
         },
       ),
     );

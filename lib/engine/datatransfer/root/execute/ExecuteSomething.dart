@@ -36,7 +36,7 @@ class ExecuteSomething {
   Future<SingleResult<CheckUserResultType>> checkUser({required bool isCheckOnly}) async {
     final SingleResult<CheckUserResultType> checkUserResult = SingleResult<CheckUserResultType>();
 
-    final SingleResult<List<MUser>> queryResult = await DataTransferManager.instance.transfer.executeSqliteCurd.queryRowsAsModels<MUser>(
+    final SingleResult<List<MUser>> queryResult = await DataTransferManager.instance.transferTool.executeSqliteCurd.queryRowsAsModels<MUser>(
       QueryWrapper(tableName: MUser().tableName),
     );
     await queryResult.handle<void>(
@@ -46,7 +46,7 @@ class ExecuteSomething {
           checkUserResult.setSuccess(setResult: () => CheckUserResultType.notLogin);
           if (!isCheckOnly) {
             // TODO: 弹出登陆页面引擎。
-            final SingleResult<bool> pushResult = await DataTransferManager.instance.transfer.execute<void, bool>(
+            final SingleResult<bool> pushResult = await DataTransferManager.instance.transferTool.execute<void, bool>(
               executeForWhichEngine: EngineEntryName.LOGIN_AND_REGISTER,
               operationId: null,
               setOperationData: () {},
@@ -99,7 +99,7 @@ class ExecuteSomething {
 
   /// 获取当前引擎的 window 大小(非 flutter 实际大小)
   Future<SingleResult<ViewParams>> getNativeWindowViewParams(String whichEngine) async {
-    return await DataTransferManager.instance.transfer.toNative<String, ViewParams>(
+    return await DataTransferManager.instance.transferTool.toNative<String, ViewParams>(
       operationId: OToNative.GET_NATIVE_WINDOW_VIEW_PARAMS,
       setSendData: () => whichEngine,
       resultDataCast: (Object result) => ViewParams.fromJson(result.quickCast()),
@@ -108,7 +108,7 @@ class ExecuteSomething {
 
   /// 获取屏幕的物理像素大小。
   Future<SingleResult<SizeInt>> getScreenSize() async {
-    return await DataTransferManager.instance.transfer.toNative<void, SizeInt>(
+    return await DataTransferManager.instance.transferTool.toNative<void, SizeInt>(
       operationId: OToNative.GET_SCREEN_SIZE,
       setSendData: () {},
       resultDataCast: (Object resultData) {

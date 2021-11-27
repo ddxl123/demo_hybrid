@@ -36,6 +36,6 @@ void data_center() {
 
 @pragma('vm:entry-point')
 void login_and_register() {
-  engineInitBeforeRun('login_and_register', () => DataCenterDataTransfer());
+  engineInitBeforeRun('login_and_register', () => ());
   runApp(EngineApp(LoginAndRegisterEntry(), true));
 }

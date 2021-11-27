@@ -112,7 +112,7 @@ class _TableForTableDataState extends State<TableForTableData> {
     () async {
       header.addAll(await SqliteTool().getAllFieldBy(widget.tableName));
       final SingleResult<List<ModelBase>> queryResult =
-          await DataTransferManager.instance.transfer.executeSqliteCurd.queryRowsAsModels(QueryWrapper(tableName: widget.tableName));
+          await DataTransferManager.instance.transferTool.executeSqliteCurd.queryRowsAsModels(QueryWrapper(tableName: widget.tableName));
       await queryResult.handle<void>(
         doSuccess: (List<ModelBase> successResult) async {
           body.addAll(successResult);

@@ -110,7 +110,7 @@ class LoginPage extends SbRoute {
                 },
               );
 
-              final HttpStore_login_and_register_by_email_send_email requestResult = await DataTransferManager.instance.transfer.executeHttpCurd.sendRequest(
+              final HttpStore_login_and_register_by_email_send_email requestResult = await DataTransferManager.instance.transferTool.executeHttpCurd.sendRequest(
                 httpStore: HttpStore_login_and_register_by_email_send_email(
                   requestHeadersVO_LARBESE: RequestHeadersVO_LARBESE(),
                   requestParamsVO_LARBESE: RequestParamsVO_LARBESE(),
@@ -170,7 +170,7 @@ class LoginPage extends SbRoute {
           ),
           child: const Text('登陆/注册'),
           onPressed: () async {
-            final HttpStore_login_and_register_by_email_verify_email requestResult = await DataTransferManager.instance.transfer.executeHttpCurd.sendRequest(
+            final HttpStore_login_and_register_by_email_verify_email requestResult = await DataTransferManager.instance.transferTool.executeHttpCurd.sendRequest(
               httpStore: HttpStore_login_and_register_by_email_verify_email(
                 requestHeadersVO_LARBEVE: RequestHeadersVO_LARBEVE(),
                 requestParamsVO_LARBEVE: RequestParamsVO_LARBEVE(),

@@ -9,7 +9,7 @@ import '../DataTransferManager.dart';
 import 'ExecuteSomething.dart';
 import 'ExecuteSqliteCurd.dart';
 
-class Transfer {
+class TransferTool {
   ///
 
   final ExecuteSqliteCurd executeSqliteCurd = ExecuteSqliteCurd();
@@ -144,7 +144,7 @@ class Transfer {
     SizeInt? screenSize;
     if (startViewParams != null || endViewParams != null) {
       final SingleResult<ViewParams> lastViewParamsResult =
-          await DataTransferManager.instance.transfer.executeSomething.getNativeWindowViewParams(executeForWhichEngine);
+          await DataTransferManager.instance.transferTool.executeSomething.getNativeWindowViewParams(executeForWhichEngine);
       lastViewParams = await lastViewParamsResult.handle<ViewParams?>(
         doSuccess: (ViewParams successResult) async {
           return successResult;
@@ -159,7 +159,7 @@ class Transfer {
         return;
       }
 
-      final SingleResult<SizeInt> screenSizeResult = await DataTransferManager.instance.transfer.executeSomething.getScreenSize();
+      final SingleResult<SizeInt> screenSizeResult = await DataTransferManager.instance.transferTool.executeSomething.getScreenSize();
       screenSize = await screenSizeResult.handle<SizeInt?>(
         doSuccess: (SizeInt size) async {
           return size;

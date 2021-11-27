@@ -29,7 +29,7 @@ class NodeSheetRouteForComplete extends AbstractNodeSheetRoute<MFComplete> {
     }
 
     final MFComplete forKey = MFComplete();
-    final SingleResult<List<MFComplete>> queryResult = await DataTransferManager.instance.transfer.executeSqliteCurd.queryRowsAsModels<MFComplete>(
+    final SingleResult<List<MFComplete>> queryResult = await DataTransferManager.instance.transferTool.executeSqliteCurd.queryRowsAsModels<MFComplete>(
       QueryWrapper(
         tableName: forKey.tableName,
         limit: limit,

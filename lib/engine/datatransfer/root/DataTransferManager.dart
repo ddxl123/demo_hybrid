@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:hybrid/engine/constant/execute/EngineEntryName.dart';
 import 'package:hybrid/engine/datatransfer/root/BaseDataTransfer.dart';
-import 'package:hybrid/engine/datatransfer/root/execute/Transfer.dart';
+import 'package:hybrid/engine/datatransfer/root/execute/TransferTool.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -46,7 +46,7 @@ class DataTransferManager {
 
   late final BaseDataTransfer currentDataTransfer;
 
-  final Transfer transfer = Transfer();
+  final TransferTool transferTool = TransferTool();
 
   bool isCurrentFlutterEngineOnReady = false;
 
@@ -94,19 +94,8 @@ class DataTransferManager {
       if (resultData == null) {
         return sendResult.setError(
           vm: '通道传输异常！',
-          descp: Description(''),
-          e: Exception('''
-                
-        来自原生的响应数据为 null！
-        可能的原因如下：
-          1. 消息通道异常。--- 直接返回了 null，而未抛出如何异常，没有错误 log 输出
-          2. 原生发生了异常：
-            1) 未发现引擎 sendToWhichEngine: $sendToWhichEngine。
-            2) 未对 operationId: $operationId 进行处理。
-          3. 接收者发生了异常
-            1) listenerMessageFormOtherFlutterEngine 内部异常！
-            2) 未对 operationId: $operationId 进行处理。
-        '''),
+          descp: Description('sendMessageToOther 所响应的 resultData 为 null！'),
+          e: Exception(messageMap),
           st: null,
         );
       } else {

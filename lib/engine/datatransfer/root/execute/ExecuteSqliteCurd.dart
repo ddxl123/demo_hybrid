@@ -7,15 +7,99 @@ import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
+class SqliteCurdByTransactionWrapper {
+  SqliteCurdByTransactionWrapper() {
+    scbtId = hashCode.toString();
+    for (int i = 0; i < 20; i++) {
+      if (!DataTransferManager.instance.transferTool.executeSqliteCurd.curdByTransactionWrappers.containsKey(scbtId)) {
+        DataTransferManager.instance.transferTool.executeSqliteCurd.curdByTransactionWrappers.addAll(<String, SqliteCurdByTransactionWrapper>{scbtId: this});
+        break;
+      }
+      scbtId += '1';
+    }
+  }
+
+  /// 传
+  /// 便于快速查找该对象。
+  late final String scbtId;
+
+  /// 传
+  /// 来自哪个引擎入口。
+  final String formWhichEntryPointName = DataTransferManager.instance.currentEntryPointName;
+
+  /// curd 队列。
+  final Map<String, SqliteCurdQueueMember> curdQueueMember = <String, SqliteCurdQueueMember>{};
+
+  /// 向队列中添加成员。
+  void addQueueMember(SqliteCurdQueueMember member) {
+    member.sqliteCurdByTransaction = this;
+    member.scqId = member.hashCode.toString();
+    for (int i = 0; i < 20; i++) {
+      if (!curdQueueMember.containsKey(member.scqId)) {
+        curdQueueMember.addAll(<String, SqliteCurdQueueMember>{member.scqId: member});
+        break;
+      }
+      member.scqId += '1';
+    }
+  }
+}
+
+class SqliteCurdQueueMember {
+  SqliteCurdQueueMember({
+    required this.type,
+    required this.wrapper,
+    required this.laterFunction,
+  });
+
+  late final SqliteCurdByTransactionWrapper sqliteCurdByTransaction;
+
+  /// 传
+  /// 便于快速查找该对象。
+  late final String scqId;
+
+  /// 传
+  /// curd 类型：C U R D。
+  late final String type;
+
+  /// 传
+  /// curd 的包装：QueryWrapper 等。
+  late final Map<String, Object?> wrapper;
+
+  /// 不传
+  /// curd 后要执行的函数。
+  late final Function laterFunction;
+
+  /// 不传
+  /// curd 后获取到的 result。
+  late final Object? result;
+}
+
 /// 向数据中心请求 Sqlite 的 CURD。
 class ExecuteSqliteCurd {
   ///
+
+  /// 1. 在 data_center 引擎中是存储来自其他引擎的 sqlite curd 操作。
+  ///
+  /// 2. 在其他引擎中是存储当前引擎的每次 sqlite curd 操作。
+  final Map<String, SqliteCurdByTransactionWrapper> curdByTransactionWrappers = <String, SqliteCurdByTransactionWrapper>{};
+
+  Future<SingleResult<bool>> executeCurdByTransaction(SqliteCurdByTransactionWrapper wrapper) async {
+    await DataTransferManager.instance.transferTool.execute<Map<String, Object?>>(
+      executeForWhichEngine: EngineEntryName.DATA_CENTER,
+      operationId: OUniform.NEW_SQLITE_TRANSACTION,
+      setOperationData: () => <String, Object?>{},
+      startViewParams: null,
+      endViewParams: null,
+      closeViewAfterSeconds: null,
+      resultDataCast: null,
+    );
+  }
 
   /// 查看 [SqliteCurd.queryRowsAsJsons]
   Future<SingleResult<List<Map<String, Object?>>>> queryRowsAsJsons<T extends ModelBase>(QueryWrapper queryWrapper) async {
     final SingleResult<List<Map<String, Object?>>> returnResult = SingleResult<List<Map<String, Object?>>>();
     final SingleResult<SingleResult<List<Map<String, Object?>>>> queryResult =
-        await DataTransferManager.instance.transfer.execute<Map<String, Object?>, SingleResult<List<Map<String, Object?>>>>(
+        await DataTransferManager.instance.transferTool.execute<Map<String, Object?>, SingleResult<List<Map<String, Object?>>>>(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
       operationId: OUniform.SQLITE_QUERY_ROW_AS_JSONS,
       setOperationData: () => queryWrapper.toJson(),
@@ -69,7 +153,7 @@ class ExecuteSqliteCurd {
   Future<SingleResult<T>> insertRow<T extends ModelBase>(T insertModel) async {
     final SingleResult<T> returnResult = SingleResult<T>();
     final SingleResult<SingleResult<Map<String, Object?>>> insertResult =
-        await DataTransferManager.instance.transfer.execute<Map<String, Object?>, SingleResult<Map<String, Object?>>>(
+        await DataTransferManager.instance.transferTool.execute<Map<String, Object?>, SingleResult<Map<String, Object?>>>(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
       operationId: OUniform.SQLITE_INSERT_ROW,
       setOperationData: () => <String, Object?>{
@@ -104,7 +188,7 @@ class ExecuteSqliteCurd {
       {required String modelTableName, required int modelId, required Map<String, Object?> updateContent}) async {
     final SingleResult<T> returnResult = SingleResult<T>();
     final SingleResult<SingleResult<Map<String, Object?>>> updateResult =
-        await DataTransferManager.instance.transfer.execute<Map<String, Object?>, SingleResult<Map<String, Object?>>>(
+        await DataTransferManager.instance.transferTool.execute<Map<String, Object?>, SingleResult<Map<String, Object?>>>(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
       operationId: OUniform.SQLITE_UPDATE_ROW,
       setOperationData: () => <String, Object?>{
@@ -138,7 +222,7 @@ class ExecuteSqliteCurd {
   /// 查看 [SqliteCurd.deleteRow] 注释
   Future<SingleResult<bool>> deleteRow({required String modelTableName, required int? modelId}) async {
     final SingleResult<bool> returnResult = SingleResult<bool>();
-    final SingleResult<SingleResult<bool>> deleteResult = await DataTransferManager.instance.transfer.execute<Map<String, Object?>, SingleResult<bool>>(
+    final SingleResult<SingleResult<bool>> deleteResult = await DataTransferManager.instance.transferTool.execute<Map<String, Object?>, SingleResult<bool>>(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
       operationId: OUniform.SQLITE_DELETE_ROW,
       setOperationData: () => <String, Object?>{

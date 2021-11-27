@@ -8,25 +8,23 @@ part of 'student_bean.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-Student _$StudentFromJson(Map<String, dynamic> json) {
-  return Student(
-    name: json['name'] as String?,
-    age: json['age'] as int?,
-    list: (json['list'] as List<dynamic>?)
-        ?.map((e) => II.fromJson(e as Map<String, dynamic>))
-        .toList(),
-    map: json['map'] as Map<String, dynamic>?,
-    mapInt: (json['mapInt'] as Map<String, dynamic>?)?.map(
-      (k, e) => MapEntry(k, e as int),
-    ),
-    studentBean: json['studentBean'] == null
-        ? null
-        : Student.fromJson(json['studentBean'] as Map<String, dynamic>),
-    ii: json['ii'] == null
-        ? null
-        : II.fromJson(json['ii'] as Map<String, dynamic>),
-  );
-}
+Student _$StudentFromJson(Map<String, dynamic> json) => Student(
+      name: json['name'] as String?,
+      age: json['age'] as int?,
+      list: (json['list'] as List<dynamic>?)
+          ?.map((e) => II.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      map: json['map'] as Map<String, dynamic>?,
+      mapInt: (json['mapInt'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, e as int),
+      ),
+      studentBean: json['studentBean'] == null
+          ? null
+          : Student.fromJson(json['studentBean'] as Map<String, dynamic>),
+      ii: json['ii'] == null
+          ? null
+          : II.fromJson(json['ii'] as Map<String, dynamic>),
+    );
 
 Map<String, dynamic> _$StudentToJson(Student instance) => <String, dynamic>{
       'name': instance.name,
@@ -38,11 +36,9 @@ Map<String, dynamic> _$StudentToJson(Student instance) => <String, dynamic>{
       'ii': instance.ii?.toJson(),
     };
 
-II _$IIFromJson(Map<String, dynamic> json) {
-  return II(
-    i: json['i'] as int,
-  );
-}
+II _$IIFromJson(Map<String, dynamic> json) => II(
+      i: json['i'] as int,
+    );
 
 Map<String, dynamic> _$IIToJson(II instance) => <String, dynamic>{
       'i': instance.i,

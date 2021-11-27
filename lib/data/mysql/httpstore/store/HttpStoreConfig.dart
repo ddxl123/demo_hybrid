@@ -1,5 +1,5 @@
 class HttpStoreConfig {
-  static const String baseUrl = 'http://10.128.249.161:8080/';
+  static const String baseUrl = 'http://8.134.133.105:7777/';
 
   /// ms
   static const int connectTimeout = 20000;

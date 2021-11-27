@@ -257,8 +257,8 @@ extension QuickCast on Object {
   }
 }
 
-extension QuickCastNull on Object? {
-  Map<String, Object?>? quickCastNull() {
+extension QuickCastNullable on Object? {
+  Map<String, Object?>? quickCastNullable() {
     return (this as Map<Object?, Object?>?)?.cast<String, Object?>();
   }
 }

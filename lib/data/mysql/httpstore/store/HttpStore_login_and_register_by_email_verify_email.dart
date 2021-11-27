@@ -120,13 +120,9 @@ class ResponseCodeCollect_LARBEVE extends ResponseCodeCollect {
   @override
   Map<String, Object?> toJson() => _$ResponseCodeCollect_LARBEVEToJson(this);
 
-  /// 注册成功。
+  /// 邮箱注册成功！
     final int C2_01_02_01 = 2010201;
-/// 登陆成功。
+/// 邮箱登陆成功！
     final int C2_01_02_02 = 2010202;
-/// 邮箱重复异常，请联系管理员！
-    final int C2_01_02_03 = 2010203;
-/// 验证码不正确！
-    final int C2_01_02_04 = 2010204;
 
 }    

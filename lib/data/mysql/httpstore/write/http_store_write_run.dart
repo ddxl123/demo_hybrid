@@ -8,7 +8,7 @@ void main() {
   HttpStoreManager.setStoreConfig(
     WriteConfigWrapper(
       // TODO: 使用 https
-      baseUrl: 'http://10.128.249.161:8080/',
+      baseUrl: 'http://8.134.133.105:7777/',
       connectTimeout: 20000,
       receiveTimeout: 20000,
     ),
@@ -46,10 +46,8 @@ void main() {
           WriteVOWrapper(keyName: 'token', type: WriteDataType.STRING, isRequired: true),
         ],
         responseCodeCollect: <WriteCodeWrapper>[
-          WriteCodeWrapper(code: 2010201, tip: '注册成功。'),
-          WriteCodeWrapper(code: 2010202, tip: '登陆成功。'),
-          WriteCodeWrapper(code: 2010203, tip: '邮箱重复异常，请联系管理员！'),
-          WriteCodeWrapper(code: 2010204, tip: '验证码不正确！'),
+          WriteCodeWrapper(code: 2010201, tip: '邮箱注册成功！'),
+          WriteCodeWrapper(code: 2010202, tip: '邮箱登陆成功！'),
         ],
       ),
       WriteStoreWrapper(

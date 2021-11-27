@@ -8,6 +8,6 @@ class Sheller {
   static Future<void> buildRunner() async {
     final Shell shell = Shell();
 
-    await shell.run('''flutter pub run build_runner build''');
+    await shell.run('''flutter pub run build_runner build --delete-conflicting-outputs''');
   }
 }

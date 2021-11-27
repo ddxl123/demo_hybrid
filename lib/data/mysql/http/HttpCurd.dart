@@ -169,7 +169,13 @@ class HttpCurd {
       _isBanAllRequest = false;
       if (e is DioError) {
         if (e.type == DioErrorType.sendTimeout || e.type == DioErrorType.connectTimeout || e.type == DioErrorType.receiveTimeout) {
-          return httpStore.httpHandler.setCancel(vm: '请求超时！', descp: Description('dio 异常！可能是发送超时、连接超时、接收超时'), e: e, st: st) as HS;
+          return httpStore.httpHandler.setCancel(
+              vm: '请求超时！',
+              descp: Description(''
+                  'dio 异常！可能是发送超时、连接超时、接收超时'
+                  '1. 连接超时: 可能是 url 的 ip 不是本机的 ip，注意不要忘了设置完成后需要 run 写入一下！'),
+              e: e,
+              st: st) as HS;
         }
         return httpStore.httpHandler.setCancel(vm: '请求异常！', descp: Description('dio 异常！可能是 url 异常(不能为 127.0.0.1)'), e: e, st: st) as HS;
       }

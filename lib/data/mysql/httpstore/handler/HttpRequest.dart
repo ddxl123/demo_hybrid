@@ -55,9 +55,9 @@ class HttpRequest<REQHVO extends RequestHeadersVO, REQPVO extends RequestParamsV
     return HttpRequest<REQHVO, REQPVO, REQVO>(
       method: json['method']! as String,
       path: json['path']! as String,
-      putRequestHeadersVO: json['requestHeadersVO'].quickCastNull() ?? <String, Object?>{},
-      putRequestDataVO: json['requestDataVO'].quickCastNull() ?? <String, Object?>{},
-      putRequestParamsVO: json['requestParamsVO'].quickCastNull() ?? <String, Object?>{},
+      putRequestHeadersVO: json['requestHeadersVO'].quickCastNullable() ?? <String, Object?>{},
+      putRequestDataVO: json['requestDataVO'].quickCastNullable() ?? <String, Object?>{},
+      putRequestParamsVO: json['requestParamsVO'].quickCastNullable() ?? <String, Object?>{},
     );
   }
 

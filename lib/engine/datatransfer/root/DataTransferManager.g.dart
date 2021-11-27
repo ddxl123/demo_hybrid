@@ -8,15 +8,13 @@ part of 'DataTransferManager.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-ViewParams _$ViewParamsFromJson(Map<String, dynamic> json) {
-  return ViewParams(
-    width: json['width'] as int,
-    height: json['height'] as int,
-    x: json['x'] as int,
-    y: json['y'] as int,
-    isFocus: json['is_focus'] as bool?,
-  );
-}
+ViewParams _$ViewParamsFromJson(Map<String, dynamic> json) => ViewParams(
+      width: json['width'] as int,
+      height: json['height'] as int,
+      x: json['x'] as int,
+      y: json['y'] as int,
+      isFocus: json['is_focus'] as bool?,
+    );
 
 Map<String, dynamic> _$ViewParamsToJson(ViewParams instance) =>
     <String, dynamic>{

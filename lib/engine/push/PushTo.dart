@@ -10,7 +10,7 @@ class PushTo {
     required ViewParams startViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
     required ViewParams endViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
   }) async {
-    final SingleResult<bool> startResult = await DataTransferManager.instance.transfer.execute<void, bool>(
+    final SingleResult<bool> startResult = await DataTransferManager.instance.transferTool.execute<void, bool>(
       executeForWhichEngine: entryName,
       operationId: null,
       setOperationData: () {},

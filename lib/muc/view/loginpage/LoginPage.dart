@@ -6,7 +6,7 @@ import 'package:hybrid/data/mysql/httpstore/store/HttpStore_login_and_register_b
 import 'package:hybrid/data/mysql/httpstore/store/HttpStore_login_and_register_by_email_verify_email.dart';
 import 'package:hybrid/data/sqlite/mmodel/MUser.dart';
 import 'package:hybrid/data/sqlite/sqliter/OpenSqlite.dart';
-import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
+import 'package:hybrid/engine/transfer/TransferManager.dart';
 import 'package:hybrid/global/Global.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
@@ -110,7 +110,7 @@ class LoginPage extends SbRoute {
                 },
               );
 
-              final HttpStore_login_and_register_by_email_send_email requestResult = await DataTransferManager.instance.transferTool.executeHttpCurd.sendRequest(
+              final HttpStore_login_and_register_by_email_send_email requestResult = await DataTransferManager.instance.transferExecutor.executeHttpCurd.sendRequest(
                 httpStore: HttpStore_login_and_register_by_email_send_email(
                   requestHeadersVO_LARBESE: RequestHeadersVO_LARBESE(),
                   requestParamsVO_LARBESE: RequestParamsVO_LARBESE(),
@@ -120,7 +120,7 @@ class LoginPage extends SbRoute {
                 ),
                 sameNotConcurrent: null,
                 isBanAllOtherRequest: true,
-                resultHttpStoreJson2HS: (Map<String, Object?> json) async => HttpStore_login_and_register_by_email_send_email.fromJson(json),
+                jsonToHS: (Map<String, Object?> json) async => HttpStore_login_and_register_by_email_send_email.fromJson(json),
               );
               await requestResult.httpHandler.handle<HttpStore_login_and_register_by_email_send_email>(
                 doContinue: (HttpStore_login_and_register_by_email_send_email hs) async {
@@ -170,7 +170,7 @@ class LoginPage extends SbRoute {
           ),
           child: const Text('登陆/注册'),
           onPressed: () async {
-            final HttpStore_login_and_register_by_email_verify_email requestResult = await DataTransferManager.instance.transferTool.executeHttpCurd.sendRequest(
+            final HttpStore_login_and_register_by_email_verify_email requestResult = await DataTransferManager.instance.transferExecutor.executeHttpCurd.sendRequest(
               httpStore: HttpStore_login_and_register_by_email_verify_email(
                 requestHeadersVO_LARBEVE: RequestHeadersVO_LARBEVE(),
                 requestParamsVO_LARBEVE: RequestParamsVO_LARBEVE(),
@@ -181,7 +181,7 @@ class LoginPage extends SbRoute {
               ),
               sameNotConcurrent: null,
               isBanAllOtherRequest: true,
-              resultHttpStoreJson2HS: (Map<String, Object?> json) async => HttpStore_login_and_register_by_email_verify_email.fromJson(json),
+              jsonToHS: (Map<String, Object?> json) async => HttpStore_login_and_register_by_email_verify_email.fromJson(json),
             );
             await requestResult.httpHandler.handle<HttpStore_login_and_register_by_email_verify_email>(
               doContinue: (HttpStore_login_and_register_by_email_verify_email hs) async {

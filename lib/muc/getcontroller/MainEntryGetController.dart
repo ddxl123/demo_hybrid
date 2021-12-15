@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:get/get.dart';
 import 'package:hybrid/engine/constant/execute/EngineEntryName.dart';
 import 'package:hybrid/engine/constant/execute/OToNative.dart';
-import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
-import 'package:hybrid/engine/datatransfer/root/execute/ExecuteSomething.dart';
 import 'package:hybrid/engine/entry/main/FloatingWindowPermissionRoute.dart';
+import 'package:hybrid/engine/transfer/TransferManager.dart';
+import 'package:hybrid/engine/transfer/executor/SomethingTransferExecutor.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
@@ -61,7 +61,7 @@ class MainEntryGetController extends GetxController {
   ///
   /// 主要检查悬浮窗权限。
   Future<void> _permissionCheck() async {
-    final SingleResult<bool> checkResult = await DataTransferManager.instance.transferTool.toNative<void, bool>(
+    final SingleResult<bool> checkResult = await DataTransferManager.instance.transferExecutor.toNative<void, bool>(
       operationId: OToNative.check_floating_window_permission,
       setSendData: () {},
       resultDataCast: null,
@@ -94,7 +94,7 @@ class MainEntryGetController extends GetxController {
   ///
   /// 主要启动数据中心引擎。
   Future<void> _appDataInitializing() async {
-    final SingleResult<bool> startDataCenterResult = await DataTransferManager.instance.transferTool.execute<void, bool>(
+    final SingleResult<bool> startDataCenterResult = await DataTransferManager.instance.transferExecutor.execute<void, bool>(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
       operationId: null,
       setOperationData: () {},
@@ -139,7 +139,7 @@ class MainEntryGetController extends GetxController {
   /// 主要检查用户是否已登录、用户数据是否已下载。
   Future<void> _userDataInitializing() async {
     final Future<SingleResult<CheckUserResultType>> Function(bool isCheckOnly) checkUser = (bool isCheckOnly) async {
-      return await DataTransferManager.instance.transferTool.executeSomething.checkUser(isCheckOnly: isCheckOnly);
+      return await DataTransferManager.instance.transferExecutor.executeSomething.checkUser(isCheckOnly: isCheckOnly);
     };
 
     // 这一部分是进行检查并需要弹出时弹出。

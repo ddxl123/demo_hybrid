@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hybrid/data/sqlite/mmodel/MFMemory.dart';
 import 'package:hybrid/data/sqlite/mmodel/MPnMemory.dart';
 import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
-import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
+import 'package:hybrid/engine/transfer/TransferManager.dart';
 import 'package:hybrid/muc/getcontroller/homepage/PoolGetController.dart';
 import 'package:hybrid/muc/view/homepage/node/nodesheet/fragment/FragmentPage.dart';
 import 'package:hybrid/muc/view/homepage/node/nodesheet/longpressedfragment/LongPressedFragment.dart';
@@ -28,7 +28,7 @@ class NodeSheetRouteForMemory extends AbstractNodeSheetRoute<MFMemory> {
       mark.value = 0;
     }
     final MFMemory forKey = MFMemory();
-    final SingleResult<List<MFMemory>> queryResult = await DataTransferManager.instance.transferTool.executeSqliteCurd.queryRowsAsModels<MFMemory>(
+    final SingleResult<List<MFMemory>> queryResult = await DataTransferManager.instance.transferExecutor.executeSqliteCurd.queryRowsAsModels<MFMemory>(
       QueryWrapper(
         tableName: forKey.tableName,
         limit: limit,

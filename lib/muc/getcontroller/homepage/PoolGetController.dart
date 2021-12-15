@@ -8,7 +8,7 @@ import 'package:hybrid/data/sqlite/mmodel/MPnMemory.dart';
 import 'package:hybrid/data/sqlite/mmodel/MPnRule.dart';
 import 'package:hybrid/data/sqlite/mmodel/ModelBase.dart';
 import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
-import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
+import 'package:hybrid/engine/transfer/TransferManager.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sbfreebox/SbFreeBoxController.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
@@ -188,7 +188,7 @@ class PoolGetController extends GetxController {
   Future<List<PoolNodeModel>> queryAll(PoolType poolType) async {
     Future<List<ModelBase>> query(String tableName) async {
       final SingleResult<List<ModelBase>> queryResult =
-          await DataTransferManager.instance.transferTool.executeSqliteCurd.queryRowsAsModels(QueryWrapper(tableName: tableName));
+          await DataTransferManager.instance.transferExecutor.executeSqliteCurd.queryRowsAsModels(QueryWrapper(tableName: tableName));
       return await queryResult.handle<List<ModelBase>>(
         doSuccess: (List<ModelBase> successResult) async {
           return successResult;

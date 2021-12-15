@@ -2,7 +2,7 @@
 
 // ignore_for_file: implicit_dynamic_parameter
 
-part of 'SqliteCurd.dart';
+part of 'SqliteWrapper.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
@@ -56,4 +56,30 @@ Map<String, dynamic> _$QueryWrapperToJson(QueryWrapper instance) =>
       'limit': instance.limit,
       'offset': instance.offset,
       'byTwoId': instance.byTwoId?.toJson(),
+    };
+
+UpdateWrapper _$UpdateWrapperFromJson(Map<String, dynamic> json) =>
+    UpdateWrapper(
+      modelTableName: json['modelTableName'] as String,
+      modelId: json['modelId'] as int,
+      updateContent: json['updateContent'] as Map<String, dynamic>,
+    );
+
+Map<String, dynamic> _$UpdateWrapperToJson(UpdateWrapper instance) =>
+    <String, dynamic>{
+      'modelTableName': instance.modelTableName,
+      'modelId': instance.modelId,
+      'updateContent': instance.updateContent,
+    };
+
+DeleteWrapper _$DeleteWrapperFromJson(Map<String, dynamic> json) =>
+    DeleteWrapper(
+      modelTableName: json['modelTableName'] as String,
+      modelId: json['modelId'] as int?,
+    );
+
+Map<String, dynamic> _$DeleteWrapperToJson(DeleteWrapper instance) =>
+    <String, dynamic>{
+      'modelTableName': instance.modelTableName,
+      'modelId': instance.modelId,
     };

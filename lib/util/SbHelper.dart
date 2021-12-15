@@ -10,66 +10,21 @@ import 'package:uuid/uuid.dart';
 
 /// 与 [HttpHandler] 基本一直。
 ///
-/// [R] 必须是个可序列化类型。
-class SingleResult<R> extends DoSerializable {
+/// [D] 必须是个可序列化类型。
+class SingleResult<D> extends DoSerializable {
   SingleResult();
 
-  factory SingleResult.fromJson(Map<String, Object?> json) => SingleResult<R>()
-    ..result = () {
-      final Object? resultValue = json['result'];
-      if (resultValue == null) {
-        return resultValue as R?;
-      }
-
-      final String rTypeName = R.toString();
-      if (!rTypeName.contains('<')) {
-        return resultValue as R?;
-      }
-
-      if (rTypeName.startsWith('List')) {
-        final String rNameSb = rTypeName.substring(5);
-        final String rName2 = rNameSb.substring(0, rNameSb.length - 1);
-        if (rName2 == 'int') {
-          return (resultValue as List<Object?>).cast<int>() as R;
-        }
-        if (rName2 == 'int?') {
-          return (resultValue as List<Object?>).cast<int?>() as R;
-        }
-        if (rName2 == 'bool') {
-          return (resultValue as List<Object?>).cast<bool>() as R;
-        }
-        if (rName2 == 'bool?') {
-          return (resultValue as List<Object?>).cast<bool?>() as R;
-        }
-        if (rName2 == 'String') {
-          return (resultValue as List<Object?>).cast<String>() as R;
-        }
-        if (rName2 == 'String?') {
-          return (resultValue as List<Object?>).cast<String?>() as R;
-        }
-        if (rName2 == 'double') {
-          return (resultValue as List<Object?>).cast<double>() as R;
-        }
-        if (rName2 == 'double?') {
-          return (resultValue as List<Object?>).cast<double?>() as R;
-        }
-        if (rName2.startsWith('Map') && !rName2.endsWith('?')) {
-          return List.castFrom<Object?, Map<String, Object?>>(resultValue as List<Object?>) as R;
-        }
-      }
-      if (rTypeName.startsWith('Map')) {
-        return (resultValue as Map<Object?, Object?>).cast<String, Object>() as R;
-      }
-    }()
-    .._viewMessage = json['viewMessage'] as String?
-    .._description = json['description'] == null ? null : Description.fromJson((json['description']! as Map<Object?, Object?>).cast<String, Object?>())
-    .._exception = json['exception'] == null ? null : Exception(json['exception']! as String)
-    ..stackTrace = json['stackTrace'] == null ? null : StackTrace.fromString(json['stackTrace']! as String)
-    ..isSet = json['isSet']! as bool;
+  factory SingleResult.fromJson({required Map<String, Object?> resultJson, required D dataCast(Object data)}) => SingleResult<D>()
+    ..data = resultJson['data'] == null ? null : dataCast(resultJson['data']!)
+    .._viewMessage = resultJson['viewMessage'] as String?
+    .._description = resultJson['description'] == null ? null : Description.fromJson((resultJson['description']! as Map<Object?, Object?>).cast<String, Object?>())
+    .._exception = resultJson['exception'] == null ? null : Exception(resultJson['exception']! as String)
+    ..stackTrace = resultJson['stackTrace'] == null ? null : StackTrace.fromString(resultJson['stackTrace']! as String)
+    ..isSet = resultJson['isSet']! as bool;
 
   @override
   Map<String, Object?> toJson() => <String, Object?>{
-        'result': result,
+        'data': data,
         'viewMessage': _viewMessage,
         'description': _description?.toJson(),
         'exception': _exception?.toString(),
@@ -77,7 +32,7 @@ class SingleResult<R> extends DoSerializable {
         'isSet': isSet,
       };
 
-  R? result;
+  D? data;
 
   String? _viewMessage;
 
@@ -97,12 +52,16 @@ class SingleResult<R> extends DoSerializable {
 
   bool _hasError() => _exception != null;
 
-  SingleResult<R> setSuccess({required R setResult()}) {
+  SingleResult<D> setSuccess({required D putData()}) {
     if (isSet) {
       return this;
     }
     try {
-      result = setResult();
+      _viewMessage = null;
+      _description = null;
+      _exception = null;
+      stackTrace = null;
+      data = putData();
       isSet = true;
       return this;
     } catch (e, st) {
@@ -110,8 +69,10 @@ class SingleResult<R> extends DoSerializable {
     }
   }
 
+  /// TODO: 对 [setError] 进行修改，将 [descp] 和 [e] 融为一体。
+  ///
   /// [e] 不能为空，因为需要根据 [e] 来判断是否 [doCancel]。
-  SingleResult<R> setError({required String vm, required Description descp, required Object e, required StackTrace? st}) {
+  SingleResult<D> setError({required String vm, required Description descp, required Object e, required StackTrace? st}) {
     if (isSet) {
       return this;
     }
@@ -124,7 +85,17 @@ class SingleResult<R> extends DoSerializable {
     return this;
   }
 
-  SingleResult<R> setErrorClone(SingleResult from) {
+  SingleResult<D> setAnyClone(SingleResult<D> from) {
+    data = from.data;
+    _viewMessage = from._viewMessage;
+    _description = from._description;
+    _exception = from._exception;
+    stackTrace = from.stackTrace;
+    isSet = from.isSet;
+    return this;
+  }
+
+  SingleResult<D> setErrorClone(SingleResult<Object?> from) {
     return setError(vm: from.getRequiredVm(), descp: from.getRequiredDescp(), e: from.getRequiredE(), st: from.stackTrace);
   }
 
@@ -136,7 +107,7 @@ class SingleResult<R> extends DoSerializable {
   /// 必须先 [setSuccess]/[setError]，再 [doSuccess]/[doError]。
   ///
   /// 不捕获 [doError] 的异常。
-  Future<HR> handle<HR>({required Future<HR> doSuccess(R successResult), required Future<HR> doError(SingleResult<R> errorResult)}) async {
+  Future<HR> handle<HR>({required Future<HR> doSuccess(D successData), required Future<HR> doError(SingleResult<D> errorResult)}) async {
     if (!isSet) {
       setError(vm: '未完全处理！', descp: Description(''), e: Exception('必须先进行 setCancel/setPass，才能进行 handle！'), st: null);
       return await doError(this);
@@ -144,7 +115,7 @@ class SingleResult<R> extends DoSerializable {
 
     if (!_hasError()) {
       try {
-        return await doSuccess(result as R);
+        return await doSuccess(data as D);
       } catch (e, st) {
         setError(vm: 'doSuccess 内部异常！', descp: Description(''), e: e, st: st);
         return await doError(this);

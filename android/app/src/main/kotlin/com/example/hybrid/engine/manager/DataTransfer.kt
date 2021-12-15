@@ -35,7 +35,7 @@ class DataTransfer(private val flutterEnginer: FlutterEnginer) {
                         nativeInterception(
                             flutterEnginer,
                             messageMap["operation_id"].checkType(),
-                            messageMap["data"]
+                            messageMap["operation_data"]
                         )
                     )
                 }

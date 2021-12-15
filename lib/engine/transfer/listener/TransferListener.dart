@@ -2,23 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:hybrid/engine/constant/o/OUniform.dart';
-import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
-/// 需在引擎入口执行前创建该 [BaseDataTransfer] 实例，之后使用 [DataTransferManager.instance] 对该实例进行操作。
-abstract class BaseDataTransfer {
-  BaseDataTransfer() {
-    _listenerMessageFromOtherFlutterEngine();
+import '../TransferManager.dart';
 
-    SbLogger(
-      c: null,
-      vm: null,
-      data: null,
-      descp: Description('${DataTransferManager.instance.currentEntryPointName} 入口的 BaseDataTransfer 初始化成功。'),
-      e: null,
-      st: null,
-    );
+/// 需在引擎入口执行前创建该 [TransferListener] 实例，之后使用 [DataTransferManager.instance] 对该实例进行操作。
+abstract class TransferListener {
+  TransferListener() {
+    _listenerMessageFromOtherFlutterEngine();
   }
 
   /// 统一使用 data_channel 通道。
@@ -38,12 +30,12 @@ abstract class BaseDataTransfer {
   void _listenerMessageFromOtherFlutterEngine() {
     basicMessageChannel.setMessageHandler(
       (Object? message) async {
+        final SingleResult<Object?> listenerResult = SingleResult<Object?>();
         try {
           final Map<String, Object?> messageMap = message!.quickCast();
-          return await listenerMessageFormOtherFlutterEngineUniform(messageMap['operation_id']! as String, messageMap['data']);
+          return (await listenerMessageFormOtherFlutterEngineUniform(listenerResult, messageMap['operation_id']! as String, messageMap['data']))!.toJson();
         } catch (e, st) {
-          SbLogger(c: null, vm: null, data: null, descp: Description('接收的引擎发生了异常！'), e: e, st: st);
-          return null;
+          return listenerResult.setError(vm: 'listener 异常！', descp: Description('_listenerMessageFromOtherFlutterEngine 发送异常！'), e: e, st: st).toJson();
         }
       },
     );
@@ -52,12 +44,12 @@ abstract class BaseDataTransfer {
   /// {@macro BaseDataTransfer._listenerMessageFromOtherEngine}
   ///
   /// 内部异常已交给 [_listenerMessageFromOtherFlutterEngine] 捕获。
-  Future<Object?> listenerMessageFormOtherFlutterEngineUniform(String operationId, Object? data) async {
+  Future<SingleResult<Object?>?> listenerMessageFormOtherFlutterEngineUniform(SingleResult<Object?> listenerResult, String operationId, Object? data) async {
     if (operationId == OUniform.IS_ENGINE_ON_READY) {
-      return DataTransferManager.instance.isCurrentFlutterEngineOnReady;
+      return listenerResult.setSuccess(putData: () => DataTransferManager.instance.isCurrentFlutterEngineOnReady);
     }
-    return await listenerMessageFormOtherFlutterEngine(operationId, data);
+    return await listenerMessageFormOtherFlutterEngine(listenerResult, operationId, data);
   }
 
-  Future<Object?> listenerMessageFormOtherFlutterEngine(String operationId, Object? data);
+  Future<SingleResult<Object?>?> listenerMessageFormOtherFlutterEngine(SingleResult<Object?> listenerResult, String operationId, Object? data);
 }

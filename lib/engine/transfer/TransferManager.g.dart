@@ -2,7 +2,7 @@
 
 // ignore_for_file: implicit_dynamic_parameter
 
-part of 'DataTransferManager.dart';
+part of 'TransferManager.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator

@@ -7,7 +7,7 @@ import 'package:hybrid/data/mysql/httpstore/handler/HttpHandler.dart';
 import 'package:hybrid/data/mysql/httpstore/store/HttpStore_login_and_register_by_email_send_email.dart';
 import 'package:hybrid/data/mysql/httpstore/store/HttpStore_login_and_register_by_email_verify_email.dart';
 import 'package:hybrid/data/sqlite/mmodel/MUser.dart';
-import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
+import 'package:hybrid/engine/datatransfer/TransferManager.dart';
 import 'package:hybrid/engine/push/PushTo.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
@@ -106,7 +106,7 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
                   state.refresh();
                 },
               );
-              final HttpStore_login_and_register_by_email_send_email requestResult = await DataTransferManager.instance.transferTool.executeHttpCurd.sendRequest(
+              final HttpStore_login_and_register_by_email_send_email requestResult = await DataTransferManager.instance.transferExecutor.executeHttpCurd.sendRequest(
                 httpStore: HttpStore_login_and_register_by_email_send_email(
                   requestHeadersVO_LARBESE: RequestHeadersVO_LARBESE(),
                   requestParamsVO_LARBESE: RequestParamsVO_LARBESE(),
@@ -197,7 +197,7 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
                 // TODO: clearToken 与 insertNewToken 必须进行事务处理。
                 // 清空本地 token 信息。
                 final SingleResult<bool> clearToken =
-                    await DataTransferManager.instance.transferTool.executeSqliteCurd.deleteRow(modelTableName: newToken.tableName, modelId: null);
+                    await DataTransferManager.instance.transferExecutor.executeSqliteCurd.deleteRow(modelTableName: newToken.tableName, modelId: null);
 
                 final bool hasClearTokenError = await clearToken.handle<bool>(
                   doSuccess: (bool successResult) async {
@@ -217,7 +217,7 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
                 }
 
                 // 插入心的 token。
-                final SingleResult<MUser> insertNewToken = await DataTransferManager.instance.transferTool.executeSqliteCurd.insertRow(newToken);
+                final SingleResult<MUser> insertNewToken = await DataTransferManager.instance.transferExecutor.executeSqliteCurd.insertRow(newToken);
                 final bool hasInsertNewTokenError = await insertNewToken.handle<bool>(
                   doSuccess: (MUser successResult) async {
                     SbLogger(c: null, vm: null, data: successResult.getRowJson, descp: Description('对 user 插入新 token 成功！'), e: null, st: null);

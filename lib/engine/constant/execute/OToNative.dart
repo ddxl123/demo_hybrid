@@ -1,7 +1,5 @@
 // ignore_for_file: camel_case_types
 
-import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
-
 /// 专门传递操作给原生的常量
 class OToNative {
   /// 启动引擎。

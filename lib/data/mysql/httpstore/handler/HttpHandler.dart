@@ -76,6 +76,9 @@ class HttpHandler implements DoSerializable {
     }
 
     try {
+      _description = null;
+      _exception = null;
+      stackTrace = null;
       httpStore.httpResponse.setAll(
         // 云端响应的 code 不能为空。
         code: response.data!['code']! as int,

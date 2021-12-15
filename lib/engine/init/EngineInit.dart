@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:hybrid/engine/datatransfer/root/BaseDataTransfer.dart';
-import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
+import 'package:hybrid/engine/transfer/TransferManager.dart';
+import 'package:hybrid/engine/transfer/listener/TransferListener.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
-void engineInitBeforeRun(String entryName, BaseDataTransfer dataTransfer()) {
+void engineInitBeforeRun(String entryName, TransferListener dataTransfer()) {
   WidgetsFlutterBinding.ensureInitialized();
   SbLogger.engineEntryBinding(entryName);
   DataTransferManager.instance.binding(entryName, dataTransfer);

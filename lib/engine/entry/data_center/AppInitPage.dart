@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hybrid/data/mysql/http/Httper.dart';
 import 'package:hybrid/data/sqlite/sqliter/SqliteInit.dart';
-import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
+import 'package:hybrid/engine/transfer/TransferManager.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
 enum AppInitStatus { ok, exception, initializing }

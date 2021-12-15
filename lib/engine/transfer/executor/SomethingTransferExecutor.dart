@@ -1,11 +1,11 @@
 import 'package:hybrid/data/sqlite/mmodel/MUser.dart';
-import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
+import 'package:hybrid/data/sqlite/sqliter/SqliteWrapper.dart';
 import 'package:hybrid/engine/constant/execute/EngineEntryName.dart';
 import 'package:hybrid/engine/constant/execute/OToNative.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
-import '../DataTransferManager.dart';
+import '../TransferManager.dart';
 
 enum CheckUserResultType {
   /// 检查全部通过：用户已登陆、用户初始数据已下载。
@@ -19,7 +19,7 @@ enum CheckUserResultType {
 }
 
 /// 可以在任何引擎中执行。
-class ExecuteSomething {
+class SomethingTransferExecutor {
   ///
 
   /// 检查用户是否已登陆、检查用户初始数据是否已被下载。
@@ -34,19 +34,19 @@ class ExecuteSomething {
   /// [isCheckOnly]：是否只检查，而不进行 push。
   ///
   Future<SingleResult<CheckUserResultType>> checkUser({required bool isCheckOnly}) async {
-    final SingleResult<CheckUserResultType> checkUserResult = SingleResult<CheckUserResultType>();
+    final SingleResult<CheckUserResultType> returnResult = SingleResult<CheckUserResultType>();
 
-    final SingleResult<List<MUser>> queryResult = await DataTransferManager.instance.transferTool.executeSqliteCurd.queryRowsAsModels<MUser>(
-      QueryWrapper(tableName: MUser().tableName),
+    final SingleResult<List<MUser>> queryResult = await DataTransferManager.instance.transferExecutor.executeSqliteCurd.queryRowsAsModels<MUser>(
+      () => QueryWrapper(tableName: MUser().tableName),
     );
     await queryResult.handle<void>(
       doSuccess: (List<MUser> successResult) async {
         if (successResult.isEmpty) {
           // 先配置不通过，再进行弹出操作。
-          checkUserResult.setSuccess(setResult: () => CheckUserResultType.notLogin);
+          returnResult.setSuccess(putData: () => CheckUserResultType.notLogin);
           if (!isCheckOnly) {
             // TODO: 弹出登陆页面引擎。
-            final SingleResult<bool> pushResult = await DataTransferManager.instance.transferTool.execute<void, bool>(
+            final SingleResult<bool> pushResult = await DataTransferManager.instance.transferExecutor.execute<void, bool>(
               executeForWhichEngine: EngineEntryName.LOGIN_AND_REGISTER,
               operationId: null,
               setOperationData: () {},
@@ -57,32 +57,32 @@ class ExecuteSomething {
                 return ViewParams(width: 500, height: 1000, x: 200, y: 200, isFocus: true);
               },
               closeViewAfterSeconds: null,
-              resultDataCast: null,
+              resultDataCast: (Object resultData) => resultData as bool,
             );
             await pushResult.handle(
               doSuccess: (bool isPushSuccess) async {
                 if (!isPushSuccess) {
-                  // TODO: 弹出的成功与失败，不能配置 checkUserResult，而需要另其独立配置。
-                  // checkUserResult.setError(vm: '弹出登陆页面异常！', descp: Description(''), e: Exception('isPushSuccess 不为 true！'), st: null);
+                  // TODO: 弹出的成功与失败，不能配置 returnResult，而需要另其独立配置。
+                  // returnResult.setError(vm: '弹出登陆页面异常！', descp: Description(''), e: Exception('isPushSuccess 不为 true！'), st: null);
                 }
               },
               doError: (SingleResult<bool> errorResult) async {
-                // TODO: 弹出的成功与失败，不能配置 checkUserResult，而需要另其独立配置。
+                // TODO: 弹出的成功与失败，不能配置 returnResult，而需要另其独立配置。
                 SbLogger(c: null, vm: null, data: null, descp: errorResult.getRequiredDescp(), e: errorResult.getRequiredE(), st: errorResult.stackTrace);
-                // checkUserResult.setError(
+                // returnResult.setError(
                 //     vm: errorResult.getRequiredVm(), descp: errorResult.getRequiredDescp(), e: errorResult.getRequiredE(), st: errorResult.stackTrace);
               },
             );
           }
         } else {
           if (successResult.first.get_is_downloaded_init_data == 1) {
-            checkUserResult.setSuccess(setResult: () => CheckUserResultType.pass);
+            returnResult.setSuccess(putData: () => CheckUserResultType.pass);
           } else {
             // 先配置不通过，再进行弹出操作。
-            checkUserResult.setSuccess(setResult: () => CheckUserResultType.notDownload);
+            returnResult.setSuccess(putData: () => CheckUserResultType.notDownload);
             if (!isCheckOnly) {
               // TODO: 弹出初始化数据下载页面引擎。
-              // TODO: 弹出的成功与失败，不能配置 checkUserResult，而需要另其独立配置。
+              // TODO: 弹出的成功与失败，不能配置 returnResult，而需要另其独立配置。
               SbLogger(c: null, vm: null, data: null, descp: Description(''), e: Exception('弹出失败！'), st: null);
             }
           }
@@ -90,16 +90,16 @@ class ExecuteSomething {
       },
       doError: (SingleResult<List<MUser>> errorResult) async {
         SbLogger(c: null, vm: null, data: null, descp: errorResult.getRequiredDescp(), e: errorResult.getRequiredE(), st: errorResult.stackTrace);
-        checkUserResult.setError(
+        returnResult.setError(
             vm: errorResult.getRequiredVm(), descp: errorResult.getRequiredDescp(), e: errorResult.getRequiredE(), st: errorResult.stackTrace);
       },
     );
-    return checkUserResult;
+    return returnResult;
   }
 
   /// 获取当前引擎的 window 大小(非 flutter 实际大小)
   Future<SingleResult<ViewParams>> getNativeWindowViewParams(String whichEngine) async {
-    return await DataTransferManager.instance.transferTool.toNative<String, ViewParams>(
+    return await DataTransferManager.instance.transferExecutor.toNative<String, ViewParams>(
       operationId: OToNative.GET_NATIVE_WINDOW_VIEW_PARAMS,
       setSendData: () => whichEngine,
       resultDataCast: (Object result) => ViewParams.fromJson(result.quickCast()),
@@ -108,7 +108,7 @@ class ExecuteSomething {
 
   /// 获取屏幕的物理像素大小。
   Future<SingleResult<SizeInt>> getScreenSize() async {
-    return await DataTransferManager.instance.transferTool.toNative<void, SizeInt>(
+    return await DataTransferManager.instance.transferExecutor.toNative<void, SizeInt>(
       operationId: OToNative.GET_SCREEN_SIZE,
       setSendData: () {},
       resultDataCast: (Object resultData) {

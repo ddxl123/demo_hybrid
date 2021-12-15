@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hybrid/data/sqlite/mmodel/MFRule.dart';
 import 'package:hybrid/data/sqlite/mmodel/MPnRule.dart';
 import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
-import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
+import 'package:hybrid/engine/transfer/TransferManager.dart';
 import 'package:hybrid/muc/getcontroller/homepage/PoolGetController.dart';
 import 'package:hybrid/muc/view/homepage/node/nodesheet/longpressedfragment/LongPressedFragment.dart';
 import 'package:hybrid/muc/view/homepage/node/nodesheet/more/AbstractMoreRoute.dart';
@@ -28,7 +28,7 @@ class NodeSheetRouteForRule extends AbstractNodeSheetRoute<MFRule> {
       mark.value = 0;
     }
     final MFRule forKey = MFRule();
-    final SingleResult<List<MFRule>> queryResult = await DataTransferManager.instance.transferTool.executeSqliteCurd.queryRowsAsModels<MFRule>(
+    final SingleResult<List<MFRule>> queryResult = await DataTransferManager.instance.transferExecutor.executeSqliteCurd.queryRowsAsModels<MFRule>(
       QueryWrapper(
         tableName: forKey.tableName,
         limit: limit,

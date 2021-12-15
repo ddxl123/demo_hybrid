@@ -1,17 +1,19 @@
 // ignore_for_file: non_constant_identifier_names
 import 'package:hybrid/engine/constant/o/OFromDataCenter.dart';
-import 'package:hybrid/engine/datatransfer/root/BaseDataTransfer.dart';
+import 'package:hybrid/util/SbHelper.dart';
 
-class MainDataTransfer extends BaseDataTransfer {
+import 'TransferListener.dart';
+
+class MainDataTransferListener extends TransferListener {
   @override
-  Future<Object?> listenerMessageFormOtherFlutterEngine(String operationId, Object? data) async {
+  Future<SingleResult<Object?>?> listenerMessageFormOtherFlutterEngine(SingleResult<Object?> listenerResult, String operationId, Object? data) async {
     if (operationId == OFromDataCenter.send_init_data_to_main) {
       await _send_init_data_to_main();
       // final SingleGetController singleGetController = Get.find<SingleGetController>(tag: DataTransferManager.instance.currentEntryName);
       // singleGetController.updateLogic.updateAny(() {
       //   singleGetController.any['is_ok'] = true;
       // });
-      return false;
+      return listenerResult.setSuccess(putData: () => false);
     }
   }
 

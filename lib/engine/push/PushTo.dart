@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
+import 'package:hybrid/engine/transfer/TransferManager.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
@@ -10,7 +10,7 @@ class PushTo {
     required ViewParams startViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
     required ViewParams endViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
   }) async {
-    final SingleResult<bool> startResult = await DataTransferManager.instance.transferTool.execute<void, bool>(
+    final SingleResult<bool> startResult = await DataTransferManager.instance.transferExecutor.execute<void, bool>(
       executeForWhichEngine: entryName,
       operationId: null,
       setOperationData: () {},

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hybrid/data/sqlite/mmodel/ModelBase.dart';
-import 'package:hybrid/engine/datatransfer/root/DataTransferManager.dart';
+import 'package:hybrid/engine/transfer/TransferManager.dart';
 import 'package:hybrid/muc/view/homepage/node/nodesheet/entry/AbstractNodeSheetRoute.dart';
 import 'package:hybrid/muc/view/homepage/poolentry/AbstractPoolEntry.dart';
 import 'package:hybrid/util/SbHelper.dart';
@@ -55,7 +55,7 @@ abstract class AbstractLongPressedFragment<FDM extends ModelBase> extends Abstra
       popResult,
       (SbPopResult quickPopResult) async {
         if (quickPopResult.popResultSelect == PopResultSelect.one) {
-          final SingleResult<bool> deleteResult = await DataTransferManager.instance.transferTool.executeSqliteCurd.deleteRow(
+          final SingleResult<bool> deleteResult = await DataTransferManager.instance.transferExecutor.executeSqliteCurd.deleteRow(
             modelTableName: currentFragmentModel.tableName,
             modelId: currentFragmentModel.get_id,
           );

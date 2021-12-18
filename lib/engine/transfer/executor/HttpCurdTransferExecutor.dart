@@ -16,8 +16,7 @@ class HttpCurdTransferExecutor {
     bool isBanAllOtherRequest = false,
     required Future<HS> jsonToHS(Map<String, Object?> json),
   }) async {
-    final SingleResult<SingleResult<Map<String, Object?>>> executeResult =
-        await DataTransferManager.instance.transferExecutor.execute<Map<String, Object?>, SingleResult<Map<String, Object?>>>(
+    final SingleResult<Map<String, Object?>> executeResult = await TransferManager.instance.transferExecutor.executeAndOperation(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
       operationId: OUniform.HTTP_CURD,
       setOperationData: () => <String, Object?>{
@@ -28,33 +27,14 @@ class HttpCurdTransferExecutor {
       startViewParams: null,
       endViewParams: null,
       closeViewAfterSeconds: null,
-      resultDataCast: (Object result) => SingleResult<Map<String, Object?>>.fromJson(
-        resultJson: result.quickCast(),
-        dataCast: (Object data) => data.quickCast(),
-      ),
+      resultDataCast: (Object resultData) => resultData.quickCast(),
     );
 
     return await executeResult.handle<HS>(
-      doSuccess: (SingleResult<Map<String, Object?>> successData) async {
-        return await successData.handle<HS>(
-          doSuccess: (Map<String, Object?> httpStoreResult) async {
-            return await jsonToHS(httpStoreResult);
-          },
-          doError: (SingleResult<Map<String, Object?>> errorResult) async {
-            return await jsonToHS(
-              <String, Object?>{
-                'httpHandler': HttpHandler.error(
-                  vm: errorResult.getRequiredVm(),
-                  descp: errorResult.getRequiredDescp(),
-                  e: errorResult.getRequiredE(),
-                  st: errorResult.stackTrace,
-                ).toJson(),
-              },
-            );
-          },
-        );
+      doSuccess: (Map<String, Object?> successData) async {
+        return await jsonToHS(successData);
       },
-      doError: (SingleResult<SingleResult<Map<String, Object?>>> errorResult) async {
+      doError: (SingleResult<Map<String, Object?>> errorResult) async {
         return await jsonToHS(
           <String, Object?>{
             'httpHandler': HttpHandler.error(

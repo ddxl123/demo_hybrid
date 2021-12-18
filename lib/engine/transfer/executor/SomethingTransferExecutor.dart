@@ -36,7 +36,7 @@ class SomethingTransferExecutor {
   Future<SingleResult<CheckUserResultType>> checkUser({required bool isCheckOnly}) async {
     final SingleResult<CheckUserResultType> returnResult = SingleResult<CheckUserResultType>();
 
-    final SingleResult<List<MUser>> queryResult = await DataTransferManager.instance.transferExecutor.executeSqliteCurd.queryRowsAsModels<MUser>(
+    final SingleResult<List<MUser>> queryResult = await TransferManager.instance.transferExecutor.executeSqliteCurd.queryRowsAsModels<MUser>(
       () => QueryWrapper(tableName: MUser().tableName),
     );
     await queryResult.handle<void>(
@@ -46,10 +46,8 @@ class SomethingTransferExecutor {
           returnResult.setSuccess(putData: () => CheckUserResultType.notLogin);
           if (!isCheckOnly) {
             // TODO: 弹出登陆页面引擎。
-            final SingleResult<bool> pushResult = await DataTransferManager.instance.transferExecutor.execute<void, bool>(
+            final SingleResult<bool> pushResult = await TransferManager.instance.transferExecutor.executeOnlyStart<void>(
               executeForWhichEngine: EngineEntryName.LOGIN_AND_REGISTER,
-              operationId: null,
-              setOperationData: () {},
               startViewParams: (ViewParams lastViewParams, SizeInt screenSize) {
                 return ViewParams(width: 500, height: 1000, x: 200, y: 200, isFocus: true);
               },
@@ -57,7 +55,6 @@ class SomethingTransferExecutor {
                 return ViewParams(width: 500, height: 1000, x: 200, y: 200, isFocus: true);
               },
               closeViewAfterSeconds: null,
-              resultDataCast: (Object resultData) => resultData as bool,
             );
             await pushResult.handle(
               doSuccess: (bool isPushSuccess) async {
@@ -99,7 +96,7 @@ class SomethingTransferExecutor {
 
   /// 获取当前引擎的 window 大小(非 flutter 实际大小)
   Future<SingleResult<ViewParams>> getNativeWindowViewParams(String whichEngine) async {
-    return await DataTransferManager.instance.transferExecutor.toNative<String, ViewParams>(
+    return await TransferManager.instance.transferExecutor.toNative<String, ViewParams>(
       operationId: OToNative.GET_NATIVE_WINDOW_VIEW_PARAMS,
       setSendData: () => whichEngine,
       resultDataCast: (Object result) => ViewParams.fromJson(result.quickCast()),
@@ -108,7 +105,7 @@ class SomethingTransferExecutor {
 
   /// 获取屏幕的物理像素大小。
   Future<SingleResult<SizeInt>> getScreenSize() async {
-    return await DataTransferManager.instance.transferExecutor.toNative<void, SizeInt>(
+    return await TransferManager.instance.transferExecutor.toNative<void, SizeInt>(
       operationId: OToNative.GET_SCREEN_SIZE,
       setSendData: () {},
       resultDataCast: (Object resultData) {

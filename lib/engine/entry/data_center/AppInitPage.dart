@@ -26,7 +26,7 @@ class _AppInitPageState extends State<AppInitPage> {
       final SqliteInitResult sqliteInitResult = await SqliteInit().init();
       // FloatingBallInit().init(context);
       if (sqliteInitResult == SqliteInitResult.ok) {
-        DataTransferManager.instance.isCurrentFlutterEngineOnReady = true;
+        TransferManager.instance.isCurrentFlutterEngineOnReady = true;
         return AppInitStatus.ok;
       } else {
         return AppInitStatus.exception;

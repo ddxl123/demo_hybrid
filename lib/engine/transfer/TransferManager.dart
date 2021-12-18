@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import 'executor/SqliteCurdTransaction/SqliteCurdTransactionQueue.dart';
 import 'executor/TransferExecutor.dart';
 import 'listener/TransferListener.dart';
 
@@ -32,10 +33,10 @@ class ViewParams {
   }
 }
 
-class DataTransferManager {
-  DataTransferManager._();
+class TransferManager {
+  TransferManager._();
 
-  static DataTransferManager instance = DataTransferManager._();
+  static TransferManager instance = TransferManager._();
 
   late final String currentEntryPointName;
 
@@ -46,6 +47,13 @@ class DataTransferManager {
   final TransferExecutor transferExecutor = TransferExecutor();
 
   bool isCurrentFlutterEngineOnReady = false;
+
+  /// 1. 在 data_center 引擎中是存储来自其他引擎的每个 sqlite curd 流程操作。
+  ///
+  /// 2. 在其他引擎中是存储当前引擎的每个 sqlite curd 流程操作。
+  ///
+  /// 每创建一次 [SqliteCurdTransactionQueue] 对象，就会向这里面添加。
+  final Map<String, SqliteCurdTransactionQueue> sqliteCurdTransactionQueues = <String, SqliteCurdTransactionQueue>{};
 
   /// [currentEntryPointName] 必须比 [transferListener] 更先进行初始化，
   /// 因为 [transferListener] 需要 [currentEntryPointName]。

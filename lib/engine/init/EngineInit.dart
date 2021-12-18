@@ -6,7 +6,7 @@ import 'package:hybrid/util/sblogger/SbLogger.dart';
 void engineInitBeforeRun(String entryName, TransferListener dataTransfer()) {
   WidgetsFlutterBinding.ensureInitialized();
   SbLogger.engineEntryBinding(entryName);
-  DataTransferManager.instance.binding(entryName, dataTransfer);
+  TransferManager.instance.binding(entryName, dataTransfer);
 }
 
 class EngineApp extends StatefulWidget {
@@ -28,7 +28,7 @@ class _EngineAppState extends State<EngineApp> {
     WidgetsBinding.instance!.addPostFrameCallback(
       (Duration timeStamp) async {
         if (widget.isSetOnReadyImdtWhenFirstFrameInitialized) {
-          DataTransferManager.instance.isCurrentFlutterEngineOnReady = true;
+          TransferManager.instance.isCurrentFlutterEngineOnReady = true;
         }
       },
     );

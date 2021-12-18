@@ -55,7 +55,7 @@ abstract class AbstractLongPressedFragment<FDM extends ModelBase> extends Abstra
       popResult,
       (SbPopResult quickPopResult) async {
         if (quickPopResult.popResultSelect == PopResultSelect.one) {
-          final SingleResult<bool> deleteResult = await DataTransferManager.instance.transferExecutor.executeSqliteCurd.deleteRow(
+          final SingleResult<bool> deleteResult = await TransferManager.instance.transferExecutor.executeSqliteCurd.deleteRow(
             modelTableName: currentFragmentModel.tableName,
             modelId: currentFragmentModel.get_id,
           );

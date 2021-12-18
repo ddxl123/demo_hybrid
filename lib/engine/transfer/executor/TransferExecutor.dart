@@ -33,6 +33,7 @@ class TransferExecutor {
   ///   - 与 [execute] 不同，这个函数的 [operationId] 不能为 null。
   ///
   /// [putOperationData] 发送的附带数据。
+  ///   - 当 [S] 为 [void] 时，[putOperationData] 可以直接为 [(){}]。
   ///
   /// [resultDataCast] 将原始 result 类型手动转化为 [R]。
   ///   - 若 [sendToWhichEngine] 为 [EngineEntryName.NATIVE] 时，[resultDataCast] 为数据本身。
@@ -61,7 +62,7 @@ class TransferExecutor {
         'operation_data': putOperationData(),
       };
 
-      final Object? sendResult = await DataTransferManager.instance.transferListener.basicMessageChannel.send(messageMap);
+      final Object? sendResult = await TransferManager.instance.transferListener.basicMessageChannel.send(messageMap);
       if (sendResult == null) {
         return returnResult.setError(
           vm: '通道传输异常！',
@@ -70,10 +71,7 @@ class TransferExecutor {
           st: null,
         );
       } else {
-        if (sendToWhichEngine == EngineEntryName.NATIVE) {
-          return returnResult.setSuccess(putData: () => resultDataCast(sendResult));
-        }
-        return returnResult.setAnyClone(SingleResult<R>.fromJson(resultJson: sendResult.quickCast(), dataCast: resultDataCast));
+        return returnResult.setSuccess(putData: () => resultDataCast(sendResult));
       }
     } catch (e, st) {
       return returnResult.setError(vm: '通道传输异常！', descp: Description(''), e: e, st: st);
@@ -92,7 +90,7 @@ class TransferExecutor {
   ///
   ///   > - 若引擎【已启动】或【刚启动】，且其引擎【第一帧被执行完成】后，需要进行的 operation 操作。
   ///
-  ///   > - 若 [operationId] 为空，即不传递 operation，则 [R] 必须为 [bool] 类型。
+  ///   > - 若 [operationId] 为空，则表示仅启动引擎，不进行 operation，[R] 必须为 [bool] 类型。
   ///
   /// 关于 [setOperationData]：
   ///
@@ -114,10 +112,17 @@ class TransferExecutor {
   ///
   ///   > - 为空或为负数时，保持现状不关闭。
   ///
-  Future<SingleResult<R>> execute<S, R extends Object>({
+  ///  TODO: 未整理 [resultDataCast]
+  /// 关于 [resultDataCast]：
+  ///
+  ///   > - 如果 [R] 是 [SingleResult] 类型（即 [executeForWhichEngine] 非 [EngineEntryName.NATIVE] ），则 [resultDataCast] 的数据为 [SingleResult.data]。
+  ///
+  ///   > - 如果 [R] 不是 [SingleResult] 类型（即 [executeForWhichEngine] 为 [EngineEntryName.NATIVE] ），则 [resultDataCast] 的数据为 [R] 本身。
+  ///
+  Future<SingleResult<R>> _execute<S, R extends Object>({
     required String executeForWhichEngine,
     required String? operationId,
-    required S setOperationData(),
+    required S setOperationData()?,
     required ViewParams startViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
     required ViewParams endViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
     required int? closeViewAfterSeconds,
@@ -133,8 +138,9 @@ class TransferExecutor {
         st: null,
       );
     }
+
     if (operationId == null && R.toString() != 'bool') {
-      return returnResult.setError(vm: '执行通道不规范！', descp: Description(''), e: Exception('当 operationId 为 null 时，R 的类型必须为 bool 类型！'), st: null);
+      return returnResult.setError(vm: '执行通道不规范', descp: Description(''), e: Exception('当 operationId 为 null 时，R 类型必须为 bool 类型！'), st: null);
     }
 
     // 检测是否已启动引擎，若未启动，则启动。
@@ -186,7 +192,7 @@ class TransferExecutor {
     required SingleResult<R> returnResult,
     required String executeForWhichEngine,
     required String? operationId,
-    required S setOperationData(),
+    required S setOperationData()?,
     required ViewParams startViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
     required ViewParams endViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
     required int? closeViewAfterSeconds,
@@ -195,7 +201,7 @@ class TransferExecutor {
     ViewParams? lastViewParams;
     SizeInt? screenSize;
     if (startViewParams != null || endViewParams != null) {
-      await (await DataTransferManager.instance.transferExecutor.executeSomething.getNativeWindowViewParams(executeForWhichEngine)).handle<void>(
+      await (await TransferManager.instance.transferExecutor.executeSomething.getNativeWindowViewParams(executeForWhichEngine)).handle<void>(
         doSuccess: (ViewParams successResult) async {
           lastViewParams = successResult;
         },
@@ -208,7 +214,7 @@ class TransferExecutor {
         return;
       }
 
-      await (await DataTransferManager.instance.transferExecutor.executeSomething.getScreenSize()).handle<void>(
+      await (await TransferManager.instance.transferExecutor.executeSomething.getScreenSize()).handle<void>(
         doSuccess: (SizeInt size) async {
           screenSize = size;
         },
@@ -242,7 +248,7 @@ class TransferExecutor {
             final SingleResult<R> operationResult = await _sendMessageToOther<S, R>(
               sendToWhichEngine: executeForWhichEngine,
               operationId: operationId,
-              putOperationData: setOperationData,
+              putOperationData: setOperationData!,
               resultDataCast: resultDataCast,
             );
             returnResult.setAnyClone(operationResult);
@@ -319,6 +325,67 @@ class TransferExecutor {
     return returnResult;
   }
 
+  /// 仅启动引擎。
+  Future<SingleResult<bool>> executeOnlyStart<S>({
+    required String executeForWhichEngine,
+    required ViewParams startViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
+    required ViewParams endViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
+    required int? closeViewAfterSeconds,
+  }) async {
+    return await _execute<S, bool>(
+      executeForWhichEngine: executeForWhichEngine,
+      operationId: null,
+      setOperationData: null,
+      startViewParams: startViewParams,
+      endViewParams: endViewParams,
+      closeViewAfterSeconds: closeViewAfterSeconds,
+      resultDataCast: (Object resultData) => resultData as bool,
+    );
+  }
+
+  /// 启动引擎并传输 [operationId]。
+  Future<SingleResult<R>> executeAndOperation<S, R extends Object>({
+    required String executeForWhichEngine,
+    required String operationId,
+    required S setOperationData(),
+    required ViewParams startViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
+    required ViewParams endViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
+    required int? closeViewAfterSeconds,
+    required R resultDataCast(Object resultData),
+  }) async {
+    final SingleResult<R> returnResult = SingleResult<R>();
+
+    final SingleResult<SingleResult<R>> nestedResult = await _execute<S, SingleResult<R>>(
+      executeForWhichEngine: executeForWhichEngine,
+      operationId: operationId,
+      setOperationData: setOperationData,
+      startViewParams: startViewParams,
+      endViewParams: endViewParams,
+      closeViewAfterSeconds: closeViewAfterSeconds,
+      resultDataCast: (Object resultData) => SingleResult<R>.fromJson(
+        resultJson: resultData.quickCast(),
+        dataCast: resultDataCast,
+      ),
+    );
+    await nestedResult.handle(
+      doSuccess: (SingleResult<R> successData) async {
+        await successData.handle(
+          doSuccess: (R data) async {
+            returnResult.setSuccess(putData: () => data);
+          },
+          doError: (SingleResult<R> errorResult) async {
+            returnResult.setErrorClone(errorResult);
+          },
+        );
+      },
+      doError: (SingleResult<SingleResult<R>> errorResult) async {
+        returnResult.setErrorClone(errorResult);
+      },
+    );
+
+    return returnResult;
+  }
+
   /// 单独隔出这个函数的原因是，[EngineEntryName.MAIN] 引擎没有 [ViewParams]。
   Future<SingleResult<R>> toNative<S, R extends Object>({
     required String operationId,
@@ -333,17 +400,39 @@ class TransferExecutor {
     );
   }
 
-  /// 单独隔出这个函数的原因是，[EngineEntryName.MAIN] 引擎没有 [ViewParams]。
+  /// 单独隔出这个函数的原因是，[EngineEntryName.MAIN] 引擎没有 [ViewParams]，但返回值为 [SingleResult]。
   Future<SingleResult<R>> toMain<S, R extends Object>({
     required String operationId,
     required S setSendData(),
     required R resultDataCast(Object resultData),
   }) async {
-    return await _sendMessageToOther<S, R>(
+    final SingleResult<R> returnResult = SingleResult<R>();
+
+    final SingleResult<SingleResult<R>> nestedResult = await _sendMessageToOther<S, SingleResult<R>>(
       sendToWhichEngine: EngineEntryName.MAIN,
       operationId: operationId,
       putOperationData: setSendData,
-      resultDataCast: resultDataCast,
+      resultDataCast: (Object data) => SingleResult<R>.fromJson(
+        resultJson: data.quickCast(),
+        dataCast: resultDataCast,
+      ),
     );
+    await nestedResult.handle<void>(
+      doSuccess: (SingleResult<R> successData) async {
+        await successData.handle(
+          doSuccess: (R data) async {
+            returnResult.setSuccess(putData: () => data);
+          },
+          doError: (SingleResult<R> errorResult) async {
+            returnResult.setErrorClone(errorResult);
+          },
+        );
+      },
+      doError: (SingleResult<SingleResult<R>> errorResult) async {
+        returnResult.setErrorClone(errorResult);
+      },
+    );
+
+    return returnResult;
   }
 }

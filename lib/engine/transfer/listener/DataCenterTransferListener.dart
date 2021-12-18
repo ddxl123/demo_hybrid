@@ -4,6 +4,7 @@ import 'package:hybrid/data/sqlite/mmodel/ModelManager.dart';
 import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
 import 'package:hybrid/data/sqlite/sqliter/SqliteWrapper.dart';
 import 'package:hybrid/engine/constant/o/OUniform.dart';
+import 'package:hybrid/engine/transfer/executor/SqliteCurdTransaction/SqliteCurdTransactionQueue.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
@@ -11,34 +12,39 @@ import 'TransferListener.dart';
 
 class DataCenterTransferListener extends TransferListener {
   @override
-  Future<SingleResult<Object?>?> listenerMessageFormOtherFlutterEngine(SingleResult<Object?> listenerResult, String operationId, Object? data) async {
-    return await _sqliteCurdByTransaction(listenerResult, operationId, data) ??
-        await _sqliteCurd(listenerResult, operationId, data) ??
-        await _httpCurd(listenerResult, operationId, data);
+  Future<SingleResult<Object?>?> listenerMessageFormOtherFlutterEngine(SingleResult<Object?> returnResult, String operationId, Object? operationData) async {
+    return await _sqliteCurdByTransaction(returnResult, operationId, operationData) ??
+        await _sqliteCurd(returnResult, operationId, operationData) ??
+        await _httpCurd(returnResult, operationId, operationData);
   }
 
-  Future<SingleResult<Object?>?> _sqliteCurdByTransaction(SingleResult<Object?> listenerResult, String operationId, Object? data) async {}
+  Future<SingleResult<Object?>?> _sqliteCurdByTransaction(SingleResult<Object?> returnResult, String operationId, Object? operationData) async {
+    switch (operationId) {
+      case OUniform.SQLITE_TRANSACTION:
+        SqliteCurdTransactionQueue.createForCutFromJson(operationData!.quickCast());
+    }
+  }
 
-  Future<SingleResult<Object?>?> _sqliteCurd(SingleResult<Object?> listenerResult, String operationId, Object? data) async {
+  Future<SingleResult<Object?>?> _sqliteCurd(SingleResult<Object?> returnResult, String operationId, Object? operationData) async {
     switch (operationId) {
       case OUniform.SQLITE_QUERY_ROW_AS_JSONS:
-        return listenerResult.setAnyClone(
+        return returnResult.setAnyClone(
           await SqliteCurd.queryRowsAsJsons(
-            putQueryWrapper: () => QueryWrapper.fromJson(data!.quickCast()),
+            putQueryWrapper: () => QueryWrapper.fromJson(operationData!.quickCast()),
             connectTransactionMark: null,
           ),
         );
       case OUniform.SQLITE_INSERT_ROW:
-        final Map<String, Object?> dataMap = data!.quickCast();
-        return listenerResult.setAnyClone(
+        final Map<String, Object?> dataMap = operationData!.quickCast();
+        return returnResult.setAnyClone(
           await SqliteCurd.insertRow(
             putModel: () => ModelManager.createEmptyModelByTableName(dataMap['table_name']! as String)..setRowJson = dataMap['model_data']!.quickCast(),
             connectTransactionMark: null,
           ),
         );
       case OUniform.SQLITE_UPDATE_ROW:
-        final Map<String, Object?> dataMap = data!.quickCast();
-        return listenerResult.setAnyClone(
+        final Map<String, Object?> dataMap = operationData!.quickCast();
+        return returnResult.setAnyClone(
           await SqliteCurd.updateRow(
             putUpdateWrapper: () => UpdateWrapper(
               modelTableName: dataMap['model_table_name']! as String,
@@ -49,8 +55,8 @@ class DataCenterTransferListener extends TransferListener {
           ),
         );
       case OUniform.SQLITE_DELETE_ROW:
-        final Map<String, Object?> dataMap = data!.quickCast();
-        return listenerResult.setAnyClone(
+        final Map<String, Object?> dataMap = operationData!.quickCast();
+        return returnResult.setAnyClone(
           await SqliteCurd.deleteRow(
             putDeleteWrapper: () => DeleteWrapper(
               modelTableName: dataMap['model_table_name']! as String,
@@ -62,19 +68,19 @@ class DataCenterTransferListener extends TransferListener {
     }
   }
 
-  Future<SingleResult<Object?>?> _httpCurd(SingleResult<Object?> listenerResult, String operationId, Object? data) async {
+  Future<SingleResult<Object?>?> _httpCurd(SingleResult<Object?> returnResult, String operationId, Object? operationData) async {
     switch (operationId) {
       case OUniform.HTTP_CURD:
-        final Map<String, Object?> dataMap = data!.quickCast();
+        final Map<String, Object?> dataMap = operationData!.quickCast();
         try {
           final HttpStore_Single httpStoreSingle = await HttpCurd.sendRequest(
             httpStore: HttpStore_Single.fromJson(dataMap['putHttpStore']!.quickCast()),
             sameNotConcurrent: dataMap['sameNotConcurrent'] as String?,
             isBanAllOtherRequest: dataMap['isBanAllOtherRequest']! as bool,
           );
-          return listenerResult.setSuccess(putData: () => httpStoreSingle);
+          return returnResult.setSuccess(putData: () => httpStoreSingle);
         } catch (e, st) {
-          return listenerResult.setError(vm: '请求异常！', descp: Description(''), e: e, st: st);
+          return returnResult.setError(vm: '请求异常！', descp: Description(''), e: e, st: st);
         }
     }
   }

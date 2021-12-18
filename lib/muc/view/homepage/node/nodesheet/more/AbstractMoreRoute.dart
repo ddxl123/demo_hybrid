@@ -53,7 +53,7 @@ abstract class AbstractMoreRoute<FDM extends ModelBase> extends AbstractPoolEntr
       popResult,
       (SbPopResult quickPopResult) async {
         if (quickPopResult.popResultSelect == PopResultSelect.one) {
-          final SingleResult<FDM> insertResult = await DataTransferManager.instance.transferExecutor.executeSqliteCurd.insertRow(insertModel);
+          final SingleResult<FDM> insertResult = await TransferManager.instance.transferExecutor.executeSqliteCurd.insertRow(insertModel);
           await insertResult.handle<void>(
             doSuccess: (FDM successResult) async {
               fatherRoute.sheetPageController.bodyData.add(successResult);

@@ -188,7 +188,7 @@ class PoolGetController extends GetxController {
   Future<List<PoolNodeModel>> queryAll(PoolType poolType) async {
     Future<List<ModelBase>> query(String tableName) async {
       final SingleResult<List<ModelBase>> queryResult =
-          await DataTransferManager.instance.transferExecutor.executeSqliteCurd.queryRowsAsModels(QueryWrapper(tableName: tableName));
+          await TransferManager.instance.transferExecutor.executeSqliteCurd.queryRowsAsModels(QueryWrapper(tableName: tableName));
       return await queryResult.handle<List<ModelBase>>(
         doSuccess: (List<ModelBase> successResult) async {
           return successResult;

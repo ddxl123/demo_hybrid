@@ -7,7 +7,7 @@ import 'package:hybrid/util/sblogger/SbLogger.dart';
 
 import '../TransferManager.dart';
 
-/// 需在引擎入口执行前创建该 [TransferListener] 实例，之后使用 [DataTransferManager.instance] 对该实例进行操作。
+/// 需在引擎入口执行前创建该 [TransferListener] 实例，之后使用 [TransferManager.instance] 对该实例进行操作。
 abstract class TransferListener {
   TransferListener() {
     _listenerMessageFromOtherFlutterEngine();
@@ -30,12 +30,12 @@ abstract class TransferListener {
   void _listenerMessageFromOtherFlutterEngine() {
     basicMessageChannel.setMessageHandler(
       (Object? message) async {
-        final SingleResult<Object?> listenerResult = SingleResult<Object?>();
+        final SingleResult<Object?> returnResult = SingleResult<Object?>();
         try {
           final Map<String, Object?> messageMap = message!.quickCast();
-          return (await listenerMessageFormOtherFlutterEngineUniform(listenerResult, messageMap['operation_id']! as String, messageMap['data']))!.toJson();
+          return (await listenerMessageFormOtherFlutterEngineUniform(returnResult, messageMap['operation_id']! as String, messageMap['data']))!.toJson();
         } catch (e, st) {
-          return listenerResult.setError(vm: 'listener 异常！', descp: Description('_listenerMessageFromOtherFlutterEngine 发送异常！'), e: e, st: st).toJson();
+          return returnResult.setError(vm: 'listener 异常！', descp: Description('_listenerMessageFromOtherFlutterEngine 发送异常！'), e: e, st: st).toJson();
         }
       },
     );
@@ -44,12 +44,12 @@ abstract class TransferListener {
   /// {@macro BaseDataTransfer._listenerMessageFromOtherEngine}
   ///
   /// 内部异常已交给 [_listenerMessageFromOtherFlutterEngine] 捕获。
-  Future<SingleResult<Object?>?> listenerMessageFormOtherFlutterEngineUniform(SingleResult<Object?> listenerResult, String operationId, Object? data) async {
+  Future<SingleResult<Object?>?> listenerMessageFormOtherFlutterEngineUniform(SingleResult<Object?> returnResult, String operationId, Object? operationData) async {
     if (operationId == OUniform.IS_ENGINE_ON_READY) {
-      return listenerResult.setSuccess(putData: () => DataTransferManager.instance.isCurrentFlutterEngineOnReady);
+      return returnResult.setSuccess(putData: () => TransferManager.instance.isCurrentFlutterEngineOnReady);
     }
-    return await listenerMessageFormOtherFlutterEngine(listenerResult, operationId, data);
+    return await listenerMessageFormOtherFlutterEngine(returnResult, operationId, operationData);
   }
 
-  Future<SingleResult<Object?>?> listenerMessageFormOtherFlutterEngine(SingleResult<Object?> listenerResult, String operationId, Object? data);
+  Future<SingleResult<Object?>?> listenerMessageFormOtherFlutterEngine(SingleResult<Object?> returnResult, String operationId, Object? operationData);
 }

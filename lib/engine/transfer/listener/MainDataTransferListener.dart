@@ -6,14 +6,14 @@ import 'TransferListener.dart';
 
 class MainDataTransferListener extends TransferListener {
   @override
-  Future<SingleResult<Object?>?> listenerMessageFormOtherFlutterEngine(SingleResult<Object?> listenerResult, String operationId, Object? data) async {
+  Future<SingleResult<Object?>?> listenerMessageFormOtherFlutterEngine(SingleResult<Object?> returnResult, String operationId, Object? operationData) async {
     if (operationId == OFromDataCenter.send_init_data_to_main) {
       await _send_init_data_to_main();
       // final SingleGetController singleGetController = Get.find<SingleGetController>(tag: DataTransferManager.instance.currentEntryName);
       // singleGetController.updateLogic.updateAny(() {
       //   singleGetController.any['is_ok'] = true;
       // });
-      return listenerResult.setSuccess(putData: () => false);
+      return returnResult.setSuccess(putData: () => false);
     }
   }
 

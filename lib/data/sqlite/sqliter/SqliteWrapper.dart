@@ -1,3 +1,5 @@
+import 'package:hybrid/data/sqlite/mmodel/ModelBase.dart';
+import 'package:hybrid/data/sqlite/mmodel/ModelManager.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:sqflite/sqflite.dart';
@@ -64,8 +66,69 @@ class TwoId {
   late final List<Object?>? whereArgsByTwoId;
 }
 
+abstract class CurdWrapper {
+  Map<String, Object?> toJson();
+
+  static CurdWrapper fromJsonByCurdType(Map<String, Object?> json) {
+    switch (json['curdType']) {
+      case 'C':
+        return InsertWrapper.fromJson(json);
+      case 'U':
+        return UpdateWrapper.fromJson(json);
+      case 'R':
+        return QueryWrapper.fromJson(json);
+      case 'D':
+        return DeleteWrapper.fromJson(json);
+      default:
+        throw 'curdType 不匹配：${json['curdType']}';
+    }
+  }
+}
+
+class InsertWrapper<T extends ModelBase> extends CurdWrapper {
+  InsertWrapper(this.model);
+
+  factory InsertWrapper.fromJson(Map<String, Object?> json) {
+    return InsertWrapper<T>(ModelManager.createEmptyModelByTableName<T>(json['modelTableName']! as String)..setRowJson = json['model']!.quickCast())
+      ..curdType = json['curdType']! as String;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'curdType': curdType,
+      'modelTableName': model.tableName,
+      'model': model.getRowJson,
+    };
+  }
+
+  String curdType = 'C';
+
+  final T model;
+}
+
 @JsonSerializable()
-class QueryWrapper {
+class UpdateWrapper extends CurdWrapper {
+  UpdateWrapper({
+    required this.modelTableName,
+    required this.modelId,
+    required this.updateContent,
+  });
+
+  factory UpdateWrapper.fromJson(Map<String, Object?> json) => _$UpdateWrapperFromJson(json);
+
+  @override
+  Map<String, Object?> toJson() => _$UpdateWrapperToJson(this);
+
+  String curdType = 'U';
+
+  final String modelTableName;
+  final int modelId;
+  final Map<String, Object?> updateContent;
+}
+
+@JsonSerializable()
+class QueryWrapper extends CurdWrapper {
   QueryWrapper({
     required this.tableName,
     this.distinct,
@@ -82,40 +145,26 @@ class QueryWrapper {
 
   factory QueryWrapper.fromJson(Map<String, Object?> json) => _$QueryWrapperFromJson(json);
 
+  @override
   Map<String, Object?> toJson() => _$QueryWrapperToJson(this);
 
-  String tableName;
-  bool? distinct;
-  List<String>? columns;
-  String? where;
-  List<Object?>? whereArgs;
-  String? groupBy;
-  String? having;
-  String? orderBy;
-  int? limit;
-  int? offset;
-  TwoId? byTwoId;
+  String curdType = 'R';
+
+  final String tableName;
+  final bool? distinct;
+  final List<String>? columns;
+  final String? where;
+  final List<Object?>? whereArgs;
+  final String? groupBy;
+  final String? having;
+  final String? orderBy;
+  final int? limit;
+  final int? offset;
+  final TwoId? byTwoId;
 }
 
 @JsonSerializable()
-class UpdateWrapper {
-  UpdateWrapper({
-    required this.modelTableName,
-    required this.modelId,
-    required this.updateContent,
-  });
-
-  factory UpdateWrapper.fromJson(Map<String, Object?> json) => _$UpdateWrapperFromJson(json);
-
-  Map<String, Object?> toJson() => _$UpdateWrapperToJson(this);
-
-  final String modelTableName;
-  final int modelId;
-  final Map<String, Object?> updateContent;
-}
-
-@JsonSerializable()
-class DeleteWrapper {
+class DeleteWrapper extends CurdWrapper {
   DeleteWrapper({
     required this.modelTableName,
     required this.modelId,
@@ -123,7 +172,10 @@ class DeleteWrapper {
 
   factory DeleteWrapper.fromJson(Map<String, Object?> json) => _$DeleteWrapperFromJson(json);
 
+  @override
   Map<String, Object?> toJson() => _$DeleteWrapperToJson(this);
+
+  String curdType = 'D';
 
   final String modelTableName;
   final int? modelId;

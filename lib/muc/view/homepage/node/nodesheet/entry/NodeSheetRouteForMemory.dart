@@ -28,7 +28,7 @@ class NodeSheetRouteForMemory extends AbstractNodeSheetRoute<MFMemory> {
       mark.value = 0;
     }
     final MFMemory forKey = MFMemory();
-    final SingleResult<List<MFMemory>> queryResult = await DataTransferManager.instance.transferExecutor.executeSqliteCurd.queryRowsAsModels<MFMemory>(
+    final SingleResult<List<MFMemory>> queryResult = await TransferManager.instance.transferExecutor.executeSqliteCurd.queryRowsAsModels<MFMemory>(
       QueryWrapper(
         tableName: forKey.tableName,
         limit: limit,

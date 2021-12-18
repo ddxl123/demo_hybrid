@@ -26,6 +26,21 @@ Map<String, dynamic> _$TwoIdToJson(TwoId instance) => <String, dynamic>{
       'whereArgsByTwoId': instance.whereArgsByTwoId,
     };
 
+UpdateWrapper _$UpdateWrapperFromJson(Map<String, dynamic> json) =>
+    UpdateWrapper(
+      modelTableName: json['modelTableName'] as String,
+      modelId: json['modelId'] as int,
+      updateContent: json['updateContent'] as Map<String, dynamic>,
+    )..curdType = json['curdType'] as String;
+
+Map<String, dynamic> _$UpdateWrapperToJson(UpdateWrapper instance) =>
+    <String, dynamic>{
+      'curdType': instance.curdType,
+      'modelTableName': instance.modelTableName,
+      'modelId': instance.modelId,
+      'updateContent': instance.updateContent,
+    };
+
 QueryWrapper _$QueryWrapperFromJson(Map<String, dynamic> json) => QueryWrapper(
       tableName: json['tableName'] as String,
       distinct: json['distinct'] as bool?,
@@ -41,10 +56,11 @@ QueryWrapper _$QueryWrapperFromJson(Map<String, dynamic> json) => QueryWrapper(
       byTwoId: json['byTwoId'] == null
           ? null
           : TwoId.fromJson(json['byTwoId'] as Map<String, dynamic>),
-    );
+    )..curdType = json['curdType'] as String;
 
 Map<String, dynamic> _$QueryWrapperToJson(QueryWrapper instance) =>
     <String, dynamic>{
+      'curdType': instance.curdType,
       'tableName': instance.tableName,
       'distinct': instance.distinct,
       'columns': instance.columns,
@@ -58,28 +74,15 @@ Map<String, dynamic> _$QueryWrapperToJson(QueryWrapper instance) =>
       'byTwoId': instance.byTwoId?.toJson(),
     };
 
-UpdateWrapper _$UpdateWrapperFromJson(Map<String, dynamic> json) =>
-    UpdateWrapper(
-      modelTableName: json['modelTableName'] as String,
-      modelId: json['modelId'] as int,
-      updateContent: json['updateContent'] as Map<String, dynamic>,
-    );
-
-Map<String, dynamic> _$UpdateWrapperToJson(UpdateWrapper instance) =>
-    <String, dynamic>{
-      'modelTableName': instance.modelTableName,
-      'modelId': instance.modelId,
-      'updateContent': instance.updateContent,
-    };
-
 DeleteWrapper _$DeleteWrapperFromJson(Map<String, dynamic> json) =>
     DeleteWrapper(
       modelTableName: json['modelTableName'] as String,
       modelId: json['modelId'] as int?,
-    );
+    )..curdType = json['curdType'] as String;
 
 Map<String, dynamic> _$DeleteWrapperToJson(DeleteWrapper instance) =>
     <String, dynamic>{
+      'curdType': instance.curdType,
       'modelTableName': instance.modelTableName,
       'modelId': instance.modelId,
     };

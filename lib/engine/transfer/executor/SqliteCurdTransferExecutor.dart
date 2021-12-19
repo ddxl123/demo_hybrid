@@ -1,7 +1,7 @@
 import 'package:hybrid/data/sqlite/mmodel/ModelBase.dart';
 import 'package:hybrid/data/sqlite/mmodel/ModelManager.dart';
 import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
-import 'package:hybrid/data/sqlite/sqliter/SqliteWrapper.dart';
+import 'package:hybrid/data/sqlite/sqliter/SqliteCurdWrapper.dart';
 import 'package:hybrid/engine/constant/execute/EngineEntryName.dart';
 import 'package:hybrid/engine/constant/o/OUniform.dart';
 import 'package:hybrid/util/SbHelper.dart';
@@ -14,11 +14,11 @@ import 'SqliteCurdTransaction/SqliteCurdTransactionQueue.dart';
 class SqliteCurdTransferExecutor {
   ///
 
-  Future<SingleResult<bool>> executeCurdTransaction(SqliteCurdTransactionQueue wrapper) async {
+  Future<SingleResult<bool>> executeCurdTransaction(SqliteCurdTransactionQueue putWrapper()) async {
     await TransferManager.instance.transferExecutor.executeAndOperation<Map<String, Map<String, Object?>>, String>(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
       operationId: OUniform.SQLITE_TRANSACTION,
-      setOperationData: () => wrapper.toNeedSendJson(),
+      setOperationData: () => putWrapper().toNeedSendJson(),
       startViewParams: null,
       endViewParams: null,
       closeViewAfterSeconds: null,
@@ -29,7 +29,7 @@ class SqliteCurdTransferExecutor {
   ///
   ///
   ///
-  /// 查看 [SqliteCurd.queryRowsAsJsons]
+  /// 查看 [SqliteCurd._queryRowsAsJsons]
   Future<SingleResult<List<Map<String, Object?>>>> queryRowsAsJsons<T extends ModelBase>(QueryWrapper putQueryWrapper()) async {
     final SingleResult<List<Map<String, Object?>>> returnResult = SingleResult<List<Map<String, Object?>>>();
 
@@ -59,7 +59,7 @@ class SqliteCurdTransferExecutor {
   ///
   ///
   ///
-  /// 查看 [queryRowsAsJsons]、[SqliteCurd.queryRowsAsModels]
+  /// 查看 [queryRowsAsJsons]、[SqliteCurd._queryRowsAsModels]
   Future<SingleResult<List<T>>> queryRowsAsModels<T extends ModelBase>(QueryWrapper putQueryWrapper()) async {
     final SingleResult<List<T>> returnResult = SingleResult<List<T>>();
 
@@ -107,10 +107,7 @@ class SqliteCurdTransferExecutor {
         await TransferManager.instance.transferExecutor.executeAndOperation<Map<String, Object?>, Map<String, Object?>>(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
       operationId: OUniform.SQLITE_INSERT_ROW,
-      setOperationData: () => <String, Object?>{
-        'table_name': insertWrapper.model.tableName,
-        'model_data': insertWrapper.model.getRowJson,
-      },
+      setOperationData: () => insertWrapper.toJson(),
       startViewParams: null,
       endViewParams: null,
       closeViewAfterSeconds: null,
@@ -132,22 +129,21 @@ class SqliteCurdTransferExecutor {
   ///
   ///
   /// 查看 [SqliteCurd.updateRow] 注释。
-  Future<SingleResult<T>> updateRow<T extends ModelBase>({
-    required String modelTableName,
-    required int modelId,
-    required Map<String, Object?> updateContent,
-  }) async {
+  Future<SingleResult<T>> updateRow<T extends ModelBase>(UpdateWrapper putUpdateWrapper()) async {
     final SingleResult<T> returnResult = SingleResult<T>();
+
+    late final UpdateWrapper updateWrapper;
+    try {
+      updateWrapper = putUpdateWrapper();
+    } catch (e, st) {
+      return returnResult.setError(vm: '修改模型异常！', descp: Description(''), e: e, st: st);
+    }
 
     final SingleResult<Map<String, Object?>> updateResult =
         await TransferManager.instance.transferExecutor.executeAndOperation<Map<String, Object?>, Map<String, Object?>>(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
       operationId: OUniform.SQLITE_UPDATE_ROW,
-      setOperationData: () => <String, Object?>{
-        'model_table_name': modelTableName,
-        'model_id': modelId,
-        'update_content': updateContent,
-      },
+      setOperationData: () => updateWrapper.toJson(),
       startViewParams: null,
       endViewParams: null,
       closeViewAfterSeconds: null,
@@ -156,7 +152,7 @@ class SqliteCurdTransferExecutor {
 
     await updateResult.handle(
       doSuccess: (Map<String, Object?> successResult) async {
-        returnResult.setSuccess(putData: () => ModelManager.createEmptyModelByTableName(modelTableName)..setRowJson = successResult);
+        returnResult.setSuccess(putData: () => ModelManager.createEmptyModelByTableName(updateWrapper.modelTableName)..setRowJson = successResult);
       },
       doError: (SingleResult<Map<String, Object?>> errorResult) async {
         returnResult.setErrorClone(errorResult);
@@ -166,15 +162,20 @@ class SqliteCurdTransferExecutor {
   }
 
   /// 查看 [SqliteCurd.deleteRow] 注释
-  Future<SingleResult<bool>> deleteRow({required String modelTableName, required int? modelId}) async {
+  Future<SingleResult<bool>> deleteRow(DeleteWrapper putDeleteWrapper()) async {
     final SingleResult<bool> returnResult = SingleResult<bool>();
+
+    late final DeleteWrapper deleteWrapper;
+    try {
+      deleteWrapper = putDeleteWrapper();
+    } catch (e, st) {
+      return returnResult.setError(vm: '删除模型异常！', descp: Description(''), e: e, st: st);
+    }
+
     final SingleResult<bool> deleteResult = await TransferManager.instance.transferExecutor.executeAndOperation<Map<String, Object?>, bool>(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
       operationId: OUniform.SQLITE_DELETE_ROW,
-      setOperationData: () => <String, Object?>{
-        'model_table_name': modelTableName,
-        'model_id': modelId,
-      },
+      setOperationData: () => deleteWrapper.toJson(),
       startViewParams: null,
       endViewParams: null,
       closeViewAfterSeconds: null,

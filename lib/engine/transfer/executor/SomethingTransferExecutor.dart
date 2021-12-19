@@ -1,5 +1,5 @@
 import 'package:hybrid/data/sqlite/mmodel/MUser.dart';
-import 'package:hybrid/data/sqlite/sqliter/SqliteWrapper.dart';
+import 'package:hybrid/data/sqlite/sqliter/SqliteCurdWrapper.dart';
 import 'package:hybrid/engine/constant/execute/EngineEntryName.dart';
 import 'package:hybrid/engine/constant/execute/OToNative.dart';
 import 'package:hybrid/util/SbHelper.dart';

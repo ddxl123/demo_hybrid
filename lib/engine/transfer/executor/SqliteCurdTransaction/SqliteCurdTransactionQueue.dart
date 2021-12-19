@@ -1,4 +1,4 @@
-import 'package:hybrid/data/sqlite/sqliter/SqliteWrapper.dart';
+import 'package:hybrid/data/sqlite/sqliter/SqliteCurdWrapper.dart';
 import 'package:hybrid/engine/constant/execute/EngineEntryName.dart';
 import 'package:hybrid/util/SbHelper.dart';
 
@@ -99,7 +99,7 @@ class SqliteCurdTransactionQueue {
   late final Map<String, QueueMember> members;
 }
 
-class QueueMember {
+class QueueMember<CW extends CurdWrapper> {
   ///
 
   QueueMember.createForComplete({
@@ -117,7 +117,7 @@ class QueueMember {
   }
 
   QueueMember.createForCutFromJson(this.queue, this.memberId, Map<String, Object?> memberJson) {
-    curdWrapper = CurdWrapper.fromJsonByCurdType(memberJson['curdWrapper']!.quickCast());
+    curdWrapper = CurdWrapper.byCurdTypeFromJson(memberJson['curdWrapper']!.quickCast());
   }
 
   /// 需要发送的。
@@ -137,7 +137,7 @@ class QueueMember {
 
   /// 传
   /// curd 的包装：QueryWrapper 等。
-  late final CurdWrapper curdWrapper;
+  late final CW curdWrapper;
 
   /// 不传
   /// curd 后要执行的函数。

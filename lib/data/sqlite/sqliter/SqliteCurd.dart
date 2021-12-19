@@ -7,21 +7,18 @@ import 'package:hybrid/util/sblogger/SbLogger.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'OpenSqlite.dart';
+import 'SqliteCurdWrapper.dart';
 import 'SqliteEnum.dart';
-import 'SqliteWrapper.dart';
 
-
-///
-///
-///
-///
-///
-/// TODO: 是否会存在同时执行多个 [SqliteCurd] 造成 row 被删除后，再次触发删除，导致总是抛出异常。（对增删改查四方面进行分析）
-class SqliteCurd {
+class _SqliteCurdPrivate {
+  ///
+  ///
+  ///
+  ///
   ///
 
   /// 参数除了 connectTransaction，其他的与 db.query 相同
-  static Future<SingleResult<List<Map<String, Object?>>>> queryRowsAsJsons({
+  static Future<SingleResult<List<Map<String, Object?>>>> _queryRowsAsJsons({
     required QueryWrapper putQueryWrapper(),
     required TransactionWrapper? connectTransactionMark,
   }) async {
@@ -64,207 +61,6 @@ class SqliteCurd {
     return returnResult;
   }
 
-  /// [returnWhere]: 对每个 model 进行格外操作。
-  static Future<SingleResult<List<M>>> queryRowsAsModels<M extends ModelBase>({
-    required QueryWrapper putQueryWrapper(),
-    void Function(M model)? returnWhere,
-    required TransactionWrapper? connectTransactionMark,
-  }) async {
-    final SingleResult<List<M>> returnResult = SingleResult<List<M>>();
-
-    Future<void> handle(QueryWrapper queryWrapper, TransactionWrapper tm) async {
-      final SingleResult<List<Map<String, Object?>>> queryRowsAsJsonsResult = await queryRowsAsJsons(
-        connectTransactionMark: tm,
-        putQueryWrapper: () => queryWrapper,
-      );
-      await queryRowsAsJsonsResult.handle(
-        doSuccess: (List<Map<String, Object?>> successResult) async {
-          final List<M> models = <M>[];
-          for (final Map<String, Object?> row in successResult) {
-            final M newModel = ModelManager.createEmptyModelByTableName<M>(queryWrapper.tableName);
-            newModel.getRowJson.addAll(row);
-            models.add(newModel);
-            returnWhere?.call(newModel);
-          }
-          returnResult.setSuccess(putData: () => models);
-        },
-        doError: (SingleResult<List<Map<String, Object?>>> errorResult) async {
-          throw errorResult.getRequiredE();
-        },
-      );
-    }
-
-    try {
-      final QueryWrapper queryWrapper = putQueryWrapper();
-
-      if (connectTransactionMark != null) {
-        await handle(queryWrapper, connectTransactionMark);
-      } else {
-        await db.transaction<void>(
-          (Transaction txn) async {
-            await handle(queryWrapper, TransactionWrapper(txn));
-          },
-        );
-      }
-    } catch (e, st) {
-      if (connectTransactionMark != null) {
-        rethrow;
-      } else {
-        returnResult.setError(vm: '本地查询异常！', descp: Description(''), e: e, st: st);
-      }
-    }
-    return returnResult;
-  }
-
-  /// 查看 [_toInsertRow] 注释。
-  ///
-  /// 会自动根据 [ModelManager.isLocal] 进行判断是使用原生非原生。
-  static Future<SingleResult<T>> insertRow<T extends ModelBase>({
-    required T putModel(),
-    required TransactionWrapper? connectTransactionMark,
-  }) async {
-    final SingleResult<T> returnResult = SingleResult<T>();
-
-    Future<void> handle(T model, TransactionWrapper tm) async {
-      if (ModelManager.isLocal(model.tableName)) {
-        // 注意用事务进行插入
-        final int rowId = await tm.transaction.insert(model.tableName, model.getRowJson);
-        model.getRowJson['id'] = rowId;
-      } else {
-        await _toInsertRow(model: model, transactionMark: tm);
-      }
-      returnResult.setSuccess(putData: () => model);
-    }
-
-    try {
-      final T model = putModel();
-
-      if (connectTransactionMark != null) {
-        await handle(model, connectTransactionMark);
-      } else {
-        await db.transaction<void>(
-          (Transaction txn) async {
-            await handle(model, TransactionWrapper(txn));
-          },
-        );
-      }
-    } catch (e, st) {
-      if (connectTransactionMark != null) {
-        rethrow;
-      } else {
-        returnResult.setError(vm: '本地插入异常！', descp: Description(''), e: e, st: st);
-      }
-    }
-    return returnResult;
-  }
-
-  /// 查看 [_toUpdateRow] 注释。
-  ///
-  /// 当 [connectTransactionMark] 不为空时，内部的异常会 rethrow。
-  ///
-  /// 无论 [connectTransactionMark] 是否为空，[onError] 都会接收到内部的异常。
-  static Future<SingleResult<T>> updateRow<T extends ModelBase>({
-    required UpdateWrapper putUpdateWrapper(),
-    required TransactionWrapper? connectTransactionMark,
-  }) async {
-    final SingleResult<T> returnResult = SingleResult<T>();
-
-    Future<void> handle(UpdateWrapper updateWrapper, TransactionWrapper tm) async {
-      if (ModelManager.isLocal(updateWrapper.modelTableName)) {
-        await tm.transaction.update(updateWrapper.modelTableName, updateWrapper.updateContent, where: 'id = ?', whereArgs: <Object?>[updateWrapper.modelId]);
-        final SingleResult<List<T>> queryRowsAsModelsResult = await queryRowsAsModels<T>(
-          connectTransactionMark: tm,
-          putQueryWrapper: () => QueryWrapper(tableName: updateWrapper.modelTableName, where: 'id = ?', whereArgs: <Object?>[updateWrapper.modelId]),
-        );
-        await queryRowsAsModelsResult.handle<void>(
-          doSuccess: (List<T> successResult) async {
-            returnResult.setSuccess(putData: () => successResult.first);
-          },
-          doError: (SingleResult<List<T>> errorResult) async {
-            throw errorResult.getRequiredE();
-          },
-        );
-      } else {
-        final T tur = await _toUpdateRow(updateWrapper: updateWrapper, connectTransactionMark: tm);
-        returnResult.setSuccess(putData: () => tur);
-      }
-    }
-
-    try {
-      final UpdateWrapper updateWrapper = putUpdateWrapper();
-
-      if (connectTransactionMark != null) {
-        await handle(updateWrapper, connectTransactionMark);
-      } else {
-        await db.transaction<void>(
-          (Transaction txn) async {
-            await handle(updateWrapper, TransactionWrapper(txn));
-          },
-        );
-      }
-    } catch (e, st) {
-      if (connectTransactionMark != null) {
-        rethrow;
-      } else {
-        returnResult.setError(vm: '本地更新异常！', descp: Description(''), e: e, st: st);
-      }
-    }
-    return returnResult;
-  }
-
-  /// {@macro RSqliteCurd.deleteRow}
-  ///
-  /// 返回的结果要么为 true，要么为异常，并不存在为 false 的情况。
-  ///
-  /// 当 [connectTransactionMark] 不为空时，内部的异常始终会 rethrow。
-  ///
-  /// 无论 [connectTransactionMark] 是否为空，[onError] 都会接收到内部的异常。
-  static Future<SingleResult<bool>> deleteRow({
-    required DeleteWrapper putDeleteWrapper(),
-    required TransactionWrapper? connectTransactionMark,
-  }) async {
-    final SingleResult<bool> returnResult = SingleResult<bool>();
-
-    Future<void> handle(DeleteWrapper deleteWrapper, TransactionWrapper tm) async {
-      if (ModelManager.isLocal(deleteWrapper.modelTableName)) {
-        final int deleteCount = await tm.transaction.delete(deleteWrapper.modelTableName, where: 'id = ?', whereArgs: <Object?>[deleteWrapper.modelId]);
-        if (deleteCount != 1) {
-          throw '删除数量异常！$deleteCount';
-        }
-      } else {
-        await _toDeleteRow(deleteWrapper: deleteWrapper, connectTransactionMark: tm);
-      }
-      returnResult.setSuccess(putData: () => true);
-    }
-
-    try {
-      final DeleteWrapper deleteWrapper = putDeleteWrapper();
-
-      if (connectTransactionMark != null) {
-        await handle(deleteWrapper, connectTransactionMark);
-      } else {
-        await db.transaction<void>(
-          (Transaction txn) async {
-            await handle(deleteWrapper, TransactionWrapper(txn));
-          },
-        );
-      }
-    } catch (e, st) {
-      if (connectTransactionMark != null) {
-        rethrow;
-      } else {
-        returnResult.setError(vm: '本地删除异常！', descp: Description(''), e: e, st: st);
-      }
-    }
-    return returnResult;
-  }
-
-  ///
-  ///
-  ///
-  ///
-  ///
-
   /// 对当前 [model] 执行 [insert] 操作。
   ///
   /// 只有需要在 [MUpload] 中 CURD 的表才能使用 [_toInsertRow]。
@@ -288,7 +84,7 @@ class SqliteCurd {
       throw 'insert uuid/aiid err: ${model.get_uuid}, ${model.get_aiid}';
     }
     // 检查该模型的 uuid 是否已存在。
-    final SingleResult<List<Map<String, Object?>>> queryRowsAsJsonsResult = await queryRowsAsJsons(
+    final SingleResult<List<Map<String, Object?>>> queryRowsAsJsonsResult = await _queryRowsAsJsons(
       connectTransactionMark: transactionMark,
       putQueryWrapper: () => QueryWrapper(tableName: model.tableName, where: '${model.uuid} = ?', whereArgs: <Object>[model.get_uuid!]),
     );
@@ -370,7 +166,7 @@ class SqliteCurd {
     await connectTransactionMark.transaction
         .update(updateWrapper.modelTableName, updateWrapper.updateContent, where: 'id = ?', whereArgs: <Object?>[updateWrapper.modelId]);
 
-    final SingleResult<List<T>> queryRowsAsModelsResult = await queryRowsAsModels<T>(
+    final SingleResult<List<T>> queryRowsAsModelsResult = await _SqliteCurdModelPrivate._queryRowsAsModels<T>(
       connectTransactionMark: connectTransactionMark,
       putQueryWrapper: () => QueryWrapper(tableName: updateWrapper.modelTableName, where: 'id = ?', whereArgs: <Object?>[updateWrapper.modelId]),
     );
@@ -538,7 +334,7 @@ class SqliteCurd {
     }
 
     // 获取要更新的 model
-    final SingleResult<List<T>> ofModelResult = await queryRowsAsModels<T>(
+    final SingleResult<List<T>> ofModelResult = await _SqliteCurdModelPrivate._queryRowsAsModels<T>(
       connectTransactionMark: connectTransactionMark,
       putQueryWrapper: () => QueryWrapper(tableName: modelTableName, where: 'id = ?', whereArgs: <Object?>[modelId]),
     );
@@ -569,7 +365,7 @@ class SqliteCurd {
     // 获取 upload model。
     // 必须新建一个 MUpload 来获取 key，因为变量 uploadModel 还未被赋值。
     final MUpload forKey = MUpload();
-    final SingleResult<List<MUpload>> ofUploadModelResult = await queryRowsAsModels<MUpload>(
+    final SingleResult<List<MUpload>> ofUploadModelResult = await _SqliteCurdModelPrivate._queryRowsAsModels<MUpload>(
       connectTransactionMark: connectTransactionMark,
       putQueryWrapper: () => QueryWrapper(
         tableName: forKey.tableName,
@@ -670,7 +466,7 @@ class SqliteCurd {
     required TransactionWrapper connectTransactionMark,
   }) async {
     // 查询关联该表的对应 row 模型
-    final SingleResult<List<ModelBase>> queryRowsAsModelsResult = await queryRowsAsModels<ModelBase>(
+    final SingleResult<List<ModelBase>> queryRowsAsModelsResult = await _SqliteCurdModelPrivate._queryRowsAsModels<ModelBase>(
       connectTransactionMark: connectTransactionMark,
       putQueryWrapper: () => QueryWrapper(
         tableName: fkTableName,
@@ -682,7 +478,7 @@ class SqliteCurd {
       doSuccess: (List<ModelBase> successResult) async {
         // 把查询到的进行递归 delete
         for (int i = 0; i < successResult.length; i++) {
-          final SingleResult<bool> deleteRowResult = await SqliteCurd.deleteRow(
+          final SingleResult<bool> deleteRowResult = await _SqliteCurdModelPrivate.deleteRow(
             putDeleteWrapper: () => DeleteWrapper(modelTableName: successResult[i].tableName, modelId: successResult[i].get_id!),
             connectTransactionMark: connectTransactionMark,
           );
@@ -702,5 +498,347 @@ class SqliteCurd {
         throw errorResult.getRequiredE();
       },
     );
+  }
+}
+
+class _SqliteCurdModelPrivate {
+  ///
+
+  /// [returnWhere]: 对每个 model 进行格外操作。
+  static Future<SingleResult<List<M>>> _queryRowsAsModels<M extends ModelBase>({
+    required QueryWrapper<M> putQueryWrapper(),
+    required TransactionWrapper? connectTransactionMark,
+  }) async {
+    final SingleResult<List<M>> returnResult = SingleResult<List<M>>();
+
+    Future<void> handle(QueryWrapper<M> queryWrapper, TransactionWrapper tm) async {
+      final SingleResult<List<Map<String, Object?>>> queryRowsAsJsonsResult = await _SqliteCurdPrivate._queryRowsAsJsons(
+        connectTransactionMark: tm,
+        putQueryWrapper: () => queryWrapper,
+      );
+      await queryRowsAsJsonsResult.handle(
+        doSuccess: (List<Map<String, Object?>> successResult) async {
+          final List<M> models = <M>[];
+          for (final Map<String, Object?> row in successResult) {
+            final M newModel = ModelManager.createEmptyModelByTableName<M>(queryWrapper.tableName);
+            newModel.getRowJson.addAll(row);
+            models.add(newModel);
+          }
+          returnResult.setSuccess(putData: () => models);
+        },
+        doError: (SingleResult<List<Map<String, Object?>>> errorResult) async {
+          throw errorResult.getRequiredE();
+        },
+      );
+    }
+
+    try {
+      final QueryWrapper<M> queryWrapper = putQueryWrapper();
+
+      if (connectTransactionMark != null) {
+        await handle(queryWrapper, connectTransactionMark);
+      } else {
+        await db.transaction<void>(
+          (Transaction txn) async {
+            await handle(queryWrapper, TransactionWrapper(txn));
+          },
+        );
+      }
+    } catch (e, st) {
+      if (connectTransactionMark != null) {
+        rethrow;
+      } else {
+        returnResult.setError(vm: '本地查询异常！', descp: Description(''), e: e, st: st);
+      }
+    }
+    return returnResult;
+  }
+
+  /// 查看 [_toInsertRow] 注释。
+  ///
+  /// 会自动根据 [ModelManager.isLocal] 进行判断是使用原生非原生。
+  static Future<SingleResult<M>> insertRow<M extends ModelBase>({
+    required InsertWrapper<M> putInsertWrapper(),
+    required TransactionWrapper? connectTransactionMark,
+  }) async {
+    final SingleResult<M> returnResult = SingleResult<M>();
+
+    Future<void> handle(InsertWrapper<M> insertWrapper, TransactionWrapper tm) async {
+      if (ModelManager.isLocal(insertWrapper.model.tableName)) {
+        // 注意用事务进行插入
+        final int rowId = await tm.transaction.insert(insertWrapper.model.tableName, insertWrapper.model.getRowJson);
+        insertWrapper.model.getRowJson['id'] = rowId;
+      } else {
+        await _SqliteCurdPrivate._toInsertRow(model: insertWrapper.model, transactionMark: tm);
+      }
+      returnResult.setSuccess(putData: () => insertWrapper.model);
+    }
+
+    try {
+      final InsertWrapper<M> insertWrapper = putInsertWrapper();
+
+      if (connectTransactionMark != null) {
+        await handle(insertWrapper, connectTransactionMark);
+      } else {
+        await db.transaction<void>(
+          (Transaction txn) async {
+            await handle(insertWrapper, TransactionWrapper(txn));
+          },
+        );
+      }
+    } catch (e, st) {
+      if (connectTransactionMark != null) {
+        rethrow;
+      } else {
+        returnResult.setError(vm: '本地插入异常！', descp: Description(''), e: e, st: st);
+      }
+    }
+    return returnResult;
+  }
+
+  /// 查看 [_toUpdateRow] 注释。
+  ///
+  /// 当 [connectTransactionMark] 不为空时，内部的异常会 rethrow。
+  ///
+  /// 无论 [connectTransactionMark] 是否为空，[onError] 都会接收到内部的异常。
+  static Future<SingleResult<M>> updateRow<M extends ModelBase>({
+    required UpdateWrapper<M> putUpdateWrapper(),
+    required TransactionWrapper? connectTransactionMark,
+  }) async {
+    final SingleResult<M> returnResult = SingleResult<M>();
+
+    Future<void> handle(UpdateWrapper<M> updateWrapper, TransactionWrapper tm) async {
+      if (ModelManager.isLocal(updateWrapper.modelTableName)) {
+        await tm.transaction.update(updateWrapper.modelTableName, updateWrapper.updateContent, where: 'id = ?', whereArgs: <Object?>[updateWrapper.modelId]);
+        final SingleResult<List<M>> queryRowsAsModelsResult = await _SqliteCurdModelPrivate._queryRowsAsModels<M>(
+          connectTransactionMark: tm,
+          putQueryWrapper: () => QueryWrapper(tableName: updateWrapper.modelTableName, where: 'id = ?', whereArgs: <Object?>[updateWrapper.modelId]),
+        );
+        await queryRowsAsModelsResult.handle<void>(
+          doSuccess: (List<M> successResult) async {
+            returnResult.setSuccess(putData: () => successResult.first);
+          },
+          doError: (SingleResult<List<M>> errorResult) async {
+            throw errorResult.getRequiredE();
+          },
+        );
+      } else {
+        final M tur = await _SqliteCurdPrivate._toUpdateRow(updateWrapper: updateWrapper, connectTransactionMark: tm);
+        returnResult.setSuccess(putData: () => tur);
+      }
+    }
+
+    try {
+      final UpdateWrapper<M> updateWrapper = putUpdateWrapper();
+
+      if (connectTransactionMark != null) {
+        await handle(updateWrapper, connectTransactionMark);
+      } else {
+        await db.transaction<void>(
+          (Transaction txn) async {
+            await handle(updateWrapper, TransactionWrapper(txn));
+          },
+        );
+      }
+    } catch (e, st) {
+      if (connectTransactionMark != null) {
+        rethrow;
+      } else {
+        returnResult.setError(vm: '本地更新异常！', descp: Description(''), e: e, st: st);
+      }
+    }
+    return returnResult;
+  }
+
+  /// {@macro RSqliteCurd.deleteRow}
+  ///
+  /// 返回的结果要么为 true，要么为异常，并不存在为 false 的情况。
+  ///
+  /// 当 [connectTransactionMark] 不为空时，内部的异常始终会 rethrow。
+  ///
+  /// 无论 [connectTransactionMark] 是否为空，[onError] 都会接收到内部的异常。
+  static Future<SingleResult<bool>> deleteRow({
+    required DeleteWrapper putDeleteWrapper(),
+    required TransactionWrapper? connectTransactionMark,
+  }) async {
+    final SingleResult<bool> returnResult = SingleResult<bool>();
+
+    Future<void> handle(DeleteWrapper deleteWrapper, TransactionWrapper tm) async {
+      if (ModelManager.isLocal(deleteWrapper.modelTableName)) {
+        final int deleteCount = await tm.transaction.delete(deleteWrapper.modelTableName, where: 'id = ?', whereArgs: <Object?>[deleteWrapper.modelId]);
+        if (deleteCount != 1) {
+          throw '删除数量异常！$deleteCount';
+        }
+      } else {
+        await _SqliteCurdPrivate._toDeleteRow(deleteWrapper: deleteWrapper, connectTransactionMark: tm);
+      }
+      returnResult.setSuccess(putData: () => true);
+    }
+
+    try {
+      final DeleteWrapper deleteWrapper = putDeleteWrapper();
+
+      if (connectTransactionMark != null) {
+        await handle(deleteWrapper, connectTransactionMark);
+      } else {
+        await db.transaction<void>(
+          (Transaction txn) async {
+            await handle(deleteWrapper, TransactionWrapper(txn));
+          },
+        );
+      }
+    } catch (e, st) {
+      if (connectTransactionMark != null) {
+        rethrow;
+      } else {
+        returnResult.setError(vm: '本地删除异常！', descp: Description(''), e: e, st: st);
+      }
+    }
+    return returnResult;
+  }
+}
+
+///
+///
+///
+///
+///
+class SqliteCurd {
+  ///
+
+  ///
+  static Future<SingleResult<Object>> fromJsonReturnAnyByCurdWrapper(Map<String, Object?> curdWrapperJson) async {
+    final SingleResult<Object> returnResult = SingleResult<Object>();
+
+    switch (curdWrapperJson['curdType']! as String) {
+      case 'C':
+        returnResult.setAnyClone(await insertRowReturnJson(putInsertWrapper: () => InsertWrapper.fromJson(curdWrapperJson), connectTransactionMark: null));
+        break;
+      case 'U':
+        returnResult.setAnyClone(await updateRowReturnJson(putUpdateWrapper: () => UpdateWrapper.fromJson(curdWrapperJson), connectTransactionMark: null));
+        break;
+      case 'R':
+        returnResult.setAnyClone(await queryRowsReturnJson(putQueryWrapper: () => QueryWrapper.fromJson(curdWrapperJson), connectTransactionMark: null));
+        break;
+      case 'D':
+        returnResult.setAnyClone(await deleteRow(putDeleteWrapper: () => DeleteWrapper.fromJson(curdWrapperJson), connectTransactionMark: null));
+        break;
+      default:
+        returnResult.setError(vm: '动态数据操作异常！', descp: Description(''), e: Exception('未知 curdType！'), st: null);
+    }
+    return returnResult;
+  }
+
+  ///
+  ///
+  ///
+  ///
+  /// C
+  ///
+  /// [_SqliteCurdModelPrivate.insertRow]
+  static Future<SingleResult<Map<String, Object?>>> insertRowReturnJson<M extends ModelBase>({
+    required InsertWrapper<M> putInsertWrapper(),
+    required TransactionWrapper? connectTransactionMark,
+  }) async {
+    final SingleResult<Map<String, Object?>> returnResult = SingleResult<Map<String, Object?>>();
+
+    final SingleResult<M> insertRowResult = await _SqliteCurdModelPrivate.insertRow(
+      putInsertWrapper: putInsertWrapper,
+      connectTransactionMark: connectTransactionMark,
+    );
+    await insertRowResult.handle(
+      doSuccess: (M successData) async {
+        returnResult.setSuccess(putData: () => successData.getRowJson);
+      },
+      doError: (SingleResult<M> errorResult) async {
+        returnResult.setErrorClone(errorResult);
+      },
+    );
+
+    return returnResult;
+  }
+
+  /// [_SqliteCurdModelPrivate.insertRow]
+  static Future<SingleResult<M>> insertRowReturnModel<M extends ModelBase>({
+    required InsertWrapper<M> putInsertWrapper(),
+    required TransactionWrapper? connectTransactionMark,
+  }) async {
+    return await _SqliteCurdModelPrivate.insertRow(putInsertWrapper: putInsertWrapper, connectTransactionMark: connectTransactionMark);
+  }
+
+  ///
+  ///
+  ///
+  ///
+  ///
+  /// U
+  ///
+  /// [_SqliteCurdModelPrivate.updateRow]
+  static Future<SingleResult<Map<String, Object?>>> updateRowReturnJson<M extends ModelBase>({
+    required UpdateWrapper<M> putUpdateWrapper(),
+    required TransactionWrapper? connectTransactionMark,
+  }) async {
+    final SingleResult<Map<String, Object?>> returnResult = SingleResult<Map<String, Object?>>();
+
+    final SingleResult<M> updateRowResult = await _SqliteCurdModelPrivate.updateRow(
+      putUpdateWrapper: putUpdateWrapper,
+      connectTransactionMark: connectTransactionMark,
+    );
+    await updateRowResult.handle(
+      doSuccess: (M successData) async {
+        returnResult.setSuccess(putData: () => successData.getRowJson);
+      },
+      doError: (SingleResult<M> errorResult) async {
+        returnResult.setErrorClone(errorResult);
+      },
+    );
+
+    return returnResult;
+  }
+
+  /// [_SqliteCurdModelPrivate.updateRow]
+  static Future<SingleResult<M>> updateRowReturnModel<M extends ModelBase>({
+    required UpdateWrapper<M> putUpdateWrapper(),
+    required TransactionWrapper? connectTransactionMark,
+  }) async {
+    return await _SqliteCurdModelPrivate.updateRow(putUpdateWrapper: putUpdateWrapper, connectTransactionMark: connectTransactionMark);
+  }
+
+  ///
+  ///
+  ///
+  ///
+  ///
+  /// R
+  ///
+  /// [_SqliteCurdPrivate._queryRowsAsJsons]
+  static Future<SingleResult<List<Map<String, Object?>>>> queryRowsReturnJson<M extends ModelBase>({
+    required QueryWrapper<M> putQueryWrapper(),
+    required TransactionWrapper? connectTransactionMark,
+  }) async {
+    return await _SqliteCurdPrivate._queryRowsAsJsons(putQueryWrapper: putQueryWrapper, connectTransactionMark: connectTransactionMark);
+  }
+
+  /// [_SqliteCurdModelPrivate._queryRowsAsModels]
+  static Future<SingleResult<List<M>>> queryRowsReturnModel<M extends ModelBase>({
+    required QueryWrapper<M> putQueryWrapper(),
+    required TransactionWrapper? connectTransactionMark,
+  }) async {
+    return await _SqliteCurdModelPrivate._queryRowsAsModels(putQueryWrapper: putQueryWrapper, connectTransactionMark: connectTransactionMark);
+  }
+
+  ///
+  ///
+  ///
+  ///
+  ///
+  /// D
+  ///
+  /// [_SqliteCurdModelPrivate.deleteRow]
+  static Future<SingleResult<bool>> deleteRow<M extends ModelBase>({
+    required DeleteWrapper putDeleteWrapper(),
+    required TransactionWrapper? connectTransactionMark,
+  }) async {
+    return await _SqliteCurdModelPrivate.deleteRow(putDeleteWrapper: putDeleteWrapper, connectTransactionMark: connectTransactionMark);
   }
 }

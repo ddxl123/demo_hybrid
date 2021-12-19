@@ -64,7 +64,7 @@ class HttpCurd {
       // 前提是用户已经在本地是已登陆状态，因为未登陆状态的请求是 no_jwt。
       if (httpStore.httpRequest.pathType() == PathType.jwt) {
         // 检测本地是否存在账号信息？
-        final SingleResult<List<MUser>> queryUsersResult = await SqliteCurd.queryRowsAsModels<MUser>(
+        final SingleResult<List<MUser>> queryUsersResult = await SqliteCurd._queryRowsAsModels<MUser>(
           connectTransactionMark: null,
           queryWrapper: QueryWrapper(tableName: MUser().tableName),
         );

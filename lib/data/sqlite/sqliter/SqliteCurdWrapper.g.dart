@@ -2,7 +2,7 @@
 
 // ignore_for_file: implicit_dynamic_parameter
 
-part of 'SqliteWrapper.dart';
+part of 'SqliteCurdWrapper.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
@@ -26,14 +26,16 @@ Map<String, dynamic> _$TwoIdToJson(TwoId instance) => <String, dynamic>{
       'whereArgsByTwoId': instance.whereArgsByTwoId,
     };
 
-UpdateWrapper _$UpdateWrapperFromJson(Map<String, dynamic> json) =>
-    UpdateWrapper(
+UpdateWrapper<M> _$UpdateWrapperFromJson<M extends ModelBase>(
+        Map<String, dynamic> json) =>
+    UpdateWrapper<M>(
       modelTableName: json['modelTableName'] as String,
       modelId: json['modelId'] as int,
       updateContent: json['updateContent'] as Map<String, dynamic>,
     )..curdType = json['curdType'] as String;
 
-Map<String, dynamic> _$UpdateWrapperToJson(UpdateWrapper instance) =>
+Map<String, dynamic> _$UpdateWrapperToJson<M extends ModelBase>(
+        UpdateWrapper<M> instance) =>
     <String, dynamic>{
       'curdType': instance.curdType,
       'modelTableName': instance.modelTableName,
@@ -41,7 +43,9 @@ Map<String, dynamic> _$UpdateWrapperToJson(UpdateWrapper instance) =>
       'updateContent': instance.updateContent,
     };
 
-QueryWrapper _$QueryWrapperFromJson(Map<String, dynamic> json) => QueryWrapper(
+QueryWrapper<M> _$QueryWrapperFromJson<M extends ModelBase>(
+        Map<String, dynamic> json) =>
+    QueryWrapper<M>(
       tableName: json['tableName'] as String,
       distinct: json['distinct'] as bool?,
       columns:
@@ -58,7 +62,8 @@ QueryWrapper _$QueryWrapperFromJson(Map<String, dynamic> json) => QueryWrapper(
           : TwoId.fromJson(json['byTwoId'] as Map<String, dynamic>),
     )..curdType = json['curdType'] as String;
 
-Map<String, dynamic> _$QueryWrapperToJson(QueryWrapper instance) =>
+Map<String, dynamic> _$QueryWrapperToJson<M extends ModelBase>(
+        QueryWrapper<M> instance) =>
     <String, dynamic>{
       'curdType': instance.curdType,
       'tableName': instance.tableName,

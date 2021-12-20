@@ -26,16 +26,14 @@ Map<String, dynamic> _$TwoIdToJson(TwoId instance) => <String, dynamic>{
       'whereArgsByTwoId': instance.whereArgsByTwoId,
     };
 
-UpdateWrapper<M> _$UpdateWrapperFromJson<M extends ModelBase>(
-        Map<String, dynamic> json) =>
-    UpdateWrapper<M>(
+UpdateWrapper _$UpdateWrapperFromJson(Map<String, dynamic> json) =>
+    UpdateWrapper(
       modelTableName: json['modelTableName'] as String,
       modelId: json['modelId'] as int,
       updateContent: json['updateContent'] as Map<String, dynamic>,
     )..curdType = json['curdType'] as String;
 
-Map<String, dynamic> _$UpdateWrapperToJson<M extends ModelBase>(
-        UpdateWrapper<M> instance) =>
+Map<String, dynamic> _$UpdateWrapperToJson(UpdateWrapper instance) =>
     <String, dynamic>{
       'curdType': instance.curdType,
       'modelTableName': instance.modelTableName,

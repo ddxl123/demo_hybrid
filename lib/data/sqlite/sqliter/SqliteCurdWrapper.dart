@@ -1,6 +1,7 @@
 import 'package:hybrid/data/sqlite/mmodel/ModelBase.dart';
 import 'package:hybrid/data/sqlite/mmodel/ModelManager.dart';
 import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
+import 'package:hybrid/engine/transfer/executor/SqliteCurdTransaction/SqliteCurdTransactionQueue.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:sqflite/sqflite.dart';
@@ -72,16 +73,17 @@ abstract class CurdWrapper {
 
   Map<String, Object?> toJson();
 
-  static CW byCurdTypeFromJson<CW extends CurdWrapper>(Map<String, Object?> json) {
+  /// 返回 [CurdWrapper] 类的子类实体。
+  static CurdWrapper fromJsonToChildInstance(Map<String, Object?> json) {
     switch (json['curdType']) {
       case 'C':
-        return InsertWrapper.fromJson(json) as CW;
+        return InsertWrapper.fromJson(json);
       case 'U':
-        return UpdateWrapper.fromJson(json) as CW;
+        return UpdateWrapper.fromJson(json);
       case 'R':
-        return QueryWrapper.fromJson(json) as CW;
+        return QueryWrapper.fromJson(json);
       case 'D':
-        return DeleteWrapper.fromJson(json) as CW;
+        return DeleteWrapper.fromJson(json);
       default:
         throw 'curdType 不匹配：${json['curdType']}';
     }
@@ -107,16 +109,18 @@ class InsertWrapper<M extends ModelBase> extends CurdWrapper {
     };
   }
 
-  /// [SqliteCurd.insertRowReturnModel]
-  M insertResultFromJson(String modelTableName, Map<String, Object?> modelJson) {
-    return ModelManager.createEmptyModelByTableName(modelTableName)..setRowJson = modelJson;
+  /// 返回值 与 [SqliteCurd.insertRowReturnModel] 返回值的 data 相同。
+  ///
+  /// 主要从 [QueueMember.result] 中获取。
+  static M insertResultFromJson<M extends ModelBase>(String newModelTableName, Map<String, Object?> newModelRowJson) {
+    return ModelManager.createEmptyModelByTableName(newModelTableName)..setRowJson = newModelRowJson;
   }
 
   final M model;
 }
 
 @JsonSerializable()
-class UpdateWrapper<M extends ModelBase> extends CurdWrapper {
+class UpdateWrapper extends CurdWrapper {
   UpdateWrapper({
     required this.modelTableName,
     required this.modelId,
@@ -130,9 +134,11 @@ class UpdateWrapper<M extends ModelBase> extends CurdWrapper {
   @override
   Map<String, Object?> toJson() => _$UpdateWrapperToJson(this);
 
-  /// [SqliteCurd.updateRowReturnModel]
-  M updateResultFromJson(String modelTableName, Map<String, Object?> modelJson) {
-    return ModelManager.createEmptyModelByTableName(modelTableName)..setRowJson = modelJson;
+  /// 返回值 与 [SqliteCurd.updateRowReturnModel] 返回值的 data 相同。
+  ///
+  /// 主要从 [QueueMember.result] 中获取。
+  static M updateResultFromJson<M extends ModelBase>(String newModelTableName, Map<String, Object?> newModelRowJson) {
+    return ModelManager.createEmptyModelByTableName(newModelTableName)..setRowJson = newModelRowJson;
   }
 
   final String modelTableName;
@@ -163,9 +169,11 @@ class QueryWrapper<M extends ModelBase> extends CurdWrapper {
   @override
   Map<String, Object?> toJson() => _$QueryWrapperToJson(this);
 
-  /// [SqliteCurd.queryRowsReturnModel]
-  List<M> queryResultFromJson(String modelTableName, List<Map<String, Object?>> modelsJson) {
-    return modelsJson.map<M>((Map<String, Object?> e) => (ModelManager.createEmptyModelByTableName(modelTableName) as M)..setRowJson = e).toList();
+  /// 返回值 与 [SqliteCurd.queryRowsReturnModel] 返回值的 data 相同。
+  ///
+  /// 主要从 [QueueMember.result] 中获取。
+  static List<M> queryResultFromJson<M extends ModelBase>(String newModelTableName, List<Map<String, Object?>> newModelsJson) {
+    return newModelsJson.map<M>((Map<String, Object?> e) => (ModelManager.createEmptyModelByTableName(newModelTableName) as M)..setRowJson = e).toList();
   }
 
   final String tableName;
@@ -195,7 +203,9 @@ class DeleteWrapper extends CurdWrapper {
   @override
   Map<String, Object?> toJson() => _$DeleteWrapperToJson(this);
 
-  /// [SqliteCurd.deleteRow]
+  /// 返回值 与 [SqliteCurd.deleteRow] 返回值的 data 相同。
+  ///
+  /// 主要从 [QueueMember.result] 中获取。
   bool deleteResultFromJson(bool isDeleted) {
     return isDeleted;
   }

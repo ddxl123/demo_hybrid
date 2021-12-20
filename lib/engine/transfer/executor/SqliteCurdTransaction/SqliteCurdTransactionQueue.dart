@@ -117,7 +117,7 @@ class QueueMember<CW extends CurdWrapper> {
   }
 
   QueueMember.createForCutFromJson(this.queue, this.memberId, Map<String, Object?> memberJson) {
-    curdWrapper = CurdWrapper.byCurdTypeFromJson(memberJson['curdWrapper']!.quickCast());
+    curdWrapper = CurdWrapper.fromJsonToChildInstance(memberJson['curdWrapper']!.quickCast()) as CW;
   }
 
   /// 需要发送的。

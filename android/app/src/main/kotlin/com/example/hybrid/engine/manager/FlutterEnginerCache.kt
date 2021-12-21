@@ -14,7 +14,7 @@ object FlutterEnginerCache {
     fun get(entryPointName: String): FlutterEnginer? {
         return cacheEnginers[entryPointName]
     }
- 
+
     fun containsKey(entryPointName: String): Boolean {
         return cacheEnginers.containsKey(entryPointName)
     }

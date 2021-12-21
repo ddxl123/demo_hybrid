@@ -46,7 +46,7 @@ class SomethingTransferExecutor {
           returnResult.setSuccess(putData: () => CheckUserResultType.notLogin);
           if (!isCheckOnly) {
             // TODO: 弹出登陆页面引擎。
-            final SingleResult<bool> pushResult = await TransferManager.instance.transferExecutor.executeOnlyStart<void>(
+            final SingleResult<bool> pushResult = await TransferManager.instance.transferExecutor.executeWithView<void>(
               executeForWhichEngine: EngineEntryName.LOGIN_AND_REGISTER,
               startViewParams: (ViewParams lastViewParams, SizeInt screenSize) {
                 return ViewParams(width: 500, height: 1000, x: 200, y: 200, isFocus: true);

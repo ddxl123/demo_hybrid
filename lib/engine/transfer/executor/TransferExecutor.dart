@@ -86,6 +86,12 @@ class TransferExecutor {
   ///
   ///   > - 要对哪个引擎进行操作。
   ///
+  /// 关于 [startWhenClose]：
+  ///
+  ///   > - 若为 true，则当引擎未启动时，先进行启动，再 operation。
+  ///
+  ///   > - 若为 false，则当引擎未启动时，抛出异常。
+  ///
   /// 关于 [operationId]：
   ///
   ///   > - 若引擎【已启动】或【刚启动】，且其引擎【第一帧被执行完成】后，需要进行的 operation 操作。
@@ -119,8 +125,9 @@ class TransferExecutor {
   ///
   ///   > - 如果 [R] 不是 [SingleResult] 类型（即 [executeForWhichEngine] 为 [EngineEntryName.NATIVE] ），则 [resultDataCast] 的数据为 [R] 本身。
   ///
-  Future<SingleResult<R>> _execute<S, R extends Object>({
+  Future<SingleResult<R>> _executeWithView<S, R extends Object>({
     required String executeForWhichEngine,
+    required bool startWhenClose,
     required String? operationId,
     required S setOperationData()?,
     required ViewParams startViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
@@ -147,7 +154,10 @@ class TransferExecutor {
     final SingleResult<bool> bootResult = await _sendMessageToOther<Map<String, Object?>, bool>(
       sendToWhichEngine: EngineEntryName.NATIVE,
       operationId: OToNative.START_ENGINE,
-      putOperationData: () => <String, Object?>{'start_which_engine': executeForWhichEngine},
+      putOperationData: () => <String, Object?>{
+        'start_which_engine': executeForWhichEngine,
+        'start_when_close': startWhenClose,
+      },
       resultDataCast: (Object result) => result as bool,
     );
 
@@ -170,7 +180,7 @@ class TransferExecutor {
                   resultDataCast: resultDataCast,
                 );
               } else {
-                returnResult.setError(vm: '准备启动失败！', descp: Description(''), e: Exception('准备启动结果不为 true！'), st: null);
+                returnResult.setError(vm: '准备启动失败！', descp: Description(''), e: Exception('准备结果不为 true！'), st: null);
               }
             },
             doError: (SingleResult<bool> errorResult) async {
@@ -178,7 +188,7 @@ class TransferExecutor {
             },
           );
         } else {
-          returnResult.setError(vm: '启动失败！', descp: Description(''), e: Exception('启动结果不为 true！'), st: null);
+          returnResult.setError(vm: '窗口启动失败！', descp: Description(''), e: Exception('启动结果为 false！'), st: null);
         }
       },
       doError: (SingleResult<bool> errorResult) async {
@@ -325,15 +335,16 @@ class TransferExecutor {
     return returnResult;
   }
 
-  /// 仅启动引擎。
-  Future<SingleResult<bool>> executeOnlyStart<S>({
+  /// 未启动则启动，已启动则保持启动。
+  Future<SingleResult<bool>> executeWithView<S>({
     required String executeForWhichEngine,
     required ViewParams startViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
     required ViewParams endViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
     required int? closeViewAfterSeconds,
   }) async {
-    return await _execute<S, bool>(
+    return await _executeWithView<S, bool>(
       executeForWhichEngine: executeForWhichEngine,
+      startWhenClose: true,
       operationId: null,
       setOperationData: null,
       startViewParams: startViewParams,
@@ -343,9 +354,9 @@ class TransferExecutor {
     );
   }
 
-  /// 启动引擎并传输 [operationId]。
-  Future<SingleResult<R>> executeAndOperation<S, R extends Object>({
+  Future<SingleResult<R>> executeWithViewAndOperation<S, R extends Object>({
     required String executeForWhichEngine,
+    required bool startWhenClose,
     required String operationId,
     required S setOperationData(),
     required ViewParams startViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
@@ -355,8 +366,9 @@ class TransferExecutor {
   }) async {
     final SingleResult<R> returnResult = SingleResult<R>();
 
-    final SingleResult<SingleResult<R>> nestedResult = await _execute<S, SingleResult<R>>(
+    final SingleResult<SingleResult<R>> nestedResult = await _executeWithView<S, SingleResult<R>>(
       executeForWhichEngine: executeForWhichEngine,
+      startWhenClose: startWhenClose,
       operationId: operationId,
       setOperationData: setOperationData,
       startViewParams: startViewParams,

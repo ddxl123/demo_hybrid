@@ -2,6 +2,7 @@ import 'package:hybrid/data/mysql/http/HttpCurd.dart';
 import 'package:hybrid/data/mysql/httpstore/handler/HttpStore.dart';
 import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
 import 'package:hybrid/engine/constant/o/OUniform.dart';
+import 'package:hybrid/engine/transfer/TransferManager.dart';
 import 'package:hybrid/engine/transfer/executor/SqliteCurdTransaction/SqliteCurdTransactionQueue.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
@@ -23,6 +24,7 @@ class DataCenterTransferListener extends TransferListener {
           final QueueMember member = queue.members.values.elementAt(i);
           final SingleResult<Object> curdResult = await SqliteCurd.fromCurdWrapperJson(curdWrapper: member.curdWrapper);
           // 逆向请求。
+          TransferManager.instance.transferExecutor.executeWithViewAndOperation(executeForWhichEngine: executeForWhichEngine, startWhenClose: startWhenClose, operationId: operationId, setOperationData: setOperationData, startViewParams: startViewParams, endViewParams: endViewParams, closeViewAfterSeconds: closeViewAfterSeconds, resultDataCast: resultDataCast)
         }
     }
   }

@@ -16,7 +16,7 @@ class HttpCurdTransferExecutor {
     bool isBanAllOtherRequest = false,
     required Future<HS> jsonToHS(Map<String, Object?> json),
   }) async {
-    final SingleResult<Map<String, Object?>> executeResult = await TransferManager.instance.transferExecutor.executeAndOperation(
+    final SingleResult<Map<String, Object?>> executeResult = await TransferManager.instance.transferExecutor.executeWithViewAndOperation(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
       operationId: OUniform.HTTP_CURD,
       setOperationData: () => <String, Object?>{

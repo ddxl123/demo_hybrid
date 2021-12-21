@@ -10,7 +10,7 @@ class SqliteCurdTransferExecutor {
   ///
 
   Future<SingleResult<bool>> executeCurdTransaction(SqliteCurdTransactionQueue putWrapper()) async {
-    await TransferManager.instance.transferExecutor.executeAndOperation<Map<String, Map<String, Object?>>, String>(
+    await TransferManager.instance.transferExecutor.executeWithViewAndOperation<Map<String, Map<String, Object?>>, String>(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
       operationId: OUniform.SQLITE_CURD_TRANSACTION,
       setOperationData: () => putWrapper().toNeedSendJson(),

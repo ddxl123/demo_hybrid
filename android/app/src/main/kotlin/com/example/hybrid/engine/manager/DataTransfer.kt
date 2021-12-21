@@ -81,9 +81,23 @@ class DataTransfer(private val flutterEnginer: FlutterEnginer) {
             OToNative.START_ENGINE -> {
                 val dataMap = data.checkType<Map<String, Any?>>()
                 val startWhichEngine: String = dataMap["start_which_engine"].checkType()
-                FlutterEngineManager.startFlutterEngine(startWhichEngine)
-                // 返回 true 启动成功。
-                true
+                val startWhenClose: Boolean = dataMap["start_when_close"].checkType()
+
+                val isStarted: FlutterEnginer? = FlutterEnginerCache.get(startWhichEngine)
+
+                if (isStarted != null) {
+                    // 已启动，返回 true。
+                    true
+                }
+
+                if (startWhenClose) {
+                    FlutterEngineManager.startFlutterEngine(startWhichEngine)
+                    // 返回 true 启动成功。
+                    true
+                } else {
+                    false
+                }
+
             }
             // set view。
             OToNative.SET_VIEW_PARAMS -> {

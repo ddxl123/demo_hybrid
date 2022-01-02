@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:hybrid/engine/constant/o/OUniform.dart';
+import 'package:hybrid/engine/transfer/executor/SqliteCurdTransaction/SqliteCurdTransactionQueue.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
@@ -33,10 +34,15 @@ abstract class TransferListener {
         final SingleResult<Object?> returnResult = SingleResult<Object?>();
         try {
           final Map<String, Object?> messageMap = message!.quickCast();
-          return (await listenerMessageFormOtherFlutterEngineUniform(returnResult, messageMap['operation_id']! as String, messageMap['data']))!.toJson();
+          final String operationId = messageMap['operation_id']! as String;
+          final Object? data = messageMap['data'];
+          // TODO: 对 SingleResult 增加异常消息叠加机制。
+          SbLogger(c: null, vm: null, data: null, descp: Description(operationId), e: null, st: null);
+          await listenerMessageFormOtherFlutterEngineUniform(returnResult, operationId, data);
         } catch (e, st) {
-          return returnResult.setError(vm: 'listener 异常！', descp: Description('_listenerMessageFromOtherFlutterEngine 发送异常！'), e: e, st: st).toJson();
+          returnResult.setError(vm: 'listener 异常！', descp: Description('_listenerMessageFromOtherFlutterEngine 发送异常！'), e: e, st: st);
         }
+        return returnResult.toJson();
       },
     );
   }
@@ -44,12 +50,23 @@ abstract class TransferListener {
   /// {@macro BaseDataTransfer._listenerMessageFromOtherEngine}
   ///
   /// 内部异常已交给 [_listenerMessageFromOtherFlutterEngine] 捕获。
-  Future<SingleResult<Object?>?> listenerMessageFormOtherFlutterEngineUniform(SingleResult<Object?> returnResult, String operationId, Object? operationData) async {
+  Future<SingleResult<Object?>> listenerMessageFormOtherFlutterEngineUniform(
+    SingleResult<Object?> returnResult,
+    String operationId,
+    Object? operationData,
+  ) async {
     if (operationId == OUniform.IS_ENGINE_ON_READY) {
       return returnResult.setSuccess(putData: () => TransferManager.instance.isCurrentFlutterEngineOnReady);
+    } else if (operationId == OUniform.SQLITE_CURD_TRANSACTION_REVERSE) {
+      return SqliteCurdTransactionQueue.parseReverseRequestInRequester(operationData!.quickCast());
+    } else {
+      return await listenerMessageFormOtherFlutterEngine(returnResult, operationId, operationData);
     }
-    return await listenerMessageFormOtherFlutterEngine(returnResult, operationId, operationData);
   }
 
-  Future<SingleResult<Object?>?> listenerMessageFormOtherFlutterEngine(SingleResult<Object?> returnResult, String operationId, Object? operationData);
+  Future<SingleResult<Object?>> listenerMessageFormOtherFlutterEngine(
+    SingleResult<Object?> returnResult,
+    String operationId,
+    Object? operationData,
+  );
 }

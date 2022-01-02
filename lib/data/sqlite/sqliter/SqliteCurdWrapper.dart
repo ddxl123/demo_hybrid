@@ -71,6 +71,8 @@ class TwoId {
 abstract class CurdWrapper {
   String curdType = 'UnknownCurdType';
 
+  Object? resultData;
+
   Map<String, Object?> toJson();
 
   /// 返回 [CurdWrapper] 类的子类实体。
@@ -111,16 +113,16 @@ class InsertWrapper<M extends ModelBase> extends CurdWrapper {
 
   /// 返回值 与 [SqliteCurd.insertRowReturnModel] 返回值的 data 相同。
   ///
-  /// 主要从 [QueueMember.result] 中获取。
-  static M insertResultFromJson<M extends ModelBase>(String newModelTableName, Map<String, Object?> newModelRowJson) {
-    return ModelManager.createEmptyModelByTableName(newModelTableName)..setRowJson = newModelRowJson;
+  /// 主要从 [QueueMember.curdData] 中获取。
+  M getCurdResult() {
+    return ModelManager.createEmptyModelByTableName(model.tableName)..setRowJson = resultData!.quickCast();
   }
 
   final M model;
 }
 
 @JsonSerializable()
-class UpdateWrapper extends CurdWrapper {
+class UpdateWrapper<M extends ModelBase> extends CurdWrapper {
   UpdateWrapper({
     required this.modelTableName,
     required this.modelId,
@@ -136,9 +138,9 @@ class UpdateWrapper extends CurdWrapper {
 
   /// 返回值 与 [SqliteCurd.updateRowReturnModel] 返回值的 data 相同。
   ///
-  /// 主要从 [QueueMember.result] 中获取。
-  static M updateResultFromJson<M extends ModelBase>(String newModelTableName, Map<String, Object?> newModelRowJson) {
-    return ModelManager.createEmptyModelByTableName(newModelTableName)..setRowJson = newModelRowJson;
+  /// 主要从 [QueueMember.curdData] 中获取。
+  M getCurdResult() {
+    return ModelManager.createEmptyModelByTableName(modelTableName)..setRowJson = resultData!.quickCast();
   }
 
   final String modelTableName;
@@ -171,9 +173,12 @@ class QueryWrapper<M extends ModelBase> extends CurdWrapper {
 
   /// 返回值 与 [SqliteCurd.queryRowsReturnModel] 返回值的 data 相同。
   ///
-  /// 主要从 [QueueMember.result] 中获取。
-  static List<M> queryResultFromJson<M extends ModelBase>(String newModelTableName, List<Map<String, Object?>> newModelsJson) {
-    return newModelsJson.map<M>((Map<String, Object?> e) => (ModelManager.createEmptyModelByTableName(newModelTableName) as M)..setRowJson = e).toList();
+  /// 主要从 [QueueMember.curdData] 中获取。
+  List<M> getCurdResult() {
+    // List<Map<String, Object?>>
+    return (resultData! as List<Object?>)
+        .map<M>((Object? e) => (ModelManager.createEmptyModelByTableName(tableName) as M)..setRowJson = e!.quickCast())
+        .toList();
   }
 
   final String tableName;
@@ -205,9 +210,9 @@ class DeleteWrapper extends CurdWrapper {
 
   /// 返回值 与 [SqliteCurd.deleteRow] 返回值的 data 相同。
   ///
-  /// 主要从 [QueueMember.result] 中获取。
-  bool deleteResultFromJson(bool isDeleted) {
-    return isDeleted;
+  /// 主要从 [QueueMember.curdData] 中获取。
+  bool getCurdResult() {
+    return resultData! as bool;
   }
 
   final String modelTableName;

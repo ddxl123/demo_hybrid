@@ -1,13 +1,16 @@
 import 'package:hybrid/data/sqlite/sqliter/SqliteCurdWrapper.dart';
 import 'package:hybrid/engine/constant/execute/EngineEntryName.dart';
 import 'package:hybrid/util/SbHelper.dart';
+import 'package:hybrid/util/sblogger/SbLogger.dart';
 
 import '../../TransferManager.dart';
 
 class SqliteCurdTransactionQueue {
   ///
 
-  SqliteCurdTransactionQueue.createForComplete(List<QueueMember> putMembers(SqliteCurdTransactionQueue queue)) {
+  /// 向非 [EngineEntryName.DATA_CENTER] 中添加队列。
+  /// TODO: 卡顿的原因可能是消息传输处理异步时异步时间太久，或者传输过程存在长时间没有响应的情况，需测试引擎数据传输时间过长是否会自动响应   ？
+  SqliteCurdTransactionQueue.createRootInRequester({required List<QueueMember> putMembers(SqliteCurdTransactionQueue queue)}) {
     if (TransferManager.instance.currentEntryPointName == EngineEntryName.DATA_CENTER) {
       throw '只能在非 EngineEntryName.DATA_CENTER 中创建该对象！';
     }
@@ -29,7 +32,8 @@ class SqliteCurdTransactionQueue {
     }
   }
 
-  SqliteCurdTransactionQueue.createForCutFromJson(Map<String, Object?> queueJson) {
+  /// 向 [EngineEntryName.DATA_CENTER] 中添加队列。
+  SqliteCurdTransactionQueue.createRootInDataCenter(Map<String, Object?> queueJson) {
     if (TransferManager.instance.currentEntryPointName == EngineEntryName.DATA_CENTER) {
       throw '只能在 EngineEntryName.DATA_CENTER 中创建该对象！';
     }
@@ -55,7 +59,7 @@ class SqliteCurdTransactionQueue {
         if (members.containsKey(key)) {
           throw 'members 中已包含该 key！';
         }
-        members.addAll(<String, QueueMember>{key: QueueMember.createForCutFromJson(this, key, value!.quickCast())});
+        members.addAll(<String, QueueMember>{key: QueueMember.createInDataCenter(this, key, value!.quickCast())});
       },
     );
 
@@ -66,8 +70,8 @@ class SqliteCurdTransactionQueue {
     );
   }
 
-  /// 需要发送的。
-  Map<String, Map<String, Object?>> toNeedSendJson() {
+  /// [SqliteCurdTransactionQueue.createRootInRequester] 转 [SqliteCurdTransactionQueue.createRootInDataCenter] 时进行的跨引擎 root 数据传输 json 转换。
+  Map<String, Map<String, Object?>> parseCreateRootInRequester() {
     final Map<String, Map<String, Object?>> needSendMembersMap = <String, Map<String, Object?>>{};
     members.forEach(
       (String key, QueueMember value) {
@@ -81,6 +85,36 @@ class SqliteCurdTransactionQueue {
         'members': needSendMembersMap,
       },
     };
+  }
+
+  /// 在 [EngineEntryName.DATA_CENTER] 中发送的逆向请求。
+  static Map<String, Object?> parseReverseRequestInDataCenter(String queueId, String memberId, Object data) {
+    return <String, Object?>{
+      'queueId': queueId,
+      'memberId': memberId,
+      'data': data,
+    };
+  }
+
+  /// 在非 [EngineEntryName.DATA_CENTER] 中所接收的逆向请求。
+  static Future<SingleResult<bool>> parseReverseRequestInRequester(Map<String, Object?> reverseData) async {
+    final SingleResult<bool> returnResult = SingleResult<bool>();
+    try {
+      final String queueId = reverseData['queueId']! as String;
+      final String memberId = reverseData['memberId']! as String;
+      final Object data = reverseData['data']!;
+      final QueueMember queueMember = TransferManager.instance.sqliteCurdTransactionQueues[queueId]!.members[memberId]!;
+      queueMember.curdWrapper.resultData = data;
+      await queueMember.laterFunction(queueMember);
+      returnResult.setSuccess(putData: () => true);
+    } catch (e, st) {
+      returnResult.setError(vm: '逆向请求异常！', descp: Description(''), e: e, st: st);
+    }
+    return returnResult;
+  }
+
+  void finish() {
+    TransferManager.instance.sqliteCurdTransactionQueues.remove(queueId);
   }
 
   /// 传
@@ -102,7 +136,7 @@ class SqliteCurdTransactionQueue {
 class QueueMember<CW extends CurdWrapper> {
   ///
 
-  QueueMember.createForComplete({
+  QueueMember.createInRequester({
     required this.queue,
     required this.curdWrapper,
     required this.laterFunction,
@@ -116,7 +150,7 @@ class QueueMember<CW extends CurdWrapper> {
     }
   }
 
-  QueueMember.createForCutFromJson(this.queue, this.memberId, Map<String, Object?> memberJson) {
+  QueueMember.createInDataCenter(this.queue, this.memberId, Map<String, Object?> memberJson) {
     curdWrapper = CurdWrapper.fromJsonToChildInstance(memberJson['curdWrapper']!.quickCast()) as CW;
   }
 
@@ -141,9 +175,5 @@ class QueueMember<CW extends CurdWrapper> {
 
   /// 不传
   /// curd 后要执行的函数。
-  late final Function laterFunction;
-
-  /// 不传
-  /// curd 后获取到的 result。
-  late final Object? result;
+  late final Future<void> Function(QueueMember<CW> queueMember) laterFunction;
 }

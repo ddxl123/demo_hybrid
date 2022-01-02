@@ -19,6 +19,7 @@ class HttpCurdTransferExecutor {
     final SingleResult<Map<String, Object?>> executeResult = await TransferManager.instance.transferExecutor.executeWithViewAndOperation(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
       operationId: OUniform.HTTP_CURD,
+      startEngineWhenClose: false,
       setOperationData: () => <String, Object?>{
         'putHttpStore': httpStore.toJson(),
         'sameNotConcurrent': sameNotConcurrent,

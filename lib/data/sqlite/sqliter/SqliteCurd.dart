@@ -707,22 +707,22 @@ class SqliteCurd {
   ///
 
   /// 只需要 [CurdWrapper] 即可获取 [SqliteCurd] 结果。
-  static Future<SingleResult<Object>> fromCurdWrapperJson({required CurdWrapper curdWrapper}) async {
+  static Future<SingleResult<Object>> fromCurdWrapperJson({required CurdWrapper curdWrapper, required TransactionWrapper transactionWrapper}) async {
     final SingleResult<Object> returnResult = SingleResult<Object>();
 
     try {
       switch (curdWrapper.curdType) {
         case 'C':
-          returnResult.setAnyClone(await insertRowReturnJson(putInsertWrapper: () => curdWrapper as InsertWrapper, connectTransactionMark: null));
+          returnResult.setAnyClone(await insertRowReturnJson(putInsertWrapper: () => curdWrapper as InsertWrapper, transactionWrapper: transactionWrapper));
           break;
         case 'U':
-          returnResult.setAnyClone(await updateRowReturnJson(putUpdateWrapper: () => curdWrapper as UpdateWrapper, connectTransactionMark: null));
+          returnResult.setAnyClone(await updateRowReturnJson(putUpdateWrapper: () => curdWrapper as UpdateWrapper, transactionWrapper: transactionWrapper));
           break;
         case 'R':
-          returnResult.setAnyClone(await queryRowsReturnJson(putQueryWrapper: () => curdWrapper as QueryWrapper, connectTransactionMark: null));
+          returnResult.setAnyClone(await queryRowsReturnJson(putQueryWrapper: () => curdWrapper as QueryWrapper, transactionWrapper: transactionWrapper));
           break;
         case 'D':
-          returnResult.setAnyClone(await deleteRow(putDeleteWrapper: () => curdWrapper as DeleteWrapper, connectTransactionMark: null));
+          returnResult.setAnyClone(await deleteRow(putDeleteWrapper: () => curdWrapper as DeleteWrapper, transactionWrapper: transactionWrapper));
           break;
         default:
           throw '未知 curdType！';
@@ -742,13 +742,13 @@ class SqliteCurd {
   /// [_SqliteCurdModelPrivate.insertRow]
   static Future<SingleResult<Map<String, Object?>>> insertRowReturnJson<M extends ModelBase>({
     required InsertWrapper<M> putInsertWrapper(),
-    required TransactionWrapper? connectTransactionMark,
+    required TransactionWrapper? transactionWrapper,
   }) async {
     final SingleResult<Map<String, Object?>> returnResult = SingleResult<Map<String, Object?>>();
 
     final SingleResult<M> insertRowResult = await _SqliteCurdModelPrivate.insertRow<M>(
       putInsertWrapper: putInsertWrapper,
-      connectTransactionMark: connectTransactionMark,
+      connectTransactionMark: transactionWrapper,
     );
     await insertRowResult.handle(
       doSuccess: (M successData) async {
@@ -780,13 +780,13 @@ class SqliteCurd {
   /// [_SqliteCurdModelPrivate.updateRow]
   static Future<SingleResult<Map<String, Object?>>> updateRowReturnJson<M extends ModelBase>({
     required UpdateWrapper putUpdateWrapper(),
-    required TransactionWrapper? connectTransactionMark,
+    required TransactionWrapper? transactionWrapper,
   }) async {
     final SingleResult<Map<String, Object?>> returnResult = SingleResult<Map<String, Object?>>();
 
     final SingleResult<M> updateRowResult = await _SqliteCurdModelPrivate.updateRow<M>(
       putUpdateWrapper: putUpdateWrapper,
-      connectTransactionMark: connectTransactionMark,
+      connectTransactionMark: transactionWrapper,
     );
     await updateRowResult.handle(
       doSuccess: (M successData) async {
@@ -818,9 +818,9 @@ class SqliteCurd {
   /// [_SqliteCurdPrivate._queryRowsAsJsons]
   static Future<SingleResult<List<Map<String, Object?>>>> queryRowsReturnJson<M extends ModelBase>({
     required QueryWrapper<M> putQueryWrapper(),
-    required TransactionWrapper? connectTransactionMark,
+    required TransactionWrapper? transactionWrapper,
   }) async {
-    return await _SqliteCurdPrivate._queryRowsAsJsons(putQueryWrapper: putQueryWrapper, connectTransactionMark: connectTransactionMark);
+    return await _SqliteCurdPrivate._queryRowsAsJsons(putQueryWrapper: putQueryWrapper, connectTransactionMark: transactionWrapper);
   }
 
   /// [_SqliteCurdModelPrivate._queryRowsAsModels]
@@ -841,8 +841,8 @@ class SqliteCurd {
   /// [_SqliteCurdModelPrivate.deleteRow]
   static Future<SingleResult<bool>> deleteRow<M extends ModelBase>({
     required DeleteWrapper putDeleteWrapper(),
-    required TransactionWrapper? connectTransactionMark,
+    required TransactionWrapper? transactionWrapper,
   }) async {
-    return await _SqliteCurdModelPrivate.deleteRow(putDeleteWrapper: putDeleteWrapper, connectTransactionMark: connectTransactionMark);
+    return await _SqliteCurdModelPrivate.deleteRow(putDeleteWrapper: putDeleteWrapper, connectTransactionMark: transactionWrapper);
   }
 }

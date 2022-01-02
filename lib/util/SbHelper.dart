@@ -17,7 +17,8 @@ class SingleResult<D> extends DoSerializable {
   factory SingleResult.fromJson({required Map<String, Object?> resultJson, required D dataCast(Object data)}) => SingleResult<D>()
     ..data = resultJson['data'] == null ? null : dataCast(resultJson['data']!)
     .._viewMessage = resultJson['viewMessage'] as String?
-    .._description = resultJson['description'] == null ? null : Description.fromJson((resultJson['description']! as Map<Object?, Object?>).cast<String, Object?>())
+    .._description =
+        resultJson['description'] == null ? null : Description.fromJson((resultJson['description']! as Map<Object?, Object?>).cast<String, Object?>())
     .._exception = resultJson['exception'] == null ? null : Exception(resultJson['exception']! as String)
     ..stackTrace = resultJson['stackTrace'] == null ? null : StackTrace.fromString(resultJson['stackTrace']! as String)
     ..isSet = resultJson['isSet']! as bool;
@@ -52,6 +53,7 @@ class SingleResult<D> extends DoSerializable {
 
   bool _hasError() => _exception != null;
 
+  /// TODO: 对 [setSuccess] 设置栈堆定位。
   SingleResult<D> setSuccess({required D putData()}) {
     if (isSet) {
       return this;
@@ -70,6 +72,8 @@ class SingleResult<D> extends DoSerializable {
   }
 
   /// TODO: 对 [setError] 进行修改，将 [descp] 和 [e] 融为一体。
+  ///
+  /// TODO: 对 [setError] 设置栈堆定位。
   ///
   /// [e] 不能为空，因为需要根据 [e] 来判断是否 [doCancel]。
   SingleResult<D> setError({required String vm, required Description descp, required Object e, required StackTrace? st}) {

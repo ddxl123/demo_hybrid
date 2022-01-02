@@ -9,15 +9,16 @@ import 'SqliteCurdTransaction/SqliteCurdTransactionQueue.dart';
 class SqliteCurdTransferExecutor {
   ///
 
-  Future<SingleResult<bool>> executeCurdTransaction(SqliteCurdTransactionQueue putWrapper()) async {
-    await TransferManager.instance.transferExecutor.executeWithViewAndOperation<Map<String, Map<String, Object?>>, String>(
+  Future<SingleResult<bool>> executeCurdTransaction({required SqliteCurdTransactionQueue putWrapper()}) async {
+    return await TransferManager.instance.transferExecutor.executeWithViewAndOperation<Map<String, Map<String, Object?>>, bool>(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
       operationId: OUniform.SQLITE_CURD_TRANSACTION,
-      setOperationData: () => putWrapper().toNeedSendJson(),
+      startEngineWhenClose: false,
+      setOperationData: () => putWrapper().parseCreateRootInRequester(),
       startViewParams: null,
       endViewParams: null,
       closeViewAfterSeconds: null,
-      resultDataCast: (Object resultData) => resultData as String,
+      resultDataCast: (Object resultData) => resultData as bool,
     );
   }
 }

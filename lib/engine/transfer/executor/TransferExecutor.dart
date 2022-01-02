@@ -336,7 +336,7 @@ class TransferExecutor {
   }
 
   /// 未启动则启动，已启动则保持启动。
-  Future<SingleResult<bool>> executeWithView<S>({
+  Future<SingleResult<bool>> executeWithOnlyView<S>({
     required String executeForWhichEngine,
     required ViewParams startViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
     required ViewParams endViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
@@ -356,7 +356,7 @@ class TransferExecutor {
 
   Future<SingleResult<R>> executeWithViewAndOperation<S, R extends Object>({
     required String executeForWhichEngine,
-    required bool startWhenClose,
+    required bool startEngineWhenClose,
     required String operationId,
     required S setOperationData(),
     required ViewParams startViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
@@ -368,7 +368,7 @@ class TransferExecutor {
 
     final SingleResult<SingleResult<R>> nestedResult = await _executeWithView<S, SingleResult<R>>(
       executeForWhichEngine: executeForWhichEngine,
-      startWhenClose: startWhenClose,
+      startWhenClose: startEngineWhenClose,
       operationId: operationId,
       setOperationData: setOperationData,
       startViewParams: startViewParams,

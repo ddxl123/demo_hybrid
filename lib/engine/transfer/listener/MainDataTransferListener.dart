@@ -6,7 +6,7 @@ import 'TransferListener.dart';
 
 class MainDataTransferListener extends TransferListener {
   @override
-  Future<SingleResult<Object?>?> listenerMessageFormOtherFlutterEngine(SingleResult<Object?> returnResult, String operationId, Object? operationData) async {
+  Future<SingleResult<Object?>> listenerMessageFormOtherFlutterEngine(SingleResult<Object?> returnResult, String operationId, Object? operationData) async {
     if (operationId == OFromDataCenter.send_init_data_to_main) {
       await _send_init_data_to_main();
       // final SingleGetController singleGetController = Get.find<SingleGetController>(tag: DataTransferManager.instance.currentEntryName);
@@ -14,6 +14,8 @@ class MainDataTransferListener extends TransferListener {
       //   singleGetController.any['is_ok'] = true;
       // });
       return returnResult.setSuccess(putData: () => false);
+    } else {
+      return returnResult;
     }
   }
 

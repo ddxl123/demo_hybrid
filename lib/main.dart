@@ -1,4 +1,6 @@
 // ignore_for_file: non_constant_identifier_names
+import 'dart:html';
+
 import 'package:flutter/material.dart';
 import 'package:hybrid/engine/entry/login_and_register/LoginAndRegisterEntry.dart';
 
@@ -14,6 +16,7 @@ void main() {
   engineInitBeforeRun('main', () => MainDataTransferListener());
   runApp(EngineApp(MainEntry(), true));
 }
+
 
 /// android 部分的权限设置入口。
 ///

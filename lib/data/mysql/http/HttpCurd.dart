@@ -5,6 +5,8 @@ import 'package:hybrid/data/mysql/httpstore/handler/HttpRequest.dart';
 import 'package:hybrid/data/mysql/httpstore/handler/HttpStore.dart';
 import 'package:hybrid/data/sqlite/mmodel/MUser.dart';
 import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
+import 'package:hybrid/engine/transfer/TransferManager.dart';
+import 'package:hybrid/engine/transfer/executor/SqliteCurdTransferExecutor.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
@@ -64,6 +66,11 @@ class HttpCurd {
       // 前提是用户已经在本地是已登陆状态，因为未登陆状态的请求是 no_jwt。
       if (httpStore.httpRequest.pathType() == PathType.jwt) {
         // 检测本地是否存在账号信息？
+        await TransferManager.instance.transferExecutor.executeSqliteCurd.curdTransaction(
+          requestChain: (SqliteCurdTransactionChain chain) async {
+
+          },
+        );
         final SingleResult<List<MUser>> queryUsersResult = await SqliteCurd._queryRowsAsModels<MUser>(
           connectTransactionMark: null,
           queryWrapper: QueryWrapper(tableName: MUser().tableName),

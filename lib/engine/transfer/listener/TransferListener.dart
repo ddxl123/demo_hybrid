@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:hybrid/engine/constant/o/OUniform.dart';
-import 'package:hybrid/engine/transfer/executor/SqliteCurdTransaction/SqliteCurdTransactionQueue.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
@@ -38,7 +37,7 @@ abstract class TransferListener {
           final Object? data = messageMap['data'];
           // TODO: 对 SingleResult 增加异常消息叠加机制。
           SbLogger(c: null, vm: null, data: null, descp: Description(operationId), e: null, st: null);
-          await listenerMessageFormOtherFlutterEngineUniform(returnResult, operationId, data);
+          await _listenerMessageFormOtherFlutterEngineUniformBasic(returnResult, operationId, data);
         } catch (e, st) {
           returnResult.setError(vm: 'listener 异常！', descp: Description('_listenerMessageFromOtherFlutterEngine 发送异常！'), e: e, st: st);
         }
@@ -50,17 +49,32 @@ abstract class TransferListener {
   /// {@macro BaseDataTransfer._listenerMessageFromOtherEngine}
   ///
   /// 内部异常已交给 [_listenerMessageFromOtherFlutterEngine] 捕获。
-  Future<SingleResult<Object?>> listenerMessageFormOtherFlutterEngineUniform(
+  Future<SingleResult<Object?>> _listenerMessageFormOtherFlutterEngineUniformBasic(
     SingleResult<Object?> returnResult,
     String operationId,
     Object? operationData,
   ) async {
     if (operationId == OUniform.IS_ENGINE_ON_READY) {
       return returnResult.setSuccess(putData: () => TransferManager.instance.isCurrentFlutterEngineOnReady);
-    } else if (operationId == OUniform.SQLITE_CURD_TRANSACTION_REVERSE) {
-      return SqliteCurdTransactionQueue.parseReverseRequestInRequester(operationData!.quickCast());
+    } else if (operationId == OUniform.SQLITE_CURD_TRANSACTION_CREATE_RESULT) {
+      return _sqliteCurdTransactionCreateResult(returnResult, operationData);
     } else {
       return await listenerMessageFormOtherFlutterEngine(returnResult, operationId, operationData);
+    }
+  }
+
+  Future<SingleResult<Object?>> _sqliteCurdTransactionCreateResult(
+    SingleResult<Object?> returnResult,
+    Object? operationData,
+  ) async {
+    try {
+      final String chainId = operationData! as String;
+      if (!TransferManager.instance.sqliteCurdTransactionsInRequester.containsKey(chainId)) {
+        throw 'chainId 不存在！';
+      }
+      return await TransferManager.instance.sqliteCurdTransactionsInRequester[chainId]!.executeCurdRequestFunction(returnResult);
+    } catch (e, st) {
+      return returnResult.setError(vm: '事务函数执行异常！', descp: Description(''), e: e, st: st);
     }
   }
 

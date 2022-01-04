@@ -2,6 +2,7 @@ import 'package:hybrid/data/sqlite/mmodel/MPnComplete.dart';
 import 'package:hybrid/data/sqlite/mmodel/MPnFragment.dart';
 import 'package:hybrid/data/sqlite/mmodel/MPnMemory.dart';
 import 'package:hybrid/data/sqlite/mmodel/MPnRule.dart';
+import 'package:hybrid/data/sqlite/sqliter/SqliteCurdWrapper.dart';
 import 'package:hybrid/engine/transfer/TransferManager.dart';
 import 'package:hybrid/muc/getcontroller/homepage/PoolGetController.dart';
 import 'package:hybrid/util/SbHelper.dart';
@@ -24,7 +25,9 @@ class LongPressedPoolRouteForFragment extends AbstractLongPressedPoolRoute {
       rule_uuid: null,
     );
     MPnFragment? newModel;
-    final SingleResult<MPnFragment> insertResult = await TransferManager.instance.transferExecutor.executeSqliteCurd.insertRow<MPnFragment>(pnFragment);
+    final SingleResult<MPnFragment> insertResult = await TransferManager.instance.transferExecutor.executeSqliteCurd.curdInsert(
+      InsertWrapper<MPnFragment>(pnFragment),
+    );
     await insertResult.handle<void>(
       doSuccess: (MPnFragment successResult) async {
         newModel = successResult;
@@ -60,7 +63,9 @@ class LongPressedPoolRouteForMemory extends AbstractLongPressedPoolRoute {
     );
 
     MPnMemory? newModel;
-    final SingleResult<MPnMemory> insertResult = await TransferManager.instance.transferExecutor.executeSqliteCurd.insertRow<MPnMemory>(pnMemory);
+    final SingleResult<MPnMemory> insertResult = await TransferManager.instance.transferExecutor.executeSqliteCurd.curdInsert(
+      InsertWrapper<MPnMemory>(pnMemory),
+    );
     await insertResult.handle<void>(
       doSuccess: (MPnMemory successResult) async {
         newModel = successResult;
@@ -96,7 +101,9 @@ class LongPressedPoolRouteForComplete extends AbstractLongPressedPoolRoute {
     );
 
     MPnComplete? newModel;
-    final SingleResult<MPnComplete> insertResult = await TransferManager.instance.transferExecutor.executeSqliteCurd.insertRow<MPnComplete>(pnComplete);
+    final SingleResult<MPnComplete> insertResult = await TransferManager.instance.transferExecutor.executeSqliteCurd.curdInsert(
+      InsertWrapper<MPnComplete>(pnComplete),
+    );
     await insertResult.handle<void>(
       doSuccess: (MPnComplete successResult) async {
         newModel = successResult;
@@ -130,7 +137,9 @@ class LongPressedPoolRouteForRule extends AbstractLongPressedPoolRoute {
     );
 
     MPnRule? newModel;
-    final SingleResult<MPnRule> insertResult = await TransferManager.instance.transferExecutor.executeSqliteCurd.insertRow<MPnRule>(pnRule);
+    final SingleResult<MPnRule> insertResult = await TransferManager.instance.transferExecutor.executeSqliteCurd.curdInsert(
+      InsertWrapper<MPnRule>(pnRule),
+    );
     await insertResult.handle<void>(
       doSuccess: (MPnRule successResult) async {
         newModel = successResult;

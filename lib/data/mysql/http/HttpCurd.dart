@@ -5,6 +5,7 @@ import 'package:hybrid/data/mysql/httpstore/handler/HttpRequest.dart';
 import 'package:hybrid/data/mysql/httpstore/handler/HttpStore.dart';
 import 'package:hybrid/data/sqlite/mmodel/MUser.dart';
 import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
+import 'package:hybrid/data/sqlite/sqliter/SqliteCurdWrapper.dart';
 import 'package:hybrid/engine/transfer/TransferManager.dart';
 import 'package:hybrid/engine/transfer/executor/SqliteCurdTransferExecutor.dart';
 import 'package:hybrid/util/SbHelper.dart';
@@ -67,14 +68,11 @@ class HttpCurd {
       if (httpStore.httpRequest.pathType() == PathType.jwt) {
         // 检测本地是否存在账号信息？
         await TransferManager.instance.transferExecutor.executeSqliteCurd.curdTransaction(
-          requestChain: (SqliteCurdTransactionChain chain) async {
+          requestChain: (SqliteCurdTransactionChain chain) async {},
+        );
 
-          },
-        );
-        final SingleResult<List<MUser>> queryUsersResult = await SqliteCurd._queryRowsAsModels<MUser>(
-          connectTransactionMark: null,
-          queryWrapper: QueryWrapper(tableName: MUser().tableName),
-        );
+        final SingleResult<List<MUser>> queryUsersResult =
+            await TransferManager.instance.transferExecutor.executeSqliteCurd.curdQuery(QueryWrapper<MUser>(tableName: MUser().tableName));
 
         // 返回空则继续，即存在账号(同时获取 token)。
         final bool isReturn = await queryUsersResult.handle<bool>(
@@ -137,12 +135,14 @@ class HttpCurd {
       if (httpStore.httpRequest.pathType() == PathType.jwt) {
         // 说明 token 刷新成功，即验证用户身份成功。
         if (response.headers.map['authorization'] != null) {
-          final SingleResult<MUser> updateUserResult = await SqliteCurd.updateRow<MUser>(
-            modelTableName: user.tableName,
-            modelId: user.get_id!,
-            updateContent: <String, Object?>{'authorization': (response.headers.map['authorization']! as String).split(' ')[1]},
-            connectTransactionMark: null,
+          final SingleResult<MUser> updateUserResult = await TransferManager.instance.transferExecutor.executeSqliteCurd.curdUpdate(
+            UpdateWrapper<MUser>(
+              modelTableName: user.tableName,
+              modelId: user.get_id!,
+              updateContent: <String, Object?>{'authorization': (response.headers.map['authorization']! as String).split(' ')[1]},
+            ),
           );
+
           final bool isReturn = await updateUserResult.handle<bool>(
             doSuccess: (MUser successResult) async {
               return false;
@@ -159,7 +159,7 @@ class HttpCurd {
 
           // 检测本地初始化数据是否已下载？
           if (user.get_is_downloaded_init_data != 1) {
-            //TODO: 未下载，则弹出下载的相关页面，下载前删除除了 user 数据外的其他全部数据。
+            //TODO: 未下载，则弹出下载的相关页面，下载前删除除了 user 数据外的其  他全部数据。
             return httpStore.httpHandler.setCancel(vm: '数据未下载！', descp: Description(''), e: Exception('Token 刷新成功，但未下载初始化数据！'), st: null) as HS;
           }
         } else {

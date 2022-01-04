@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hybrid/data/sqlite/mmodel/MFFragment.dart';
 import 'package:hybrid/data/sqlite/mmodel/MPnFragment.dart';
-import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
+import 'package:hybrid/data/sqlite/sqliter/SqliteCurdWrapper.dart';
 import 'package:hybrid/engine/transfer/TransferManager.dart';
 import 'package:hybrid/muc/getcontroller/homepage/PoolGetController.dart';
 import 'package:hybrid/muc/view/homepage/node/nodesheet/fragment/FragmentPage.dart';
@@ -29,8 +29,8 @@ class NodeSheetRouteForFragment extends AbstractNodeSheetRoute<MFFragment> {
     }
 
     final MFFragment forKey = MFFragment();
-    final SingleResult<List<MFFragment>> queryResult = await TransferManager.instance.transferExecutor.executeSqliteCurd.queryRowsAsModels<MFFragment>(
-      QueryWrapper(
+    final SingleResult<List<MFFragment>> queryResult = await TransferManager.instance.transferExecutor.executeSqliteCurd.curdQuery(
+      QueryWrapper<MFFragment>(
         tableName: forKey.tableName,
         limit: limit,
         offset: mark.value,

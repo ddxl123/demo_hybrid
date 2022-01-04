@@ -1,3 +1,4 @@
+import 'package:hybrid/data/sqlite/mmodel/ModelBase.dart';
 import 'package:hybrid/data/sqlite/sqliter/SqliteCurdWrapper.dart';
 import 'package:hybrid/engine/constant/execute/EngineEntryName.dart';
 import 'package:hybrid/engine/constant/o/OUniform.dart';
@@ -51,6 +52,8 @@ class SqliteCurdTransactionChain {
   }
 
   /// 异常会被 [executeCurdRequestFunction] 捕获。
+  ///
+  /// 单个 curd 的结果会被赋值在传入的 [curdWrapper] 中。
   Future<CW> curd<CW extends CurdWrapper>(CW curdWrapper) async {
     final SingleResult<Object> curdResult = await TransferManager.instance.transferExecutor.executeWithViewAndOperation<Map<String, Object?>, Object>(
       executeForWhichEngine: requesterEngineEntryName,
@@ -101,5 +104,89 @@ class SqliteCurdTransferExecutor {
       closeViewAfterSeconds: null,
       resultDataCast: (Object resultData) => resultData as bool,
     );
+  }
+
+  Future<SingleResult<CW>> _curd<CW extends CurdWrapper>(CW curdWrapper) async {
+    final SingleResult<CW> returnResult = SingleResult<CW>();
+
+    final SingleResult<bool> finalResult = await curdTransaction(
+      requestChain: (SqliteCurdTransactionChain chain) async {
+        // curd 结果被赋值在 curdWrapper 内。
+        await chain.curd<CW>(curdWrapper);
+      },
+    );
+
+    await finalResult.handle<void>(
+      doSuccess: (bool successData) async {
+        if (!successData) {
+          throw '结果不为 true！';
+        }
+        returnResult.setSuccess(putData: () => curdWrapper);
+      },
+      doError: (SingleResult<bool> errorResult) async {
+        returnResult.setErrorClone(errorResult);
+      },
+    );
+    return returnResult;
+  }
+
+  Future<SingleResult<List<M>>> curdQuery<M extends ModelBase>(QueryWrapper<M> curdWrapper) async {
+    final SingleResult<List<M>> returnResult = SingleResult<List<M>>();
+
+    final SingleResult<QueryWrapper<M>> result = await _curd(curdWrapper);
+    await result.handle<void>(
+      doSuccess: (QueryWrapper<M> successData) async {
+        returnResult.setSuccess(putData: () => successData.getCurdResult());
+      },
+      doError: (SingleResult<QueryWrapper<M>> errorResult) async {
+        returnResult.setErrorClone(errorResult);
+      },
+    );
+    return returnResult;
+  }
+
+  Future<SingleResult<M>> curdInsert<M extends ModelBase>(InsertWrapper<M> curdWrapper) async {
+    final SingleResult<M> returnResult = SingleResult<M>();
+
+    final SingleResult<InsertWrapper<M>> result = await _curd(curdWrapper);
+    await result.handle<void>(
+      doSuccess: (InsertWrapper<M> successData) async {
+        returnResult.setSuccess(putData: () => successData.getCurdResult());
+      },
+      doError: (SingleResult<InsertWrapper<M>> errorResult) async {
+        returnResult.setErrorClone(errorResult);
+      },
+    );
+    return returnResult;
+  }
+
+  Future<SingleResult<M>> curdUpdate<M extends ModelBase>(UpdateWrapper<M> curdWrapper) async {
+    final SingleResult<M> returnResult = SingleResult<M>();
+
+    final SingleResult<UpdateWrapper<M>> result = await _curd(curdWrapper);
+    await result.handle<void>(
+      doSuccess: (UpdateWrapper<M> successData) async {
+        returnResult.setSuccess(putData: () => successData.getCurdResult());
+      },
+      doError: (SingleResult<UpdateWrapper<M>> errorResult) async {
+        returnResult.setErrorClone(errorResult);
+      },
+    );
+    return returnResult;
+  }
+
+  Future<SingleResult<bool>> curdDelete(DeleteWrapper curdWrapper) async {
+    final SingleResult<bool> returnResult = SingleResult<bool>();
+
+    final SingleResult<DeleteWrapper> result = await _curd(curdWrapper);
+    await result.handle<void>(
+      doSuccess: (DeleteWrapper successData) async {
+        returnResult.setSuccess(putData: () => successData.getCurdResult());
+      },
+      doError: (SingleResult<DeleteWrapper> errorResult) async {
+        returnResult.setErrorClone(errorResult);
+      },
+    );
+    return returnResult;
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:hybrid/data/sqlite/sqliter/SqliteCurdWrapper.dart';
 import 'package:hybrid/engine/transfer/TransferManager.dart';
 import 'package:hybrid/muc/getcontroller/homepage/PoolGetController.dart';
 import 'package:hybrid/muc/view/homepage/poolentry/AbstractPoolEntry.dart';
@@ -49,9 +50,11 @@ abstract class LongPressedNodeRouteBase extends AbstractPoolEntryRoute {
   Future<bool> whenPop(SbPopResult? popResult) async {
     return await quickWhenPop(popResult, (SbPopResult quickPopResult) async {
       if (quickPopResult.popResultSelect == PopResultSelect.one) {
-        final SingleResult<bool> deleteResult = await TransferManager.instance.transferExecutor.executeSqliteCurd.deleteRow(
-          modelTableName: poolNodeModel.getCurrentNodeModel().tableName,
-          modelId: poolNodeModel.getCurrentNodeModel().get_id,
+        final SingleResult<bool> deleteResult = await TransferManager.instance.transferExecutor.executeSqliteCurd.curdDelete(
+          DeleteWrapper(
+            modelTableName: poolNodeModel.getCurrentNodeModel().tableName,
+            modelId: poolNodeModel.getCurrentNodeModel().get_id,
+          ),
         );
         await deleteResult.handle<void>(
           doSuccess: (bool successResult) async {

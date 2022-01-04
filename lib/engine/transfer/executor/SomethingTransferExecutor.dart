@@ -6,7 +6,6 @@ import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
 import '../TransferManager.dart';
-import 'SqliteCurdTransferExecutor.dart';
 
 enum CheckUserResultType {
   /// 检查全部通过：用户已登陆、用户初始数据已下载。
@@ -37,17 +36,19 @@ class SomethingTransferExecutor {
   Future<SingleResult<CheckUserResultType>> checkUser({required bool isCheckOnly}) async {
     final SingleResult<CheckUserResultType> returnResult = SingleResult<CheckUserResultType>();
 
-    final SingleResult<bool> curdResult = await TransferManager.instance.transferExecutor.executeSqliteCurd.curdTransaction(
-      requestChain: (SqliteCurdTransactionChain chain) async {
-        // TODO: 把 MUser().tableName 改成静态调用。
-        final List<MUser> curdResult = (await chain.curd(QueryWrapper<MUser>(tableName: MUser().tableName))).getCurdResult();
+    // TODO: 把 MUser().tableName 改成静态调用。
+    final SingleResult<List<MUser>> curdResult = await TransferManager.instance.transferExecutor.executeSqliteCurd.curdQuery(
+      QueryWrapper<MUser>(tableName: MUser().tableName),
+    );
 
+    await curdResult.handle<void>(
+      doSuccess: (List<MUser> curdResult) async {
         if (curdResult.isEmpty) {
           // 先配置不通过，再进行弹出操作。
           returnResult.setSuccess(putData: () => CheckUserResultType.notLogin);
           if (!isCheckOnly) {
             // TODO: 弹出登陆页面引擎。
-            final SingleResult<bool> pushResult = await TransferManager.instance.transferExecutor.executeWithOnlyView<void>(
+            final SingleResult<bool> pushResult = await TransferManager.instance.transferExecutor.executeWithOnlyView(
               executeForWhichEngine: EngineEntryName.LOGIN_AND_REGISTER,
               startViewParams: (ViewParams lastViewParams, SizeInt screenSize) {
                 return ViewParams(width: 500, height: 1000, x: 200, y: 200, isFocus: true);
@@ -86,16 +87,7 @@ class SomethingTransferExecutor {
           }
         }
       },
-    );
-
-    await curdResult.handle(
-      doSuccess: (bool successData) async {
-        if (!successData) {
-          returnResult.setError(vm: '检查用户异常！', descp: Description(''), e: Exception('结果不为 true！'), st: null);
-        }
-        // 成功结果已被赋值。
-      },
-      doError: (SingleResult<bool> errorResult) async {
+      doError: (SingleResult<List<MUser>> errorResult) async {
         returnResult.setErrorClone(errorResult);
       },
     );

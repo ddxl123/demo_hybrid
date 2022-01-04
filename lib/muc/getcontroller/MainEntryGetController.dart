@@ -64,7 +64,7 @@ class MainEntryGetController extends GetxController {
     final SingleResult<bool> checkResult = await TransferManager.instance.transferExecutor.toNative<void, bool>(
       operationId: OToNative.check_floating_window_permission,
       setSendData: () {},
-      resultDataCast: null,
+      resultDataCast: (Object resultData) => resultData as bool,
     );
     await checkResult.handle<void>(
       doSuccess: (bool successResult) async {
@@ -94,14 +94,11 @@ class MainEntryGetController extends GetxController {
   ///
   /// 主要启动数据中心引擎。
   Future<void> _appDataInitializing() async {
-    final SingleResult<bool> startDataCenterResult = await TransferManager.instance.transferExecutor.execute<void, bool>(
+    final SingleResult<bool> startDataCenterResult = await TransferManager.instance.transferExecutor.executeWithOnlyView(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
-      operationId: null,
-      setOperationData: () {},
       startViewParams: null,
       endViewParams: null,
       closeViewAfterSeconds: null,
-      resultDataCast: null,
     );
     await startDataCenterResult.handle<void>(
       doSuccess: (bool successResult) async {

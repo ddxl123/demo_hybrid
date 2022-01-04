@@ -29,7 +29,7 @@ class FloatingWindowPermissionRoute extends SbRoute {
     final SingleResult<bool> checkAndPushResult = await TransferManager.instance.transferExecutor.toNative<void, bool>(
       operationId: OToNative.check_and_push_page_floating_window_permission,
       setSendData: () {},
-      resultDataCast: null,
+      resultDataCast: (Object resultData) => resultData as bool,
     );
     await checkAndPushResult.handle<void>(
       doSuccess: (bool successResult) async {
@@ -60,7 +60,7 @@ class FloatingWindowPermissionRoute extends SbRoute {
         final SingleResult<bool> checkResult = await TransferManager.instance.transferExecutor.toNative<void, bool>(
           operationId: OToNative.check_floating_window_permission,
           setSendData: () {},
-          resultDataCast: null,
+          resultDataCast: (Object resultData) => resultData as bool,
         );
         if (!timer.isActive) {
           return;

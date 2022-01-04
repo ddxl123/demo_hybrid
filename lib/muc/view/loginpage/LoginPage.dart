@@ -110,7 +110,8 @@ class LoginPage extends SbRoute {
                 },
               );
 
-              final HttpStore_login_and_register_by_email_send_email requestResult = await TransferManager.instance.transferExecutor.executeHttpCurd.sendRequest(
+              final HttpStore_login_and_register_by_email_send_email requestResult =
+                  await TransferManager.instance.transferExecutor.executeHttpCurd.sendRequest(
                 httpStore: HttpStore_login_and_register_by_email_send_email(
                   requestHeadersVO_LARBESE: RequestHeadersVO_LARBESE(),
                   requestParamsVO_LARBESE: RequestParamsVO_LARBESE(),
@@ -170,7 +171,8 @@ class LoginPage extends SbRoute {
           ),
           child: const Text('登陆/注册'),
           onPressed: () async {
-            final HttpStore_login_and_register_by_email_verify_email requestResult = await TransferManager.instance.transferExecutor.executeHttpCurd.sendRequest(
+            final HttpStore_login_and_register_by_email_verify_email requestResult =
+                await TransferManager.instance.transferExecutor.executeHttpCurd.sendRequest(
               httpStore: HttpStore_login_and_register_by_email_verify_email(
                 requestHeadersVO_LARBEVE: RequestHeadersVO_LARBEVE(),
                 requestParamsVO_LARBEVE: RequestParamsVO_LARBEVE(),
@@ -208,30 +210,6 @@ class LoginPage extends SbRoute {
                   await db.delete(newToken.tableName);
                   await db.insert(newToken.tableName, newToken.getRowJson);
 
-                  SbLogger(
-                    c: null,
-                    vm: hs.httpResponse.viewMessage,
-                    data: null,
-                    descp: null,
-                    e: null,
-                    st: null,
-                  ).withToast(false);
-                  return true;
-                }
-                // 邮箱重复异常
-                if (hs.httpResponse.code == hs.httpResponse.getResponseCodeCollect(hs).C2_01_02_03) {
-                  SbLogger(
-                    c: hs.httpResponse.code,
-                    vm: hs.httpResponse.viewMessage,
-                    data: null,
-                    descp: null,
-                    e: null,
-                    st: null,
-                  ).withToast(true);
-                  return true;
-                }
-                // 验证码不正确
-                else if (hs.httpResponse.code == hs.httpResponse.getResponseCodeCollect(hs).C2_01_02_04) {
                   SbLogger(
                     c: null,
                     vm: hs.httpResponse.viewMessage,

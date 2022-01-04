@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:hybrid/data/sqlite/mmodel/ModelBase.dart';
-import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
+import 'package:hybrid/data/sqlite/sqliter/SqliteCurdWrapper.dart';
 import 'package:hybrid/data/sqlite/sqliter/SqliteTool.dart';
 import 'package:hybrid/engine/transfer/TransferManager.dart';
 import 'package:hybrid/util/SbHelper.dart';
@@ -111,8 +111,9 @@ class _TableForTableDataState extends State<TableForTableData> {
   late final Future<void> _future = Future<void>(
     () async {
       header.addAll(await SqliteTool().getAllFieldBy(widget.tableName));
-      final SingleResult<List<ModelBase>> queryResult =
-          await TransferManager.instance.transferExecutor.executeSqliteCurd.queryRowsAsModels(QueryWrapper(tableName: widget.tableName));
+      final SingleResult<List<ModelBase>> queryResult = await TransferManager.instance.transferExecutor.executeSqliteCurd.curdQuery(
+        QueryWrapper<ModelBase>(tableName: widget.tableName),
+      );
       await queryResult.handle<void>(
         doSuccess: (List<ModelBase> successResult) async {
           body.addAll(successResult);

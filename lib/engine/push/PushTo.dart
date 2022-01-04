@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_classes_with_only_static_members
+
 import 'dart:async';
 
 import 'package:hybrid/engine/transfer/TransferManager.dart';
@@ -10,14 +12,11 @@ class PushTo {
     required ViewParams startViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
     required ViewParams endViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
   }) async {
-    final SingleResult<bool> startResult = await TransferManager.instance.transferExecutor.execute<void, bool>(
+    final SingleResult<bool> startResult = await TransferManager.instance.transferExecutor.executeWithOnlyView(
       executeForWhichEngine: entryName,
-      operationId: null,
-      setOperationData: () {},
       startViewParams: startViewParams,
       endViewParams: endViewParams,
       closeViewAfterSeconds: null,
-      resultDataCast: null,
     );
     await startResult.handle<void>(
       doSuccess: (bool successResult) async {

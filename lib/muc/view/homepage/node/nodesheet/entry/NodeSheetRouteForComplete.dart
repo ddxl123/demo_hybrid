@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hybrid/data/sqlite/mmodel/MFComplete.dart';
 import 'package:hybrid/data/sqlite/mmodel/MPnComplete.dart';
-import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
+import 'package:hybrid/data/sqlite/sqliter/SqliteCurdWrapper.dart';
 import 'package:hybrid/engine/transfer/TransferManager.dart';
 import 'package:hybrid/muc/getcontroller/homepage/PoolGetController.dart';
 import 'package:hybrid/muc/view/homepage/node/nodesheet/fragment/FragmentPage.dart';
@@ -29,8 +29,8 @@ class NodeSheetRouteForComplete extends AbstractNodeSheetRoute<MFComplete> {
     }
 
     final MFComplete forKey = MFComplete();
-    final SingleResult<List<MFComplete>> queryResult = await TransferManager.instance.transferExecutor.executeSqliteCurd.queryRowsAsModels<MFComplete>(
-      QueryWrapper(
+    final SingleResult<List<MFComplete>> queryResult = await TransferManager.instance.transferExecutor.executeSqliteCurd.curdQuery(
+      QueryWrapper<MFComplete>(
         tableName: forKey.tableName,
         limit: limit,
         offset: mark.value,

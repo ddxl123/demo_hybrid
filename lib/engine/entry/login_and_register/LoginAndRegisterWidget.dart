@@ -9,6 +9,7 @@ import 'package:hybrid/data/mysql/httpstore/store/HttpStore_login_and_register_b
 import 'package:hybrid/data/sqlite/mmodel/MUser.dart';
 import 'package:hybrid/engine/datatransfer/TransferManager.dart';
 import 'package:hybrid/engine/push/PushTo.dart';
+import 'package:hybrid/engine/transfer/TransferManager.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 import 'package:hybrid/util/sbroundedbox/SbRoundedBox.dart';
@@ -106,18 +107,17 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
                   state.refresh();
                 },
               );
-              final HttpStore_login_and_register_by_email_send_email requestResult = await DataTransferManager.instance.transferExecutor.executeHttpCurd.sendRequest(
+              final HttpStore_login_and_register_by_email_send_email requestResult =
+                  await TransferManager.instance.transferExecutor.executeHttpCurd.sendRequest(
                 httpStore: HttpStore_login_and_register_by_email_send_email(
                   requestHeadersVO_LARBESE: RequestHeadersVO_LARBESE(),
                   requestParamsVO_LARBESE: RequestParamsVO_LARBESE(),
-                  requestDataVO_LARBESE: RequestDataVO_LARBESE(
-                    email: emailTextEditingController.text,
-                  ),
+                  requestDataVO_LARBESE: RequestDataVO_LARBESE(email: emailTextEditingController.text),
                 ),
                 sameNotConcurrent: '_sendEmailButtonHttpStore_login_and_register_by_email_send_email',
-                isBanAllOtherRequest: true,
-                resultHttpStoreJson2HS: (Map<String, Object?> json) async => HttpStore_login_and_register_by_email_send_email.fromJson(json),
+                jsonToHS: (Map<String, Object?> json) async => HttpStore_login_and_register_by_email_send_email.fromJson(json),
               );
+
               await requestResult.httpHandler.handle<HttpStore_login_and_register_by_email_send_email>(
                 doContinue: (HttpStore_login_and_register_by_email_send_email hs) async {
                   // 发送成功。
@@ -174,7 +174,7 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
             sameNotConcurrent: '_verifyEmailButtonHttpStore_login_and_register_by_email_verify_email',
           );
           await result.httpHandler.handle(
-            doContinue: (HttpStore_login_and_register_by_email_verify_email hs) async {
+            doContinue: (HttpStore_login_and_register_by_email_verify_email hss) async {
               // 登陆/注册成功
               if (hs.httpResponse.code == hs.httpResponse.getResponseCodeCollect(hs).C2_01_02_01 ||
                   hs.httpResponse.code == hs.httpResponse.getResponseCodeCollect(hs).C2_01_02_02) {
@@ -233,7 +233,7 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
                   return false;
                 }
 
-                SbLogger(c: null, vm: '登陆/注册成功！', data: null, descp: descp, e: e, st: st)
+                SbLogger(c: null, vm: '登陆/注册成功！', data: null, descp: descp, e: e, st: st);
                 return true;
               }
               // 邮箱重复异常
@@ -263,78 +263,6 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
               return false;
             },
             doCancel: (HttpHandler hh) async {},
-          );
-          await httpStore.httpResponse.handle(
-            doCancel: (HttpResponse<ResponseCodeCollect_LARBEVE, ResponseDataVO_LARBEVE> hr) async {
-              // 登陆/注册失败
-              SbLogger(
-                code: hr.code,
-                viewMessage: hr.viewMessage,
-                data: null,
-                description: hr.description,
-                exception: hr.exception,
-                stackTrace: hr.stackTrace,
-              ).withAll(true);
-            },
-            doContinue: (HttpResponse<ResponseCodeCollect_LARBEVE, ResponseDataVO_LARBEVE> hr) async {
-              // 登陆/注册成功
-              if (hr.code == hr.responseCodeCollect.C2_01_02_01 || hr.code == hr.responseCodeCollect.C2_01_02_02) {
-                // TODO:
-                // 云端 token 生成成功，存储至本地。
-                final MUser newToken = MUser.createModel(
-                  id: null,
-                  aiid: null,
-                  uuid: null,
-                  username: null,
-                  password: null,
-                  email: null,
-                  age: null,
-                  // 无论 token 值是否有问题，都进行存储。
-                  token: hr.responseDataVO.token,
-                  is_downloaded_init_data: null,
-                  created_at: SbHelper.newTimestamp,
-                  updated_at: SbHelper.newTimestamp,
-                );
-
-                await db.delete(newToken.tableName);
-                await db.insert(newToken.tableName, newToken.getRowJson);
-
-                SbLogger(
-                  code: null,
-                  viewMessage: hr.viewMessage,
-                  data: null,
-                  description: null,
-                  exception: null,
-                  stackTrace: null,
-                ).withToast(false);
-                return true;
-              }
-              // 邮箱重复异常
-              if (hr.code == hr.responseCodeCollect.C2_01_02_03) {
-                SbLogger(
-                  code: hr.code,
-                  viewMessage: hr.viewMessage,
-                  data: null,
-                  description: null,
-                  exception: null,
-                  stackTrace: null,
-                ).withToast(true);
-                return true;
-              }
-              // 验证码不正确
-              else if (hr.code == hr.responseCodeCollect.C2_01_02_04) {
-                SbLogger(
-                  code: null,
-                  viewMessage: hr.viewMessage,
-                  data: null,
-                  description: null,
-                  exception: null,
-                  stackTrace: null,
-                ).withToast(false);
-                return true;
-              }
-              return false;
-            },
           );
         },
       ),

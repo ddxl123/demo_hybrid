@@ -1,12 +1,11 @@
 // ignore_for_file: non_constant_identifier_names
-import 'dart:html';
 
 import 'package:flutter/material.dart';
-import 'package:hybrid/engine/entry/login_and_register/LoginAndRegisterEntry.dart';
 
 import 'engine/entry/data_center/DataCenterEntry.dart';
 import 'engine/entry/main/MainEntry.dart';
 import 'engine/init/EngineInit.dart';
+import 'engine/transfer/listener/DataCenterTransferListener.dart';
 import 'engine/transfer/listener/MainDataTransferListener.dart';
 
 /// 应用的主入口。
@@ -16,7 +15,6 @@ void main() {
   engineInitBeforeRun('main', () => MainDataTransferListener());
   runApp(EngineApp(MainEntry(), true));
 }
-
 
 /// android 部分的权限设置入口。
 ///
@@ -36,8 +34,8 @@ void data_center() {
   runApp(EngineApp(DataCenterEntry(), false));
 }
 
-@pragma('vm:entry-point')
-void login_and_register() {
-  engineInitBeforeRun('login_and_register', () => ());
-  runApp(EngineApp(LoginAndRegisterEntry(), true));
-}
+// @pragma('vm:entry-point')
+// void login_and_register() {
+//   engineInitBeforeRun('login_and_register', () => ());
+//   runApp(EngineApp(LoginAndRegisterEntry(), true));
+// }

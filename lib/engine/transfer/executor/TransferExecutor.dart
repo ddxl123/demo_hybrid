@@ -336,13 +336,13 @@ class TransferExecutor {
   }
 
   /// 未启动则启动，已启动则保持启动。
-  Future<SingleResult<bool>> executeWithOnlyView<S>({
+  Future<SingleResult<bool>> executeWithOnlyView({
     required String executeForWhichEngine,
     required ViewParams startViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
     required ViewParams endViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
     required int? closeViewAfterSeconds,
   }) async {
-    return await _executeWithView<S, bool>(
+    return await _executeWithView<void, bool>(
       executeForWhichEngine: executeForWhichEngine,
       startWhenClose: true,
       operationId: null,

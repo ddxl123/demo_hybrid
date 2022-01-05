@@ -14,36 +14,41 @@ import 'package:uuid/uuid.dart';
 class SingleResult<D> extends DoSerializable {
   SingleResult();
 
-  factory SingleResult.fromJson({required Map<String, Object?> resultJson, required D dataCast(Object data)}) => SingleResult<D>()
-    ..data = resultJson['data'] == null ? null : dataCast(resultJson['data']!)
-    .._viewMessage = resultJson['viewMessage'] as String?
-    .._description =
-        resultJson['description'] == null ? null : Description.fromJson((resultJson['description']! as Map<Object?, Object?>).cast<String, Object?>())
-    .._exception = resultJson['exception'] == null ? null : Exception(resultJson['exception']! as String)
-    ..stackTrace = resultJson['stackTrace'] == null ? null : StackTrace.fromString(resultJson['stackTrace']! as String)
-    ..isSet = resultJson['isSet']! as bool;
+  factory SingleResult.fromJson({required Map<String, Object?> json, required D dataCast(Object data)}) => SingleResult<D>()
+    .._data = json['data'] == null ? null : dataCast(json['data']!)
+    .._viewMessage = json['viewMessage'] as String?
+    .._description = json['description'] == null ? null : Description.fromJson((json['description']! as Map<Object?, Object?>).cast<String, Object?>())
+    .._exception = json['exception'] == null ? null : Exception(json['exception']! as String)
+    ..stackTrace = json['stackTrace'] == null ? null : StackTrace.fromString(json['stackTrace']! as String);
 
   @override
   Map<String, Object?> toJson() => <String, Object?>{
-        'data': data,
+        'data': _data,
         'viewMessage': _viewMessage,
         'description': _description?.toJson(),
         'exception': _exception?.toString(),
         'stackTrace': stackTrace?.toString(),
-        'isSet': isSet,
       };
 
-  D? data;
+  D? _data;
 
+  D getRequiredData() => _data!;
+
+  void setData(D data) {
+    _data = data;
+  }
+
+  /// 存在异常时，才会存在 [_viewMessage]、[_description]、[_exception]、[stackTrace]。
+  ///
+  /// TODO: 集成 [_viewMessage]、[_description]、[_exception]、[stackTrace] 为一个对象。
   String? _viewMessage;
 
   Description? _description;
 
+  /// 存在 [_exception] 必然存在错误。
   Object? _exception;
 
   StackTrace? stackTrace;
-
-  bool isSet = false;
 
   String getRequiredVm() => _viewMessage ?? '_viewMessage 为空！';
 
@@ -51,20 +56,16 @@ class SingleResult<D> extends DoSerializable {
 
   Object getRequiredE() => _exception ?? Exception('_exception 为空！');
 
-  bool _hasError() => _exception != null;
-
   /// TODO: 对 [setSuccess] 设置栈堆定位。
   SingleResult<D> setSuccess({required D putData()}) {
-    if (isSet) {
-      return this;
-    }
     try {
-      _viewMessage = null;
-      _description = null;
-      _exception = null;
-      stackTrace = null;
-      data = putData();
-      isSet = true;
+      // 若被调用前不存在异常，则可直接配置 data；
+      // 若被调用前存在异常，则保留异常结果；
+      if (_exception != null) {
+        return this;
+      }
+      // 带上 "!" 目的是让 D 类型不能为 null。
+      _data = putData()!;
       return this;
     } catch (e, st) {
       return setError(vm: '结果数据解析异常！', descp: Description(''), e: e, st: st);
@@ -74,14 +75,12 @@ class SingleResult<D> extends DoSerializable {
   /// TODO: 对 [setError] 进行修改，将 [descp] 和 [e] 融为一体。
   ///
   /// TODO: 对 [setError] 设置栈堆定位。
-  ///
-  /// [e] 不能为空，因为需要根据 [e] 来判断是否 [doCancel]。
   SingleResult<D> setError({required String vm, required Description descp, required Object e, required StackTrace? st}) {
-    if (isSet) {
+    // 若被调用前不存在异常，则配置新异常；
+    // 若被调用前存在异常，则保留异常结果。
+    if (_exception != null) {
       return this;
     }
-    isSet = true;
-
     _viewMessage = vm;
     _description = descp;
     _exception = e;
@@ -89,37 +88,47 @@ class SingleResult<D> extends DoSerializable {
     return this;
   }
 
-  SingleResult<D> setAnyClone(SingleResult<D> from) {
-    data = from.data;
-    _viewMessage = from._viewMessage;
-    _description = from._description;
+  /// TODO: 找出 [setCompleteClone] 未修改的。
+  SingleResult<D> setErrorClone(SingleResult<Object?> from) {
+    return setError(
+      vm: from.getRequiredVm(),
+      descp: from.getRequiredDescp(),
+      e: from.getRequiredE(),
+      st: from.stackTrace,
+    );
+  }
+
+  SingleResult<D> setCompleteClone(SingleResult<D> from) {
+    _data = from._data;
     _exception = from._exception;
+    _description = from._description;
+    _viewMessage = from._viewMessage;
     stackTrace = from.stackTrace;
-    isSet = from.isSet;
     return this;
   }
 
-  SingleResult<D> setErrorClone(SingleResult<Object?> from) {
-    return setError(vm: from.getRequiredVm(), descp: from.getRequiredDescp(), e: from.getRequiredE(), st: from.stackTrace);
-  }
+  /// 当执行完 [setSuccess]/[setError] 后，对最终的 [SingleResult] 进行处理。
+  ///
+  /// [doSuccess] 内部错误，会被 [doError] 捕获。
+  ///
+  /// [doError] 内部错误，会进行抛出，可以在外部对该异常进行捕获。
+  ///
+  /// [HR] 指定返回类型。
+  ///
+  Future<HR> handle<HR>({
+    required Future<HR> doSuccess(D successData),
 
-  /// 可以在 [doError] 内部进行 throw。
-  ///
-  /// [HR]：指定返回类型。
-  ///
-  /// 必须先 [setSuccess]/[setError]，再 [handle]。
-  /// 必须先 [setSuccess]/[setError]，再 [doSuccess]/[doError]。
-  ///
-  /// 不捕获 [doError] 的异常。
-  Future<HR> handle<HR>({required Future<HR> doSuccess(D successData), required Future<HR> doError(SingleResult<D> errorResult)}) async {
-    if (!isSet) {
+    /// TODO: 将 [doError] 的 [errorResult] 包装成异常的单独对象（集成 [_viewMessage]、[_description]、[_exception]、[stackTrace]）。
+    required Future<HR> doError(SingleResult<D> errorResult),
+  }) async {
+    if (_data == null && _exception == null) {
       setError(vm: '未完全处理！', descp: Description(''), e: Exception('必须先进行 setCancel/setPass，才能进行 handle！'), st: null);
       return await doError(this);
     }
 
-    if (!_hasError()) {
+    if (_exception == null) {
       try {
-        return await doSuccess(data as D);
+        return await doSuccess(_data as D);
       } catch (e, st) {
         setError(vm: 'doSuccess 内部异常！', descp: Description(''), e: e, st: st);
         return await doError(this);

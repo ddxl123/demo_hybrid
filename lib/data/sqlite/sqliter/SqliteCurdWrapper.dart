@@ -1,6 +1,5 @@
 import 'package:hybrid/data/sqlite/mmodel/ModelBase.dart';
 import 'package:hybrid/data/sqlite/mmodel/ModelManager.dart';
-import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:sqflite/sqflite.dart';
@@ -110,7 +109,7 @@ class InsertWrapper<M extends ModelBase> extends CurdWrapper {
     };
   }
 
-  /// 返回值 与 [SqliteCurd.insertRowReturnModel] 返回值的 data 相同。
+  /// 返回值 与 [SqliteCurdBasis.insertRowReturnModel] 返回值的 data 相同。
   ///
   /// 主要从 [QueueMember.curdData] 中获取。
   M getCurdResult() {
@@ -135,7 +134,7 @@ class UpdateWrapper<M extends ModelBase> extends CurdWrapper {
   @override
   Map<String, Object?> toJson() => _$UpdateWrapperToJson(this);
 
-  /// 返回值 与 [SqliteCurd.updateRowReturnModel] 返回值的 data 相同。
+  /// 返回值 与 [SqliteCurdBasis.updateRowReturnModel] 返回值的 data 相同。
   ///
   /// 主要从 [QueueMember.curdData] 中获取。
   M getCurdResult() {
@@ -170,7 +169,7 @@ class QueryWrapper<M extends ModelBase> extends CurdWrapper {
   @override
   Map<String, Object?> toJson() => _$QueryWrapperToJson(this);
 
-  /// 返回值 与 [SqliteCurd.queryRowsReturnModel] 返回值的 data 相同。
+  /// 返回值 与 [SqliteCurdBasis.queryRowsReturnModel] 返回值的 data 相同。
   ///
   /// 主要从 [QueueMember.curdData] 中获取。
   List<M> getCurdResult() {
@@ -207,7 +206,7 @@ class DeleteWrapper extends CurdWrapper {
   @override
   Map<String, Object?> toJson() => _$DeleteWrapperToJson(this);
 
-  /// 返回值 与 [SqliteCurd.deleteRow] 返回值的 data 相同。
+  /// 返回值 与 [SqliteCurdBasis.deleteRow] 返回值的 data 相同。
   ///
   /// 主要从 [QueueMember.curdData] 中获取。
   bool getCurdResult() {

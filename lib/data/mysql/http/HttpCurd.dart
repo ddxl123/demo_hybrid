@@ -4,7 +4,6 @@ import 'package:dio/dio.dart';
 import 'package:hybrid/data/mysql/httpstore/handler/HttpRequest.dart';
 import 'package:hybrid/data/mysql/httpstore/handler/HttpStore.dart';
 import 'package:hybrid/data/sqlite/mmodel/MUser.dart';
-import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
 import 'package:hybrid/data/sqlite/sqliter/SqliteCurdWrapper.dart';
 import 'package:hybrid/engine/transfer/TransferManager.dart';
 import 'package:hybrid/engine/transfer/executor/SqliteCurdTransferExecutor.dart';
@@ -34,7 +33,7 @@ class HttpCurd {
   ///   - 若为 true，但同时存在其他请求，则当前请求也会失败。
   ///   - 若为 true，则 [sameNotConcurrent] 可为空。
   ///
-  /// 向云端修改数据成功，而响应回本地修改 sqlite 数据失败 ———— 该问题会在 [SqliteCurd] 中进行处理。
+  /// 向云端修改数据成功，而响应回本地修改 sqlite 数据失败 ———— 该问题会在 [SqliteCurdBasis] 中进行处理。
   ///
   static Future<HS> sendRequest<HS extends HttpStore>({
     required HS httpStore,

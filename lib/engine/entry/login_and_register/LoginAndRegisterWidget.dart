@@ -7,7 +7,6 @@ import 'package:hybrid/data/mysql/httpstore/handler/HttpHandler.dart';
 import 'package:hybrid/data/mysql/httpstore/store/HttpStore_login_and_register_by_email_send_email.dart';
 import 'package:hybrid/data/mysql/httpstore/store/HttpStore_login_and_register_by_email_verify_email.dart';
 import 'package:hybrid/data/sqlite/mmodel/MUser.dart';
-import 'package:hybrid/engine/datatransfer/TransferManager.dart';
 import 'package:hybrid/engine/push/PushTo.dart';
 import 'package:hybrid/engine/transfer/TransferManager.dart';
 import 'package:hybrid/util/SbHelper.dart';
@@ -174,7 +173,7 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
             sameNotConcurrent: '_verifyEmailButtonHttpStore_login_and_register_by_email_verify_email',
           );
           await result.httpHandler.handle(
-            doContinue: (HttpStore_login_and_register_by_email_verify_email hss) async {
+            doContinue: (HttpStore_login_and_register_by_email_verify_email hs) async {
               // 登陆/注册成功
               if (hs.httpResponse.code == hs.httpResponse.getResponseCodeCollect(hs).C2_01_02_01 ||
                   hs.httpResponse.code == hs.httpResponse.getResponseCodeCollect(hs).C2_01_02_02) {
@@ -233,31 +232,6 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
                   return false;
                 }
 
-                SbLogger(c: null, vm: '登陆/注册成功！', data: null, descp: descp, e: e, st: st);
-                return true;
-              }
-              // 邮箱重复异常
-              if (hr.code == hr.responseCodeCollect.C2_01_02_03) {
-                SbLogger(
-                  code: hr.code,
-                  viewMessage: hr.viewMessage,
-                  data: null,
-                  description: null,
-                  exception: null,
-                  stackTrace: null,
-                ).withToast(true);
-                return true;
-              }
-              // 验证码不正确
-              else if (hr.code == hr.responseCodeCollect.C2_01_02_04) {
-                SbLogger(
-                  code: null,
-                  viewMessage: hr.viewMessage,
-                  data: null,
-                  description: null,
-                  exception: null,
-                  stackTrace: null,
-                ).withToast(false);
                 return true;
               }
               return false;

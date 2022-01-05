@@ -38,7 +38,7 @@ class HttpResponseIntercept {
         httpStore.httpResponse.code == reLoginCodeCollect.C3010504) {
       // TODO: 这里弹出登陆框。注意，登陆时 token 生成发生异常会被重复触发 重新登陆 的操作，因此需要约束一下登陆弹框的单例性。
       httpStore.httpHandler
-          .setCancel(vm: '请重新登陆！', descp: Description(''), e: Exception('PathType 为 jwt 时，token 检验或更新异常！响应code：${httpStore.httpResponse.code}'), st: null);
+          .setError(vm: '请重新登陆！', descp: Description(''), e: Exception('PathType 为 jwt 时，token 检验或更新异常！响应code：${httpStore.httpResponse.code}'), st: null);
       return true;
     }
     return false;

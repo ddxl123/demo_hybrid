@@ -121,7 +121,7 @@ class TransferExecutor {
   ///  TODO: 未整理 [resultDataCast]
   /// 关于 [resultDataCast]：
   ///
-  ///   > - 如果 [R] 是 [SingleResult] 类型（即 [executeForWhichEngine] 非 [EngineEntryName.NATIVE] ），则 [resultDataCast] 的数据为 [SingleResult.data]。
+  ///   > - 如果 [R] 是 [SingleResult] 类型（即 [executeForWhichEngine] 非 [EngineEntryName.NATIVE] ），则 [resultDataCast] 的数据为 [SingleResult._data]。
   ///
   ///   > - 如果 [R] 不是 [SingleResult] 类型（即 [executeForWhichEngine] 为 [EngineEntryName.NATIVE] ），则 [resultDataCast] 的数据为 [R] 本身。
   ///
@@ -261,7 +261,7 @@ class TransferExecutor {
               putOperationData: setOperationData!,
               resultDataCast: resultDataCast,
             );
-            returnResult.setAnyClone(operationResult);
+            returnResult.setCompleteClone(operationResult);
           }
 
           // 配置 view 成功，无需进行 operation 配置。
@@ -291,7 +291,7 @@ class TransferExecutor {
         operationId: OUniform.IS_ENGINE_ON_READY,
         putOperationData: () {},
         resultDataCast: (Object result) => SingleResult<bool>.fromJson(
-          resultJson: result.quickCast(),
+          json: result.quickCast(),
           dataCast: (Object data) => data as bool,
         ),
       );
@@ -375,7 +375,7 @@ class TransferExecutor {
       endViewParams: endViewParams,
       closeViewAfterSeconds: closeViewAfterSeconds,
       resultDataCast: (Object resultData) => SingleResult<R>.fromJson(
-        resultJson: resultData.quickCast(),
+        json: resultData.quickCast(),
         dataCast: resultDataCast,
       ),
     );
@@ -425,7 +425,7 @@ class TransferExecutor {
       operationId: operationId,
       putOperationData: setSendData,
       resultDataCast: (Object data) => SingleResult<R>.fromJson(
-        resultJson: data.quickCast(),
+        json: data.quickCast(),
         dataCast: resultDataCast,
       ),
     );

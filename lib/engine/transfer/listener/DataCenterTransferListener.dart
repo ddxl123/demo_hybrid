@@ -1,7 +1,7 @@
 import 'package:hybrid/data/mysql/http/HttpCurd.dart';
 import 'package:hybrid/data/mysql/httpstore/handler/HttpStore.dart';
 import 'package:hybrid/data/sqlite/sqliter/OpenSqlite.dart';
-import 'package:hybrid/data/sqlite/sqliter/SqliteCurd.dart';
+import 'package:hybrid/data/sqlite/sqliter/SqliteCurdBasis.dart';
 import 'package:hybrid/data/sqlite/sqliter/SqliteCurdWrapper.dart';
 import 'package:hybrid/engine/constant/o/OUniform.dart';
 import 'package:hybrid/engine/transfer/TransferManager.dart';
@@ -66,7 +66,7 @@ class DataCenterTransferListener extends TransferListener {
             return returnResult.setError(vm: '事务处理异常！', descp: Description(''), e: Exception('事务 curd 时，不存在该 chainId！'), st: null);
           }
 
-          return await SqliteCurd.fromCurdWrapperJson(
+          return await SqliteCurdBasis.fromCurdWrapperJson(
             curdWrapper: curdWrapper,
             transactionWrapper: TransferManager.instance.sqliteCurdTransactionsInDataCenter[chainId]!,
           );

@@ -77,6 +77,17 @@ class HttpResponse<RESPHVO extends ResponseHeadersVO, RESPDVO extends ResponseDa
     this.responseHeadersVO.addAll(responseHeadersVO);
   }
 
+  void resetAll(HttpResponse newHttpResponse) {
+    responseCodeCollect.clear();
+    responseCodeCollect.addAll(newHttpResponse.responseCodeCollect);
+    code = newHttpResponse.code;
+    viewMessage = newHttpResponse.viewMessage;
+    responseDataVO.clear();
+    responseDataVO.addAll(newHttpResponse.responseDataVO);
+    responseHeadersVO.clear();
+    responseHeadersVO.addAll(newHttpResponse.responseHeadersVO);
+  }
+
   RESPHVO getResponseHeadersVO(HttpStore hs) => hs.toVOForResponseHeadersVO(responseHeadersVO) as RESPHVO;
 
   RESPDVO getResponseDataVO(HttpStore hs) => hs.toVOForResponseDataVO(responseDataVO) as RESPDVO;

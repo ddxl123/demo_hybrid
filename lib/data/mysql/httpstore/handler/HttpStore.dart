@@ -16,24 +16,20 @@ abstract class HttpStore<REQHVO extends RequestHeadersVO, REQPVO extends Request
     try {
       httpRequest = putHttpRequest();
       if (httpRequest.method == 'GET' && httpRequest.requestDataVO.isNotEmpty) {
-        httpHandler.setCancel(vm: '请求方法异常！', descp: Description(''), e: Exception('method:GET, requestDataVO: isNotEmpty'), st: null);
+        httpHandler.setError(vm: '请求方法异常！', descp: Description(''), e: Exception('method:GET, requestDataVO: isNotEmpty'), st: null);
       } else if (httpRequest.method == 'POST' && httpRequest.requestParamsVO.isNotEmpty) {
-        httpHandler.setCancel(vm: '请求方法异常！', descp: Description(''), e: Exception('method:POST, requestParamsVO: isNotEmpty'), st: null);
+        httpHandler.setError(vm: '请求方法异常！', descp: Description(''), e: Exception('method:POST, requestParamsVO: isNotEmpty'), st: null);
       }
       httpResponse = HttpResponse<RESPHVO, RESPDVO, RESPCCOL>(putResponseCodeCollect: putResponseCodeCollect.toJson());
     } catch (e, st) {
-      httpHandler.setCancel(vm: '', descp: Description(''), e: e, st: st);
+      httpHandler.setError(vm: '', descp: Description(''), e: e, st: st);
     }
   }
 
   HttpStore.fromJson(Map<String, Object?> json) {
-    if (json['httpRequest'] == null && json['httpResponse'] == null) {
-      httpHandler = HttpHandler.fromJson(this, json['httpHandler']!.quickCast());
-    } else {
-      httpRequest = HttpRequest.fromJson(json['httpRequest']!.quickCast());
-      httpResponse = HttpResponse.fromJson(json['httpResponse']!.quickCast());
-      httpHandler = HttpHandler.fromJson(this, json['httpHandler']!.quickCast());
-    }
+    httpRequest = HttpRequest.fromJson(json['httpRequest']!.quickCast());
+    httpResponse = HttpResponse.fromJson(json['httpResponse']!.quickCast());
+    httpHandler = HttpHandler.fromJson(json['httpHandler']!.quickCast());
   }
 
   @override
@@ -62,8 +58,8 @@ abstract class HttpStore<REQHVO extends RequestHeadersVO, REQPVO extends Request
   RESPCCOL toVOForResponseCodeCollect(Map<String, Object?> json);
 }
 
-class HttpStore_Single extends HttpStore {
-  HttpStore_Single.fromJson(Map<String, Object?> json) : super.fromJson(json);
+class HttpStore_Any extends HttpStore {
+  HttpStore_Any.fromJson(Map<String, Object?> json) : super.fromJson(json);
 
   @override
   RequestDataVO toVOForRequestDataVO(Map<String, Object?> json) {

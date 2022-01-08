@@ -88,7 +88,7 @@ class SingleResult<D> extends DoSerializable {
     return this;
   }
 
-  /// TODO: 找出 [setCompleteClone] 未修改的。
+  /// TODO: 找出 [resetAll] 未修改的。
   SingleResult<D> setErrorClone(SingleResult<Object?> from) {
     return setError(
       vm: from.getRequiredVm(),
@@ -98,7 +98,7 @@ class SingleResult<D> extends DoSerializable {
     );
   }
 
-  SingleResult<D> setCompleteClone(SingleResult<D> from) {
+  SingleResult<D> resetAll(SingleResult<D> from) {
     _data = from._data;
     _exception = from._exception;
     _description = from._description;

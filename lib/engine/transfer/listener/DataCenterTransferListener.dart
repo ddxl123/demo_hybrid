@@ -83,8 +83,8 @@ class DataCenterTransferListener extends TransferListener {
       case OUniform.HTTP_CURD:
         final Map<String, Object?> dataMap = operationData!.quickCast();
         try {
-          final HttpStore_Single httpStoreSingle = await HttpCurd.sendRequest(
-            httpStore: HttpStore_Single.fromJson(dataMap['putHttpStore']!.quickCast()),
+          final HttpStore_Any httpStoreSingle = await HttpCurd.sendRequest(
+            httpStore: HttpStore_Any.fromJson(dataMap['putHttpStore']!.quickCast()),
             sameNotConcurrent: dataMap['sameNotConcurrent'] as String?,
             isBanAllOtherRequest: dataMap['isBanAllOtherRequest']! as bool,
           );

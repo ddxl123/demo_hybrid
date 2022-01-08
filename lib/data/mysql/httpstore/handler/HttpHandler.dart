@@ -11,19 +11,14 @@ class HttpHandler {
     _singleResult.setData(httpStore);
   }
 
+  HttpHandler.empty();
+
   /// 必须额外配置 [data]。
-  factory HttpHandler.fromJson(HttpStore httpStore, Map<String, Object?> json) => HttpHandler(httpStore)
-    .._singleResult.setCompleteClone(
-      SingleResult<HttpStore>.fromJson(
-        json: json..addAll(<String, Object>{'data': httpStore}),
-        dataCast: (Object data) => data as HttpStore,
-      ),
-    );
+  factory HttpHandler.fromJson(Map<String, Object?> json) =>
+      HttpHandler.empty().._singleResult.resetAll(SingleResult.fromJson(json: json, dataCast: (Object data) => data as HttpStore));
 
   /// 必须额外移除 [data]
-  Map<String, Object?> toJson() {
-    return _singleResult.toJson()..remove('data');
-  }
+  Map<String, Object?> toJson() => _singleResult.toJson();
 
   final SingleResult<HttpStore> _singleResult = SingleResult<HttpStore>();
 
@@ -78,5 +73,9 @@ class HttpHandler {
         await doCancel(_singleResult as SingleResult<HS>);
       },
     );
+  }
+
+  void resetAll(HttpHandler newHttpHandler) {
+    _singleResult.resetAll(newHttpHandler._singleResult);
   }
 }

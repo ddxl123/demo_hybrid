@@ -133,17 +133,17 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
                   }
                   return false;
                 },
-                doCancel: (HttpHandler hh) async {
+                doCancel: (SingleResult<HttpStore_login_and_register_by_email_send_email> hh) async {
                   timer?.cancel();
                   timer = null;
                   text = '重新发送';
                   state.refresh();
                   SbLogger(
                     c: -1,
-                    vm: hh.getRequiredViewMessage(),
+                    vm: hh.getRequiredVm(),
                     data: null,
-                    descp: hh.getRequiredDescription(),
-                    e: hh.getRequiredException(),
+                    descp: hh.getRequiredDescp(),
+                    e: hh.getRequiredE(),
                     st: hh.stackTrace,
                   ).withAll(true);
                 },
@@ -236,7 +236,7 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
               }
               return false;
             },
-            doCancel: (HttpHandler hh) async {},
+            doCancel: (SingleResult<HttpStore_login_and_register_by_email_verify_email> hh) async {},
           );
         },
       ),

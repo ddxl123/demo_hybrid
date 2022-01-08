@@ -9,12 +9,11 @@ import '../TransferManager.dart';
 class HttpCurdTransferExecutor {
   ///
 
-  /// [resultJson] 需要手动转换成 [HttpStore]。
+  /// 传入的 [httpStore] 与返回的对象 是同一个对象。
   Future<HS> sendRequest<HS extends HttpStore>({
     required HS httpStore,
     required String? sameNotConcurrent,
     bool isBanAllOtherRequest = false,
-    required Future<HS> jsonToHS(Map<String, Object?> json),
   }) async {
     final SingleResult<Map<String, Object?>> executeResult = await TransferManager.instance.transferExecutor.executeWithViewAndOperation(
       executeForWhichEngine: EngineEntryName.DATA_CENTER,
@@ -33,19 +32,14 @@ class HttpCurdTransferExecutor {
 
     return await executeResult.handle<HS>(
       doSuccess: (Map<String, Object?> successData) async {
-        return await jsonToHS(successData);
+        final HttpStore_Any any = HttpStore_Any.fromJson(successData);
+        httpStore.httpResponse.resetAll(any.httpResponse);
+        httpStore.httpHandler.resetAll(any.httpHandler);
+        return httpStore;
       },
       doError: (SingleResult<Map<String, Object?>> errorResult) async {
-        return await jsonToHS(
-          <String, Object?>{
-            'httpHandler': HttpHandler.error(
-              vm: errorResult.getRequiredVm(),
-              descp: errorResult.getRequiredDescp(),
-              e: errorResult.getRequiredE(),
-              st: errorResult.stackTrace,
-            ).toJson(),
-          },
-        );
+        httpStore.httpHandler.resetAll(HttpHandler.fromJson(errorResult.toJson()));
+        return httpStore;
       },
     );
   }

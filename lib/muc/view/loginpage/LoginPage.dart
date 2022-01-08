@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:hybrid/data/mysql/httpstore/handler/HttpHandler.dart';
 import 'package:hybrid/data/mysql/httpstore/store/HttpStore_login_and_register_by_email_send_email.dart';
 import 'package:hybrid/data/mysql/httpstore/store/HttpStore_login_and_register_by_email_verify_email.dart';
 import 'package:hybrid/data/sqlite/mmodel/MUser.dart';
@@ -121,7 +120,6 @@ class LoginPage extends SbRoute {
                 ),
                 sameNotConcurrent: null,
                 isBanAllOtherRequest: true,
-                jsonToHS: (Map<String, Object?> json) async => HttpStore_login_and_register_by_email_send_email.fromJson(json),
               );
               await requestResult.httpHandler.handle<HttpStore_login_and_register_by_email_send_email>(
                 doContinue: (HttpStore_login_and_register_by_email_send_email hs) async {
@@ -139,17 +137,17 @@ class LoginPage extends SbRoute {
                   }
                   return false;
                 },
-                doCancel: (HttpHandler hh) async {
+                doCancel: (SingleResult<HttpStore_login_and_register_by_email_send_email> hh) async {
                   timer?.cancel();
                   timer = null;
                   text = '重新发送';
                   state.refresh();
                   SbLogger(
                     c: null,
-                    vm: hh.getRequiredViewMessage(),
+                    vm: hh.getRequiredVm(),
                     data: null,
-                    descp: hh.getRequiredDescription(),
-                    e: hh.getRequiredException(),
+                    descp: hh.getRequiredDescp(),
+                    e: hh.getRequiredE(),
                     st: hh.stackTrace,
                   ).withAll(true);
                 },
@@ -183,7 +181,6 @@ class LoginPage extends SbRoute {
               ),
               sameNotConcurrent: null,
               isBanAllOtherRequest: true,
-              jsonToHS: (Map<String, Object?> json) async => HttpStore_login_and_register_by_email_verify_email.fromJson(json),
             );
             await requestResult.httpHandler.handle<HttpStore_login_and_register_by_email_verify_email>(
               doContinue: (HttpStore_login_and_register_by_email_verify_email hs) async {
@@ -222,14 +219,14 @@ class LoginPage extends SbRoute {
                 }
                 return false;
               },
-              doCancel: (HttpHandler hh) async {
+              doCancel: (SingleResult<HttpStore_login_and_register_by_email_verify_email> hh) async {
                 // 登陆/注册失败
                 SbLogger(
                   c: null,
-                  vm: hh.getRequiredViewMessage(),
+                  vm: hh.getRequiredVm(),
                   data: null,
-                  descp: hh.getRequiredDescription(),
-                  e: hh.getRequiredException(),
+                  descp: hh.getRequiredDescp(),
+                  e: hh.getRequiredDescp(),
                   st: hh.stackTrace,
                 ).withAll(true);
               },

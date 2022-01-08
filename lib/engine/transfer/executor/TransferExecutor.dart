@@ -261,7 +261,7 @@ class TransferExecutor {
               putOperationData: setOperationData!,
               resultDataCast: resultDataCast,
             );
-            returnResult.setCompleteClone(operationResult);
+            returnResult.resetAll(operationResult);
           }
 
           // 配置 view 成功，无需进行 operation 配置。

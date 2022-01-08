@@ -19,17 +19,17 @@ class SqliteCurdBasis {
       switch (curdWrapper.curdType) {
         case 'C':
           returnResult
-              .setCompleteClone(await insertRowReturnJson(putInsertWrapper: () => curdWrapper as InsertWrapper, transactionWrapper: transactionWrapper));
+              .resetAll(await insertRowReturnJson(putInsertWrapper: () => curdWrapper as InsertWrapper, transactionWrapper: transactionWrapper));
           break;
         case 'U':
           returnResult
-              .setCompleteClone(await updateRowReturnJson(putUpdateWrapper: () => curdWrapper as UpdateWrapper, transactionWrapper: transactionWrapper));
+              .resetAll(await updateRowReturnJson(putUpdateWrapper: () => curdWrapper as UpdateWrapper, transactionWrapper: transactionWrapper));
           break;
         case 'R':
-          returnResult.setCompleteClone(await queryRowsReturnJson(putQueryWrapper: () => curdWrapper as QueryWrapper, transactionWrapper: transactionWrapper));
+          returnResult.resetAll(await queryRowsReturnJson(putQueryWrapper: () => curdWrapper as QueryWrapper, transactionWrapper: transactionWrapper));
           break;
         case 'D':
-          returnResult.setCompleteClone(await deleteRow(putDeleteWrapper: () => curdWrapper as DeleteWrapper, transactionWrapper: transactionWrapper));
+          returnResult.resetAll(await deleteRow(putDeleteWrapper: () => curdWrapper as DeleteWrapper, transactionWrapper: transactionWrapper));
           break;
         default:
           throw '未知 curdType！';

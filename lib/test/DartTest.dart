@@ -3,7 +3,9 @@ void main() {
 }
 
 void a() {
-  Object? aa = <Object, Object?>{};
-  Object? o = <String, Object?>{'a': aa};
-  print((o as Map)['a']['mm']);
+  A() as B;
 }
+
+class A {}
+
+class B extends A {}

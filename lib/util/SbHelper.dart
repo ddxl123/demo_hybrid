@@ -30,6 +30,14 @@ class SingleResult<D> extends DoSerializable {
         'stackTrace': stackTrace?.toString(),
       };
 
+  Map<String, Object?> toJsonExcludeData() => <String, Object?>{
+        'data': null,
+        'viewMessage': _viewMessage,
+        'description': _description?.toJson(),
+        'exception': _exception?.toString(),
+        'stackTrace': stackTrace?.toString(),
+      };
+
   D? _data;
 
   D getRequiredData() => _data!;
@@ -100,6 +108,14 @@ class SingleResult<D> extends DoSerializable {
 
   SingleResult<D> resetAll(SingleResult<D> from) {
     _data = from._data;
+    _exception = from._exception;
+    _description = from._description;
+    _viewMessage = from._viewMessage;
+    stackTrace = from.stackTrace;
+    return this;
+  }
+
+  SingleResult<D> resetAllExcludeData(SingleResult<D> from) {
     _exception = from._exception;
     _description = from._description;
     _viewMessage = from._viewMessage;

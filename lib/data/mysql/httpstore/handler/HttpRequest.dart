@@ -38,26 +38,24 @@ extension PathTypeExt on PathType {
 
 /// 之所以 [requestHeadersVO]、[requestDataVO]、[requestParamsVO] 是回调函数，是为了对其输入的不正确数据进行置空处理，
 /// 只有被引用时才会抛出异常，而在被引用前已将该对象创建成功（哪怕请求数据是空），这样做的话，能捕获到请求数据的异常。
+///
+/// 属性完全为 json 类型。
 class HttpRequest<REQHVO extends RequestHeadersVO, REQPVO extends RequestParamsVO, REQVO extends RequestDataVO> implements DoSerializable {
   HttpRequest({
     required this.method,
     required this.path,
-    required Map<String, Object?> putRequestHeadersVO,
-    required Map<String, Object?> putRequestParamsVO,
-    required Map<String, Object?> putRequestDataVO,
-  }) {
-    requestHeadersVO.addAll(putRequestHeadersVO);
-    requestDataVO.addAll(putRequestDataVO);
-    requestParamsVO.addAll(putRequestParamsVO);
-  }
+    required this.requestHeadersVO,
+    required this.requestParamsVO,
+    required this.requestDataVO,
+  });
 
-  factory HttpRequest.fromJson(Map<String, Object?> json) {
+  factory HttpRequest.fromJson(HttpStore newHttpStore, Map<String, Object?> json) {
     return HttpRequest<REQHVO, REQPVO, REQVO>(
       method: json['method']! as String,
       path: json['path']! as String,
-      putRequestHeadersVO: json['requestHeadersVO'].quickCastNullable() ?? <String, Object?>{},
-      putRequestDataVO: json['requestDataVO'].quickCastNullable() ?? <String, Object?>{},
-      putRequestParamsVO: json['requestParamsVO'].quickCastNullable() ?? <String, Object?>{},
+      requestHeadersVO: newHttpStore.toVOForResponseHeadersVO(json['requestHeadersVO']!.quickCast()) as REQHVO,
+      requestParamsVO: newHttpStore.toVOForRequestParamsVO(json['requestDataVO']!.quickCast()) as REQPVO,
+      requestDataVO: newHttpStore.toVOForRequestDataVO(json['requestParamsVO']!.quickCast()) as REQVO,
     );
   }
 
@@ -65,9 +63,9 @@ class HttpRequest<REQHVO extends RequestHeadersVO, REQPVO extends RequestParamsV
   Map<String, Object?> toJson() => <String, Object?>{
         'method': method,
         'path': path,
-        'requestHeadersVO': requestHeadersVO,
-        'requestDataVO': requestDataVO,
-        'requestParamsVO': requestParamsVO,
+        'requestHeadersVO': requestHeadersVO.toJson(),
+        'requestDataVO': requestDataVO.toJson(),
+        'requestParamsVO': requestParamsVO.toJson(),
       };
 
   /// 请求方法。GET/POST
@@ -78,19 +76,13 @@ class HttpRequest<REQHVO extends RequestHeadersVO, REQPVO extends RequestParamsV
   String path;
 
   /// 请求头。
-  final Map<String, Object?> requestHeadersVO = <String, Object?>{};
+  final REQHVO requestHeadersVO;
 
   /// 请求体 params VO 模型。
-  final Map<String, Object?> requestParamsVO = <String, Object?>{};
+  final REQPVO requestParamsVO;
 
   /// 请求体 body VO 模型。
-  final Map<String, Object?> requestDataVO = <String, Object?>{};
-
-  REQHVO getRequestHeadersVO(HttpStore hs) => hs.toVOForRequestHeadersVO(requestHeadersVO) as REQHVO;
-
-  REQPVO getRequestParamsVO(HttpStore hs) => hs.toVOForRequestParamsVO(requestParamsVO) as REQPVO;
-
-  REQVO getRequestDataVO(HttpStore hs) => hs.toVOForRequestDataVO(requestDataVO) as REQVO;
+  final REQVO requestDataVO;
 
   /// path type
   PathType pathType() {

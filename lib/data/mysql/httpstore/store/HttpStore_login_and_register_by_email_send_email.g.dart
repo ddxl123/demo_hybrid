@@ -54,8 +54,10 @@ Map<String, dynamic> _$ResponseDataVO_LARBESEToJson(
 
 ResponseCodeCollect_LARBESE _$ResponseCodeCollect_LARBESEFromJson(
         Map<String, dynamic> json) =>
-    ResponseCodeCollect_LARBESE();
+    ResponseCodeCollect_LARBESE()..responseCode = json['responseCode'] as int?;
 
 Map<String, dynamic> _$ResponseCodeCollect_LARBESEToJson(
         ResponseCodeCollect_LARBESE instance) =>
-    <String, dynamic>{};
+    <String, dynamic>{
+      'responseCode': instance.responseCode,
+    };

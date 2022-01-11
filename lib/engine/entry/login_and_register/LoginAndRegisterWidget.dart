@@ -114,7 +114,6 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
                   requestDataVO_LARBESE: RequestDataVO_LARBESE(email: emailTextEditingController.text),
                 ),
                 sameNotConcurrent: '_sendEmailButtonHttpStore_login_and_register_by_email_send_email',
-                jsonToHS: (Map<String, Object?> json) async => HttpStore_login_and_register_by_email_send_email.fromJson(json),
               );
 
               await requestResult.httpHandler.handle<HttpStore_login_and_register_by_email_send_email>(

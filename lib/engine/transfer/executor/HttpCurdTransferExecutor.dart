@@ -38,7 +38,7 @@ class HttpCurdTransferExecutor {
         return httpStore;
       },
       doError: (SingleResult<Map<String, Object?>> errorResult) async {
-        httpStore.httpHandler.resetAll(HttpHandler.fromJson(errorResult.toJson()));
+        httpStore.httpHandler.resetAll(HttpHandler.fromJson(httpStore, errorResult.toJson()));
         return httpStore;
       },
     );

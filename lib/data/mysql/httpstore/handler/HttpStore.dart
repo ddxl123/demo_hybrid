@@ -15,21 +15,16 @@ abstract class HttpStore<REQHVO extends RequestHeadersVO, REQPVO extends Request
     httpHandler = HttpHandler(this);
     try {
       httpRequest = putHttpRequest();
-      if (httpRequest.method == 'GET' && httpRequest.requestDataVO.isNotEmpty) {
-        httpHandler.setError(vm: '请求方法异常！', descp: Description(''), e: Exception('method:GET, requestDataVO: isNotEmpty'), st: null);
-      } else if (httpRequest.method == 'POST' && httpRequest.requestParamsVO.isNotEmpty) {
-        httpHandler.setError(vm: '请求方法异常！', descp: Description(''), e: Exception('method:POST, requestParamsVO: isNotEmpty'), st: null);
-      }
-      httpResponse = HttpResponse<RESPHVO, RESPDVO, RESPCCOL>(putResponseCodeCollect: putResponseCodeCollect.toJson());
+      httpResponse = HttpResponse<RESPHVO, RESPDVO, RESPCCOL>(httpStore: this, responseCodeCollect: putResponseCodeCollect);
     } catch (e, st) {
       httpHandler.setError(vm: '', descp: Description(''), e: e, st: st);
     }
   }
 
   HttpStore.fromJson(Map<String, Object?> json) {
-    httpRequest = HttpRequest.fromJson(json['httpRequest']!.quickCast());
-    httpResponse = HttpResponse.fromJson(json['httpResponse']!.quickCast());
-    httpHandler = HttpHandler.fromJson(json['httpHandler']!.quickCast());
+    httpRequest = HttpRequest.fromJson(this, json['httpRequest']!.quickCast());
+    httpResponse = HttpResponse.fromJson(this, json['httpResponse']!.quickCast());
+    httpHandler = HttpHandler.fromJson(this, json['httpHandler']!.quickCast());
   }
 
   @override
@@ -39,10 +34,13 @@ abstract class HttpStore<REQHVO extends RequestHeadersVO, REQPVO extends Request
         'httpHandler': httpHandler.toJson(),
       };
 
+  /// [httpRequest] 内属性全为 json 类型。
   late final HttpRequest<REQHVO, REQPVO, REQVO> httpRequest;
 
+  /// [httpResponse] 内属性全为 json 类型。
   late final HttpResponse<RESPHVO, RESPDVO, RESPCCOL> httpResponse;
 
+  /// [httpHandler] 内属性只有 [SingleResult]，而 [SingleResult.getRequiredData] 为 [HttpStore] 对象。
   late final HttpHandler httpHandler;
 
   REQHVO toVOForRequestHeadersVO(Map<String, Object?> json);

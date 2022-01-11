@@ -51,8 +51,10 @@ Map<String, dynamic> _$ResponseDataVO_VTToJson(ResponseDataVO_VT instance) =>
 
 ResponseCodeCollect_VT _$ResponseCodeCollect_VTFromJson(
         Map<String, dynamic> json) =>
-    ResponseCodeCollect_VT();
+    ResponseCodeCollect_VT()..responseCode = json['responseCode'] as int?;
 
 Map<String, dynamic> _$ResponseCodeCollect_VTToJson(
         ResponseCodeCollect_VT instance) =>
-    <String, dynamic>{};
+    <String, dynamic>{
+      'responseCode': instance.responseCode,
+    };

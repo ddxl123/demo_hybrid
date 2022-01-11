@@ -32,12 +32,15 @@ UpdateWrapper<M> _$UpdateWrapperFromJson<M extends ModelBase>(
       modelTableName: json['modelTableName'] as String,
       modelId: json['modelId'] as int,
       updateContent: json['updateContent'] as Map<String, dynamic>,
-    )..curdType = json['curdType'] as String;
+    )
+      ..curdType = json['curdType'] as String
+      ..resultData = json['resultData'];
 
 Map<String, dynamic> _$UpdateWrapperToJson<M extends ModelBase>(
         UpdateWrapper<M> instance) =>
     <String, dynamic>{
       'curdType': instance.curdType,
+      'resultData': instance.resultData,
       'modelTableName': instance.modelTableName,
       'modelId': instance.modelId,
       'updateContent': instance.updateContent,
@@ -60,12 +63,15 @@ QueryWrapper<M> _$QueryWrapperFromJson<M extends ModelBase>(
       byTwoId: json['byTwoId'] == null
           ? null
           : TwoId.fromJson(json['byTwoId'] as Map<String, dynamic>),
-    )..curdType = json['curdType'] as String;
+    )
+      ..curdType = json['curdType'] as String
+      ..resultData = json['resultData'];
 
 Map<String, dynamic> _$QueryWrapperToJson<M extends ModelBase>(
         QueryWrapper<M> instance) =>
     <String, dynamic>{
       'curdType': instance.curdType,
+      'resultData': instance.resultData,
       'tableName': instance.tableName,
       'distinct': instance.distinct,
       'columns': instance.columns,
@@ -83,11 +89,14 @@ DeleteWrapper _$DeleteWrapperFromJson(Map<String, dynamic> json) =>
     DeleteWrapper(
       modelTableName: json['modelTableName'] as String,
       modelId: json['modelId'] as int?,
-    )..curdType = json['curdType'] as String;
+    )
+      ..curdType = json['curdType'] as String
+      ..resultData = json['resultData'];
 
 Map<String, dynamic> _$DeleteWrapperToJson(DeleteWrapper instance) =>
     <String, dynamic>{
       'curdType': instance.curdType,
+      'resultData': instance.resultData,
       'modelTableName': instance.modelTableName,
       'modelId': instance.modelId,
     };

@@ -1,11 +1,23 @@
 // ignore_for_file: non_constant_identifier_names
 
+import 'package:hybrid/data/mysql/httpstore/handler/HttpResponse.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 import 'HttpStore.dart';
 
+part 'HttpResponseIntercept.g.dart';
+
 /// token 验证失败需重新登陆的 code。
-class ReLoginCodeCollect {
+@JsonSerializable()
+class ReLoginCodeCollect extends ResponseCodeCollect {
+  ReLoginCodeCollect();
+
+  factory ReLoginCodeCollect.fromJson(Map<String, Object?> json) => _$ReLoginCodeCollectFromJson(json);
+
+  @override
+  Map<String, Object?> toJson() => _$ReLoginCodeCollectToJson(this);
+
   /// 用户过期，请重新登陆！
   final int C3010501 = 3010501;
 

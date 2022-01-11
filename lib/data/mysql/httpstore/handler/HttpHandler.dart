@@ -5,33 +5,33 @@ import 'package:hybrid/util/sblogger/SbLogger.dart';
 import 'HttpResponseIntercept.dart';
 import 'HttpStore.dart';
 
-/// 与 [SingleResult] 基本一致。
+/// 内属性只有 [_singleResult]。
 class HttpHandler {
   HttpHandler(HttpStore httpStore) {
     _singleResult.setData(httpStore);
   }
 
-  HttpHandler.empty();
-
   /// 必须额外配置 [data]。
-  factory HttpHandler.fromJson(Map<String, Object?> json) =>
-      HttpHandler.empty().._singleResult.resetAll(SingleResult.fromJson(json: json, dataCast: (Object data) => data as HttpStore));
+  /// 若把 data(这里为 [httpStore]) 也在 [_singleResult] 中转化成 json，而不采用将 [httpStore] 手动传入，
+  /// 则 fromJson 后，会造成真正的 [httpStore] 与 [json] 解析的 [httpStore] 不属于同一个对象的问题！
+  factory HttpHandler.fromJson(HttpStore newHttpStore, Map<String, Object?> json) => HttpHandler(newHttpStore)
+    .._singleResult.resetAllExcludeData(SingleResult.fromJson(json: json, dataCast: (Object data) => throw '当 data 为 null 时，dataCast 函数不应该被调用！'));
 
   /// 必须额外移除 [data]
-  Map<String, Object?> toJson() => _singleResult.toJson();
+  Map<String, Object?> toJson() => _singleResult.toJsonExcludeData();
 
   final SingleResult<HttpStore> _singleResult = SingleResult<HttpStore>();
 
   SingleResult<HttpStore> setPass(Response<Map<String, Object?>> response) {
     return _singleResult.setSuccess(
       putData: () => _singleResult.getRequiredData()
-        ..httpResponse.setAll(
+        ..httpResponse.setResponse(
           // 云端响应的 code 不能为空。
           code: response.data!['code']! as int,
           // 云端响应的 viewMessage 不能为空。
           viewMessage: response.data!['message']! as String,
-          responseDataVO: response.data!['data'] == null ? <String, Object?>{} : response.data!['data']!.quickCast(),
-          responseHeadersVO: response.headers.map,
+          putResponseDataVO: response.data!['data'] == null ? <String, Object?>{} : response.data!['data']!.quickCast(),
+          putResponseHeadersVO: response.headers.map,
         ),
     );
   }
@@ -48,6 +48,7 @@ class HttpHandler {
   }) async {
     await _singleResult.handle(
       doSuccess: (HttpStore successData) async {
+        successData.httpResponse.responseCodeCollect.responseCode = successData.httpResponse.code;
         final bool isIntercept = await HttpResponseIntercept(successData).intercept();
         if (isIntercept) {
           await doCancel(_singleResult as SingleResult<HS>);

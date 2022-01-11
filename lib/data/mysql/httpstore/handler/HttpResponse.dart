@@ -1,5 +1,6 @@
 // ignore_for_file: camel_case_types
 
+import 'package:hybrid/data/mysql/httpstore/handler/HttpHandler.dart';
 import 'package:hybrid/data/mysql/httpstore/handler/HttpStore.dart';
 import 'package:hybrid/util/SbHelper.dart';
 
@@ -7,39 +8,34 @@ abstract class ResponseHeadersVO extends DoSerializable {}
 
 abstract class ResponseDataVO extends DoSerializable {}
 
-abstract class ResponseCodeCollect extends DoSerializable {}
+abstract class ResponseCodeCollect extends DoSerializable {
+  /// 在 [HttpHandler.handle] 中获取。
+  int? responseCode;
+}
 
+/// 属性完全为 json 类型。
 class HttpResponse<RESPHVO extends ResponseHeadersVO, RESPDVO extends ResponseDataVO, RESPCCOL extends ResponseCodeCollect> implements DoSerializable {
-  HttpResponse({
-    required Map<String, Object?> putResponseCodeCollect,
-  }) {
-    if (responseCodeCollect.isNotEmpty) {
-      throw '_responseCodeCollect 已被添加过！';
-    }
-    responseCodeCollect.addAll(putResponseCodeCollect);
-  }
+  HttpResponse({required this.httpStore, required this.responseCodeCollect});
 
-  factory HttpResponse.fromJson(Map<String, Object?> json) {
+  factory HttpResponse.fromJson(HttpStore newHttpStore, Map<String, Object?> json) {
     return HttpResponse<RESPHVO, RESPDVO, RESPCCOL>(
-      putResponseCodeCollect: json['responseCodeCollect'].quickCastNullable() ?? <String, Object?>{},
+      httpStore: newHttpStore,
+      responseCodeCollect: newHttpStore.toVOForResponseCodeCollect(json['responseCodeCollect']!.quickCast()) as RESPCCOL,
     )
       ..code = (json['code'] as int?) ?? -1
       ..viewMessage = (json['viewMessage'] as String?) ?? '异常消息(空)'
-      ..responseDataVO.addAll(json['responseDataVO'].quickCastNullable() ?? <String, Object?>{})
-      ..responseHeadersVO.addAll(json['responseHeadersVO'].quickCastNullable() ?? <String, Object?>{});
+      ..responseHeadersVO = newHttpStore.toVOForResponseHeadersVO(json['responseHeadersVO']!.quickCast()) as RESPHVO
+      ..responseDataVO = newHttpStore.toVOForResponseDataVO(json['responseDataVO']!.quickCast()) as RESPDVO;
   }
 
   @override
   Map<String, Object?> toJson() => <String, Object?>{
-        'responseCodeCollect': responseCodeCollect,
         'code': code,
         'viewMessage': viewMessage,
-        'responseDataVO': responseDataVO,
-        'responseHeadersVO': responseHeadersVO,
+        'responseHeadersVO': responseHeadersVO.toJson(),
+        'responseDataVO': responseDataVO.toJson(),
+        'responseCodeCollect': responseCodeCollect.toJson(),
       };
-
-  /// 响应码集。
-  final Map<String, Object?> responseCodeCollect = <String, Object?>{};
 
   /// 响应码。
   ///
@@ -51,46 +47,34 @@ class HttpResponse<RESPHVO extends ResponseHeadersVO, RESPDVO extends ResponseDa
   /// 响应消息。
   String viewMessage = '异常消息（默认消息）！';
 
-  /// 响应体 data VO 模型。
-  final Map<String, Object?> responseDataVO = <String, Object?>{};
+  final HttpStore httpStore;
 
   /// 响应头。
-  final Map<String, Object?> responseHeadersVO = <String, Object?>{};
+  late RESPHVO responseHeadersVO;
 
-  void setAll({
+  /// 响应体 data VO 模型。
+  late RESPDVO responseDataVO;
+
+  /// 响应码集。
+  late RESPCCOL responseCodeCollect;
+
+  void setResponse({
     required int code,
     required String viewMessage,
-    required Map<String, Object?> responseDataVO,
-    required Map<String, Object?> responseHeadersVO,
+    required Map<String, Object?> putResponseHeadersVO,
+    required Map<String, Object?> putResponseDataVO,
   }) {
     this.code = code;
     this.viewMessage = viewMessage;
-
-    if (this.responseDataVO.isNotEmpty) {
-      throw 'responseDataVO 已被添加过！';
-    }
-    this.responseDataVO.addAll(responseDataVO);
-
-    if (this.responseHeadersVO.isNotEmpty) {
-      throw 'responseHeadersVO 已被添加过！';
-    }
-    this.responseHeadersVO.addAll(responseHeadersVO);
+    responseHeadersVO = httpStore.toVOForResponseHeadersVO(putResponseHeadersVO) as RESPHVO;
+    responseDataVO = httpStore.toVOForResponseDataVO(putResponseDataVO) as RESPDVO;
   }
 
   void resetAll(HttpResponse newHttpResponse) {
-    responseCodeCollect.clear();
-    responseCodeCollect.addAll(newHttpResponse.responseCodeCollect);
     code = newHttpResponse.code;
     viewMessage = newHttpResponse.viewMessage;
-    responseDataVO.clear();
-    responseDataVO.addAll(newHttpResponse.responseDataVO);
-    responseHeadersVO.clear();
-    responseHeadersVO.addAll(newHttpResponse.responseHeadersVO);
+    responseDataVO = newHttpResponse.responseDataVO as RESPDVO;
+    responseHeadersVO = newHttpResponse.responseHeadersVO as RESPHVO;
+    responseCodeCollect = newHttpResponse.responseCodeCollect as RESPCCOL;
   }
-
-  RESPHVO getResponseHeadersVO(HttpStore hs) => hs.toVOForResponseHeadersVO(responseHeadersVO) as RESPHVO;
-
-  RESPDVO getResponseDataVO(HttpStore hs) => hs.toVOForResponseDataVO(responseDataVO) as RESPDVO;
-
-  RESPCCOL getResponseCodeCollect(HttpStore hs) => hs.toVOForResponseCodeCollect(responseCodeCollect) as RESPCCOL;
 }

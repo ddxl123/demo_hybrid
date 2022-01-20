@@ -9,11 +9,13 @@ part of 'HttpStore_verify_token.dart';
 // **************************************************************************
 
 RequestHeadersVO_VT _$RequestHeadersVO_VTFromJson(Map<String, dynamic> json) =>
-    RequestHeadersVO_VT();
+    RequestHeadersVO_VT()..authorization = json['authorization'] as String;
 
 Map<String, dynamic> _$RequestHeadersVO_VTToJson(
         RequestHeadersVO_VT instance) =>
-    <String, dynamic>{};
+    <String, dynamic>{
+      'authorization': instance.authorization,
+    };
 
 RequestParamsVO_VT _$RequestParamsVO_VTFromJson(Map<String, dynamic> json) =>
     RequestParamsVO_VT();
@@ -51,10 +53,8 @@ Map<String, dynamic> _$ResponseDataVO_VTToJson(ResponseDataVO_VT instance) =>
 
 ResponseCodeCollect_VT _$ResponseCodeCollect_VTFromJson(
         Map<String, dynamic> json) =>
-    ResponseCodeCollect_VT()..responseCode = json['responseCode'] as int?;
+    ResponseCodeCollect_VT();
 
 Map<String, dynamic> _$ResponseCodeCollect_VTToJson(
         ResponseCodeCollect_VT instance) =>
-    <String, dynamic>{
-      'responseCode': instance.responseCode,
-    };
+    <String, dynamic>{};

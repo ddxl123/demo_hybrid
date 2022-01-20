@@ -124,9 +124,9 @@ class LoginPage extends SbRoute {
               await requestResult.httpHandler.handle<HttpStore_login_and_register_by_email_send_email>(
                 doContinue: (HttpStore_login_and_register_by_email_send_email hs) async {
                   // 发送成功。
-                  if (hs.httpResponse.code == hs.httpResponse.getResponseCodeCollect(hs).C2_01_01_01) {
+                  if (hs.respccolHelper.C2_01_01_01().judge()) {
                     SbLogger(
-                      c: hs.httpResponse.code,
+                      c: hs.httpResponse.responseCode,
                       vm: hs.httpResponse.viewMessage,
                       data: null,
                       descp: Description(''),
@@ -185,8 +185,7 @@ class LoginPage extends SbRoute {
             await requestResult.httpHandler.handle<HttpStore_login_and_register_by_email_verify_email>(
               doContinue: (HttpStore_login_and_register_by_email_verify_email hs) async {
                 // 登陆/注册成功
-                if (hs.httpResponse.code == hs.httpResponse.getResponseCodeCollect(hs).C2_01_02_01 ||
-                    hs.httpResponse.code == hs.httpResponse.getResponseCodeCollect(hs).C2_01_02_02) {
+                if (hs.respccolHelper.C2_01_02_01().C2_01_02_02().judge()) {
                   // TODO:
                   // 云端 token 生成成功，存储至本地。
                   final MUser newToken = MUser.createModel(
@@ -198,7 +197,7 @@ class LoginPage extends SbRoute {
                     email: null,
                     age: null,
                     // 无论 token 值是否有问题，都进行存储。
-                    token: hs.httpResponse.getResponseDataVO(hs).token,
+                    token: hs.httpResponse.responseDataVO.token,
                     is_downloaded_init_data: null,
                     created_at: SbHelper.newTimestamp,
                     updated_at: SbHelper.newTimestamp,

@@ -3,6 +3,7 @@
 import 'package:hybrid/data/mysql/httpstore/handler/HttpHandler.dart';
 import 'package:hybrid/data/mysql/httpstore/handler/HttpStore.dart';
 import 'package:hybrid/util/SbHelper.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 abstract class ResponseHeadersVO extends DoSerializable {}
 
@@ -10,7 +11,19 @@ abstract class ResponseDataVO extends DoSerializable {}
 
 abstract class ResponseCodeCollect extends DoSerializable {
   /// 在 [HttpHandler.handle] 中获取。
-  int? responseCode;
+  @JsonKey(ignore: true)
+  late HttpStore httpStore;
+
+  @JsonKey(ignore: true)
+  bool isFinal = false;
+
+  bool judge() {
+    if (isFinal) {
+      isFinal = false;
+      return true;
+    }
+    return false;
+  }
 }
 
 /// 属性完全为 json 类型。
@@ -22,7 +35,7 @@ class HttpResponse<RESPHVO extends ResponseHeadersVO, RESPDVO extends ResponseDa
       httpStore: newHttpStore,
       responseCodeCollect: newHttpStore.toVOForResponseCodeCollect(json['responseCodeCollect']!.quickCast()) as RESPCCOL,
     )
-      ..code = (json['code'] as int?) ?? -1
+      ..responseCode = (json['code'] as int?) ?? -1
       ..viewMessage = (json['viewMessage'] as String?) ?? '异常消息(空)'
       ..responseHeadersVO = newHttpStore.toVOForResponseHeadersVO(json['responseHeadersVO']!.quickCast()) as RESPHVO
       ..responseDataVO = newHttpStore.toVOForResponseDataVO(json['responseDataVO']!.quickCast()) as RESPDVO;
@@ -30,7 +43,7 @@ class HttpResponse<RESPHVO extends ResponseHeadersVO, RESPDVO extends ResponseDa
 
   @override
   Map<String, Object?> toJson() => <String, Object?>{
-        'code': code,
+        'code': responseCode,
         'viewMessage': viewMessage,
         'responseHeadersVO': responseHeadersVO.toJson(),
         'responseDataVO': responseDataVO.toJson(),
@@ -42,7 +55,7 @@ class HttpResponse<RESPHVO extends ResponseHeadersVO, RESPDVO extends ResponseDa
   /// -1 表示赋值了 null；
   ///
   /// -2 表示未对其赋值。
-  int code = -2;
+  int responseCode = -2;
 
   /// 响应消息。
   String viewMessage = '异常消息（默认消息）！';
@@ -64,14 +77,14 @@ class HttpResponse<RESPHVO extends ResponseHeadersVO, RESPDVO extends ResponseDa
     required Map<String, Object?> putResponseHeadersVO,
     required Map<String, Object?> putResponseDataVO,
   }) {
-    this.code = code;
+    responseCode = code;
     this.viewMessage = viewMessage;
     responseHeadersVO = httpStore.toVOForResponseHeadersVO(putResponseHeadersVO) as RESPHVO;
     responseDataVO = httpStore.toVOForResponseDataVO(putResponseDataVO) as RESPDVO;
   }
 
   void resetAll(HttpResponse newHttpResponse) {
-    code = newHttpResponse.code;
+    responseCode = newHttpResponse.responseCode;
     viewMessage = newHttpResponse.viewMessage;
     responseDataVO = newHttpResponse.responseDataVO as RESPDVO;
     responseHeadersVO = newHttpResponse.responseHeadersVO as RESPHVO;

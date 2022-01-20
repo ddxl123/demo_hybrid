@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_classes_with_only_static_members
+
 import 'HttpStoreWriteWrapper.dart';
 
 class HttpStoreContent {
@@ -61,11 +63,11 @@ class ${parsePathToClassName(storeWriter)} extends HttpStore<RequestHeadersVO_${
           putHttpRequest: () => HttpRequest<RequestHeadersVO_${parsePathToSimple(storeWriter)}, RequestParamsVO_${parsePathToSimple(storeWriter)}, RequestDataVO_${parsePathToSimple(storeWriter)}>(
             method: '${storeWriter.method}',
             path: r'${storeWriter.pathType}${parsePathToA(storeWriter)}',
-            putRequestHeadersVO: requestHeadersVO_${parsePathToSimple(storeWriter)}.toJson(),
-            putRequestParamsVO: requestParamsVO_${parsePathToSimple(storeWriter)}.toJson(),
-            putRequestDataVO: requestDataVO_${parsePathToSimple(storeWriter)}.toJson(),
+            requestHeadersVO: requestHeadersVO_${parsePathToSimple(storeWriter)},
+            requestParamsVO: requestParamsVO_${parsePathToSimple(storeWriter)},
+            requestDataVO: requestDataVO_${parsePathToSimple(storeWriter)},
           ),
-          putResponseCodeCollect: ResponseCodeCollect_${parsePathToSimple(storeWriter)}(),
+          responseCodeCollect: ResponseCodeCollect_${parsePathToSimple(storeWriter)}(),
         );
 
   ${parsePathToClassName(storeWriter)}.fromJson(Map<String, Object?> json) : super.fromJson(json);
@@ -238,12 +240,21 @@ class ResponseCodeCollect_${parsePathToSimple(storeWriter)} extends ResponseCode
   @override
   Map<String, Object?> toJson() => _\$ResponseCodeCollect_${parsePathToSimple(storeWriter)}ToJson(this);
 
-  ${() {
-      String content = '';
+${() {
+      String allContent = '';
       for (final WriteCodeWrapper value in storeWriter.responseCodeCollect) {
-        content += '/// ${value.tip}\n    final int ${parseCode(value)} = ${value.code};\n';
+        allContent += """
+  /// ${value.tip}
+  ResponseCodeCollect_${parsePathToSimple(storeWriter)} ${parseCode(value)}() {
+    if (httpStore.httpResponse.responseCode == ${value.code}) {
+      isFinal = true;
+    }
+    return this;
+  }
+    
+""";
       }
-      return content;
+      return allContent;
     }()}
 }    
 ''';

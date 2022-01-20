@@ -10,11 +10,13 @@ part of 'HttpStore_login_and_register_by_email_send_email.dart';
 
 RequestHeadersVO_LARBESE _$RequestHeadersVO_LARBESEFromJson(
         Map<String, dynamic> json) =>
-    RequestHeadersVO_LARBESE();
+    RequestHeadersVO_LARBESE()..authorization = json['authorization'] as String;
 
 Map<String, dynamic> _$RequestHeadersVO_LARBESEToJson(
         RequestHeadersVO_LARBESE instance) =>
-    <String, dynamic>{};
+    <String, dynamic>{
+      'authorization': instance.authorization,
+    };
 
 RequestParamsVO_LARBESE _$RequestParamsVO_LARBESEFromJson(
         Map<String, dynamic> json) =>
@@ -54,10 +56,8 @@ Map<String, dynamic> _$ResponseDataVO_LARBESEToJson(
 
 ResponseCodeCollect_LARBESE _$ResponseCodeCollect_LARBESEFromJson(
         Map<String, dynamic> json) =>
-    ResponseCodeCollect_LARBESE()..responseCode = json['responseCode'] as int?;
+    ResponseCodeCollect_LARBESE();
 
 Map<String, dynamic> _$ResponseCodeCollect_LARBESEToJson(
         ResponseCodeCollect_LARBESE instance) =>
-    <String, dynamic>{
-      'responseCode': instance.responseCode,
-    };
+    <String, dynamic>{};

@@ -9,9 +9,7 @@ part of 'HttpResponseIntercept.dart';
 // **************************************************************************
 
 ReLoginCodeCollect _$ReLoginCodeCollectFromJson(Map<String, dynamic> json) =>
-    ReLoginCodeCollect()..responseCode = json['responseCode'] as int?;
+    ReLoginCodeCollect();
 
 Map<String, dynamic> _$ReLoginCodeCollectToJson(ReLoginCodeCollect instance) =>
-    <String, dynamic>{
-      'responseCode': instance.responseCode,
-    };
+    <String, dynamic>{};

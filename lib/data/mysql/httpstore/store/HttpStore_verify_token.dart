@@ -19,11 +19,11 @@ class HttpStore_verify_token extends HttpStore<RequestHeadersVO_VT, RequestParam
           putHttpRequest: () => HttpRequest<RequestHeadersVO_VT, RequestParamsVO_VT, RequestDataVO_VT>(
             method: 'POST',
             path: r'no_jwt/verify_token',
-            putRequestHeadersVO: requestHeadersVO_VT.toJson(),
-            putRequestParamsVO: requestParamsVO_VT.toJson(),
-            putRequestDataVO: requestDataVO_VT.toJson(),
+            requestHeadersVO: requestHeadersVO_VT,
+            requestParamsVO: requestParamsVO_VT,
+            requestDataVO: requestDataVO_VT,
           ),
-          putResponseCodeCollect: ResponseCodeCollect_VT(),
+          responseCodeCollect: ResponseCodeCollect_VT(),
         );
 
   HttpStore_verify_token.fromJson(Map<String, Object?> json) : super.fromJson(json);
@@ -118,5 +118,5 @@ class ResponseCodeCollect_VT extends ResponseCodeCollect {
   @override
   Map<String, Object?> toJson() => _$ResponseCodeCollect_VTToJson(this);
 
-  
+
 }    

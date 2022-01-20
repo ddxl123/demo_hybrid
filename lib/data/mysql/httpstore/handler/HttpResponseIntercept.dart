@@ -42,15 +42,16 @@ class HttpResponseIntercept {
     return await _tokenExceptionIntercept();
   }
 
+  /// 返回是否已被拦截。
   Future<bool> _tokenExceptionIntercept() async {
     // 当 pathType 为 jwt 时，若 token 检验或更新异常，则重新登陆。
-    if (httpStore.httpResponse.code == reLoginCodeCollect.C3010501 ||
-        httpStore.httpResponse.code == reLoginCodeCollect.C3010502 ||
-        httpStore.httpResponse.code == reLoginCodeCollect.C3010503 ||
-        httpStore.httpResponse.code == reLoginCodeCollect.C3010504) {
+    if (httpStore.httpResponse.responseCode == reLoginCodeCollect.C3010501 ||
+        httpStore.httpResponse.responseCode == reLoginCodeCollect.C3010502 ||
+        httpStore.httpResponse.responseCode == reLoginCodeCollect.C3010503 ||
+        httpStore.httpResponse.responseCode == reLoginCodeCollect.C3010504) {
       // TODO: 这里弹出登陆框。注意，登陆时 token 生成发生异常会被重复触发 重新登陆 的操作，因此需要约束一下登陆弹框的单例性。
-      httpStore.httpHandler
-          .setError(vm: '请重新登陆！', descp: Description(''), e: Exception('PathType 为 jwt 时，token 检验或更新异常！响应code：${httpStore.httpResponse.code}'), st: null);
+      httpStore.httpHandler.setError(
+          vm: '请重新登陆！', descp: Description(''), e: Exception('PathType 为 jwt 时，token 检验或更新异常！响应code：${httpStore.httpResponse.responseCode}'), st: null);
       return true;
     }
     return false;

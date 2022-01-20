@@ -82,9 +82,7 @@ class HttpCurd {
               return true;
             }
             user = result.first;
-            httpStore.httpRequest.requestHeadersVO.addAll(
-              <String, Object?>{'authorization': 'bearer ' + (user.get_token ?? '')},
-            );
+            httpStore.httpRequest.requestHeadersVO.setAuthorizationByBearer(user.get_token ?? 'is_jwt_but_token_null');
             return false;
           },
           doError: (SingleResult<List<MUser>> errorResult) async {
@@ -121,10 +119,10 @@ class HttpCurd {
       final Response<Map<String, Object?>> response = await Httper.dio.request<Map<String, Object?>>(
         httpStore.httpRequest.path,
         data: httpStore.httpRequest.requestDataVO,
-        queryParameters: httpStore.httpRequest.requestParamsVO,
+        queryParameters: httpStore.httpRequest.requestParamsVO.toJson(),
         options: Options(
           method: httpStore.httpRequest.method,
-          headers: httpStore.httpRequest.requestHeadersVO,
+          headers: httpStore.httpRequest.requestHeadersVO.toJson(),
         ),
       );
 

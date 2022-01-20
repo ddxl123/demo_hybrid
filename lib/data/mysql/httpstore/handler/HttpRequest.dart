@@ -3,7 +3,13 @@
 import 'package:hybrid/data/mysql/httpstore/handler/HttpStore.dart';
 import 'package:hybrid/util/SbHelper.dart';
 
-abstract class RequestHeadersVO extends DoSerializable {}
+abstract class RequestHeadersVO extends DoSerializable {
+  String authorization = 'null_authorization';
+
+  void setAuthorizationByBearer(String token) {
+    authorization = 'bearer $token';
+  }
+}
 
 abstract class RequestParamsVO extends DoSerializable {}
 

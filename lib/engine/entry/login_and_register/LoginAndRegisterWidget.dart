@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -119,7 +121,7 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
               await requestResult.httpHandler.handle<HttpStore_login_and_register_by_email_send_email>(
                 doContinue: (HttpStore_login_and_register_by_email_send_email hs) async {
                   // 发送成功。
-                  if (hs.httpResponse.code == hs.httpResponse.getResponseCodeCollect(hs).C2_01_01_01) {
+                  if (hs.respccolHelper.C2_01_01_01().judge()) {
                     SbLogger(
                       c: null,
                       vm: hs.httpResponse.viewMessage,
@@ -174,24 +176,22 @@ class _LoginAndRegisterWidgetState extends State<LoginAndRegisterWidget> {
           await result.httpHandler.handle(
             doContinue: (HttpStore_login_and_register_by_email_verify_email hs) async {
               // 登陆/注册成功
-              if (hs.httpResponse.code == hs.httpResponse.getResponseCodeCollect(hs).C2_01_02_01 ||
-                  hs.httpResponse.code == hs.httpResponse.getResponseCodeCollect(hs).C2_01_02_02) {
+              if (hs.respccolHelper.C2_01_02_01().C2_01_02_02().judge()) {
                 // 云端 token 生成成功，存储至本地。
                 final MUser newToken = MUser.createModel(
                   id: null,
-                  aiid: hs.httpResponse.getResponseDataVO(hs).user_id,
+                  aiid: hs.httpResponse.responseDataVO.user_id,
                   uuid: null,
                   username: null,
                   password: null,
                   email: null,
                   age: null,
                   // 无论 token 值是否有问题，都进行存储。
-                  token: hs.httpResponse.getResponseDataVO(hs).token,
+                  token: hs.httpResponse.responseDataVO.token,
                   is_downloaded_init_data: null,
                   created_at: SbHelper.newTimestamp,
                   updated_at: SbHelper.newTimestamp,
                 );
-
                 // TODO: clearToken 与 insertNewToken 必须进行事务处理。
                 // 清空本地 token 信息。
                 final SingleResult<bool> clearToken =

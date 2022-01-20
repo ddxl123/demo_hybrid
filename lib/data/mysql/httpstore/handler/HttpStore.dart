@@ -10,12 +10,12 @@ abstract class HttpStore<REQHVO extends RequestHeadersVO, REQPVO extends Request
     RESPDVO extends ResponseDataVO, RESPCCOL extends ResponseCodeCollect> implements DoSerializable {
   HttpStore({
     required HttpRequest<REQHVO, REQPVO, REQVO> putHttpRequest(),
-    required RESPCCOL putResponseCodeCollect,
+    required RESPCCOL responseCodeCollect,
   }) {
     httpHandler = HttpHandler(this);
     try {
       httpRequest = putHttpRequest();
-      httpResponse = HttpResponse<RESPHVO, RESPDVO, RESPCCOL>(httpStore: this, responseCodeCollect: putResponseCodeCollect);
+      httpResponse = HttpResponse<RESPHVO, RESPDVO, RESPCCOL>(httpStore: this, responseCodeCollect: responseCodeCollect);
     } catch (e, st) {
       httpHandler.setError(vm: '', descp: Description(''), e: e, st: st);
     }
@@ -34,14 +34,14 @@ abstract class HttpStore<REQHVO extends RequestHeadersVO, REQPVO extends Request
         'httpHandler': httpHandler.toJson(),
       };
 
-  /// [httpRequest] 内属性全为 json 类型。
   late final HttpRequest<REQHVO, REQPVO, REQVO> httpRequest;
 
-  /// [httpResponse] 内属性全为 json 类型。
   late final HttpResponse<RESPHVO, RESPDVO, RESPCCOL> httpResponse;
 
   /// [httpHandler] 内属性只有 [SingleResult]，而 [SingleResult.getRequiredData] 为 [HttpStore] 对象。
   late final HttpHandler httpHandler;
+
+  RESPCCOL get respccolHelper => httpResponse.responseCodeCollect;
 
   REQHVO toVOForRequestHeadersVO(Map<String, Object?> json);
 

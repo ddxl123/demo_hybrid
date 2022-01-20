@@ -42,13 +42,15 @@ class HttpHandler {
 
   /// 必须先 [setCancel]/[setPass]，再 [handle]。
   /// 必须先 [setCancel]/[setPass]，再 [doContinue]/[doCancel]。
+  ///
+  /// [doContinue] 返回是否已被拦截。
   Future<void> handle<HS extends HttpStore>({
     required Future<bool> doContinue(HS hs),
     required Future<void> doCancel(SingleResult<HS> hh),
   }) async {
     await _singleResult.handle(
       doSuccess: (HttpStore successData) async {
-        successData.httpResponse.responseCodeCollect.responseCode = successData.httpResponse.code;
+        successData.httpResponse.responseCodeCollect.httpStore = successData;
         final bool isIntercept = await HttpResponseIntercept(successData).intercept();
         if (isIntercept) {
           await doCancel(_singleResult as SingleResult<HS>);
@@ -59,7 +61,7 @@ class HttpHandler {
               setError(
                 vm: '响应 code 未处理！',
                 descp: Description(''),
-                e: Exception('未处理的响应code: ${_singleResult.getRequiredData().httpResponse.code}'),
+                e: Exception('未处理的响应code: ${_singleResult.getRequiredData().httpResponse.responseCode}'),
                 st: null,
               );
               await doCancel(_singleResult as SingleResult<HS>);

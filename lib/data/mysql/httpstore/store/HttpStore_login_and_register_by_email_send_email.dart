@@ -19,11 +19,11 @@ class HttpStore_login_and_register_by_email_send_email extends HttpStore<Request
           putHttpRequest: () => HttpRequest<RequestHeadersVO_LARBESE, RequestParamsVO_LARBESE, RequestDataVO_LARBESE>(
             method: 'POST',
             path: r'no_jwt/login_and_register_by_email/send_email',
-            putRequestHeadersVO: requestHeadersVO_LARBESE.toJson(),
-            putRequestParamsVO: requestParamsVO_LARBESE.toJson(),
-            putRequestDataVO: requestDataVO_LARBESE.toJson(),
+            requestHeadersVO: requestHeadersVO_LARBESE,
+            requestParamsVO: requestParamsVO_LARBESE,
+            requestDataVO: requestDataVO_LARBESE,
           ),
-          putResponseCodeCollect: ResponseCodeCollect_LARBESE(),
+          responseCodeCollect: ResponseCodeCollect_LARBESE(),
         );
 
   HttpStore_login_and_register_by_email_send_email.fromJson(Map<String, Object?> json) : super.fromJson(json);
@@ -118,6 +118,12 @@ class ResponseCodeCollect_LARBESE extends ResponseCodeCollect {
   Map<String, Object?> toJson() => _$ResponseCodeCollect_LARBESEToJson(this);
 
   /// 邮箱已发送, 请注意查收!
-    final int C2_01_01_01 = 2010101;
+  ResponseCodeCollect_LARBESE C2_01_01_01() {
+    if (httpStore.httpResponse.responseCode == 2010101) {
+      isFinal = true;
+    }
+    return this;
+  }
+    
 
 }    

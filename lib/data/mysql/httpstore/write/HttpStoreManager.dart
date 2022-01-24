@@ -2,7 +2,6 @@
 
 import 'dart:io';
 
-import '../../../../shell.dart';
 import 'HttpStoreWriteConfig.dart';
 import 'HttpStoreWriteWrapper.dart';
 
@@ -20,6 +19,6 @@ class HttpStoreManager {
 
   static void run() {
     HttpStoreWriteConfig(outputFolder: Directory.current.path + r'\lib\data\mysql\httpstore\store');
-    Sheller.buildRunner();
+    // Sheller.buildRunner();
   }
 }

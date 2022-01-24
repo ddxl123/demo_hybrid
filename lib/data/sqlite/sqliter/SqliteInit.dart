@@ -1,7 +1,4 @@
-
-
 import 'package:hybrid/appversion/AppVersionManager.dart';
-import 'package:hybrid/appversion/AppVersionStatus.dart';
 import 'package:hybrid/data/sqlite/mmodel/MAppVersionInfo.dart';
 import 'package:hybrid/data/sqlite/mmodel/ParseIntoSqls.dart';
 import 'package:hybrid/util/SbHelper.dart';
@@ -59,30 +56,31 @@ class SqliteInit {
   // 非第一次打开
   Future<SqliteInitResult> _noFirstInit() async {
     // 检查 app 版本的准确性
-    final AppVersionStatus appVersionStatus = await AppVersionManager().appVersionCheck();
-
-    // 如果 app 版本一致，则进行表的一致性检查。
-    if (appVersionStatus == AppVersionStatus.keep) {
-      final bool isTableConsistent = await SqliteDiag().isTableConsistent(ParseIntoSqls().parseIntoSqls);
-      if (!isTableConsistent) {
-        return SqliteInitResult.sameVersionButTableInconsistent;
-      }
-    }
-
-    if (appVersionStatus == AppVersionStatus.back) {
-      return SqliteInitResult.back;
-    }
-    if (appVersionStatus == AppVersionStatus.notChangeDB) {
-      return SqliteInitResult.notChangeDB;
-    }
-    if (appVersionStatus == AppVersionStatus.changeDbNotUpload) {
-      return SqliteInitResult.changeDbNotUpload;
-    }
-    if (appVersionStatus == AppVersionStatus.changeDbAfterUpload) {
-      return SqliteInitResult.changeDbAfterUpload;
-    }
-
-    return SqliteInitResult.ok;
+    // final AppVersionStatus appVersionStatus = await AppVersionManager().appVersionCheck();
+    //
+    // // 如果 app 版本一致，则进行表的一致性检查。
+    // if (appVersionStatus == AppVersionStatus.keep) {
+    //   final bool isTableConsistent = await SqliteDiag().isTableConsistent(ParseIntoSqls().parseIntoSqls);
+    //   if (!isTableConsistent) {
+    //     return SqliteInitResult.sameVersionButTableInconsistent;
+    //   }
+    // }
+    //
+    // if (appVersionStatus == AppVersionStatus.back) {
+    //   return SqliteInitResult.back;
+    // }
+    // if (appVersionStatus == AppVersionStatus.notChangeDB) {
+    //   return SqliteInitResult.notChangeDB;
+    // }
+    // if (appVersionStatus == AppVersionStatus.changeDbNotUpload) {
+    //   return SqliteInitResult.changeDbNotUpload;
+    // }
+    // if (appVersionStatus == AppVersionStatus.changeDbAfterUpload) {
+    //   return SqliteInitResult.changeDbAfterUpload;
+    // }
+    //
+    // return SqliteInitResult.ok;
+    return SqliteInitResult.back;
   }
 
   // 第一次打开 app

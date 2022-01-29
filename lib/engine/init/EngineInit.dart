@@ -3,25 +3,26 @@ import 'package:hybrid/engine/transfer/TransferManager.dart';
 import 'package:hybrid/engine/transfer/listener/TransferListener.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 
-void engineInitBeforeRun(String entryName, TransferListener dataTransfer()) {
+/// 对引擎进行绑定初始化。
+void flutterEngineBinding(String entryName, TransferListener Function() dataTransfer) {
   WidgetsFlutterBinding.ensureInitialized();
   SbLogger.engineEntryBinding(entryName);
   TransferManager.instance.binding(entryName, dataTransfer);
 }
 
-class EngineApp extends StatefulWidget {
-  const EngineApp(this.child, this.isSetOnReadyImdtWhenFirstFrameInitialized);
+class FlutterEngineApp extends StatefulWidget {
+  const FlutterEngineApp({required this.child, required this.isSetOnReadyImdtWhenFirstFrameInitialized, Key? key}) : super(key: key);
 
   final Widget child;
 
-  /// 是否立即标记 OnReady。
+  /// 是否第一帧完成后便立即标记为 OnReady。
   final bool isSetOnReadyImdtWhenFirstFrameInitialized;
 
   @override
-  _EngineAppState createState() => _EngineAppState();
+  _FlutterEngineAppState createState() => _FlutterEngineAppState();
 }
 
-class _EngineAppState extends State<EngineApp> {
+class _FlutterEngineAppState extends State<FlutterEngineApp> {
   @override
   void initState() {
     super.initState();

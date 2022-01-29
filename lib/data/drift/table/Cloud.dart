@@ -2,8 +2,106 @@ import 'package:drift/drift.dart';
 
 import 'Base.dart';
 
+// class PnRules extends TableCloudBase {
+//   TextColumn get title => text().withDefault(const Constant('未命名'))();
+//
+//   TextColumn get easyPosition => text().nullable()();
+// }
+//
+// class PnCompletes extends TableCloudBase {
+//   IntColumn get ruleId => integer().nullable()();
+//
+//   IntColumn get ruleCid => integer().nullable()();
+//
+//   TextColumn get title => text().withDefault(const Constant('未命名'))();
+//
+//   TextColumn get easyPosition => text().nullable()();
+// }
+//
+// class PnFragments extends TableCloudBase {
+//   IntColumn get ruleId => integer().nullable()();
+//
+//   IntColumn get ruleCid => integer().nullable()();
+//
+//   TextColumn get title => text().withDefault(const Constant('未命名'))();
+//
+//   TextColumn get easyPosition => text().nullable()();
+// }
+//
+// class PnMemorys extends TableCloudBase {
+//   IntColumn get ruleId => integer().nullable()();
+//
+//   IntColumn get ruleCid => integer().nullable()();
+//
+//   TextColumn get title => text().withDefault(const Constant('未命名'))();
+//
+//   TextColumn get easyPosition => text().nullable()();
+// }
+//
+// class FRules extends TableCloudBase {
+//   IntColumn get fatherRuleId => integer().nullable()();
+//
+//   IntColumn get fatherRuleCid => integer().nullable()();
+//
+//   IntColumn get nodeId => integer().nullable()();
+//
+//   IntColumn get nodeCid => integer().nullable()();
+//
+//   TextColumn get title => text().withDefault(const Constant('未命名'))();
+// }
+//
+// class FFragments extends TableCloudBase {
+//   IntColumn get fatherFragmentId => integer().nullable()();
+//
+//   IntColumn get fatherFragmentCid => integer().nullable()();
+//
+//   IntColumn get nodeId => integer().nullable()();
+//
+//   IntColumn get nodeCid => integer().nullable()();
+//
+//   IntColumn get ruleId => integer().nullable()();
+//
+//   IntColumn get ruleCid => integer().nullable()();
+//
+//   TextColumn get title => text().withDefault(const Constant('未命名'))();
+// }
+//
+// class FCompletes extends TableCloudBase {
+//   IntColumn get nodeId => integer().nullable()();
+//
+//   IntColumn get nodeCid => integer().nullable()();
+//
+//   IntColumn get fragmentId => integer().nullable()();
+//
+//   IntColumn get fragmentCid => integer().nullable()();
+//
+//   IntColumn get ruleId => integer().nullable()();
+//
+//   IntColumn get ruleCid => integer().nullable()();
+//
+//   TextColumn get title => text().withDefault(const Constant('未命名'))();
+// }
+//
+// class FMemorys extends TableCloudBase {
+//   IntColumn get nodeId => integer().nullable()();
+//
+//   IntColumn get nodeCid => integer().nullable()();
+//
+//   IntColumn get fragmentId => integer().nullable()();
+//
+//   IntColumn get fragmentCid => integer().nullable()();
+//
+//   IntColumn get ruleId => integer().nullable()();
+//
+//   IntColumn get ruleCid => integer().nullable()();
+//
+//   TextColumn get title => text().withDefault(const Constant('未命名'))();
+// }
+
+///
+
 class Users extends TableCloudBase {
-  TextColumn get username => text().withDefault(const Constant('异常用户名'))();
+  TextColumn get username => text().withDefault(const Constant('还没名字'))();
 
   TextColumn get password => text().nullable()();
 
@@ -16,98 +114,28 @@ class Users extends TableCloudBase {
   BoolColumn get isDownloadedInitData => boolean().withDefault(const Constant(false))();
 }
 
-class PnRules extends TableCloudBase {
-  TextColumn get title => text().withDefault(const Constant('未命名'))();
-
-  TextColumn get easyPosition => text().nullable()();
+class Folders extends TableCloudBase {
+  TextColumn get title => text().nullable()();
 }
 
-class PnCompletes extends TableCloudBase {
-  IntColumn get ruleId => integer().nullable()();
+class Fragments extends TableCloudBase {
+  TextColumn get question => text().nullable()();
 
-  IntColumn get ruleCid => integer().nullable()();
+  TextColumn get answer => text().nullable()();
 
-  TextColumn get title => text().withDefault(const Constant('未命名'))();
+  TextColumn get description => text().nullable()();
 
-  TextColumn get easyPosition => text().nullable()();
+  IntColumn get folderId => integer().nullable()();
+
+  IntColumn get folderCloudId => integer().nullable()();
 }
 
-class PnFragments extends TableCloudBase {
-  IntColumn get ruleId => integer().nullable()();
+class SimilarFragments extends TableCloudBase {
+  IntColumn get fragmentAId => integer().nullable()();
 
-  IntColumn get ruleCid => integer().nullable()();
+  IntColumn get fragmentACloudId => integer().nullable()();
 
-  TextColumn get title => text().withDefault(const Constant('未命名'))();
+  IntColumn get fragmentBId => integer().nullable()();
 
-  TextColumn get easyPosition => text().nullable()();
-}
-
-class PnMemorys extends TableCloudBase {
-  IntColumn get ruleId => integer().nullable()();
-
-  IntColumn get ruleCid => integer().nullable()();
-
-  TextColumn get title => text().withDefault(const Constant('未命名'))();
-
-  TextColumn get easyPosition => text().nullable()();
-}
-
-class FRules extends TableCloudBase {
-  IntColumn get fatherRuleId => integer().nullable()();
-
-  IntColumn get fatherRuleCid => integer().nullable()();
-
-  IntColumn get nodeId => integer().nullable()();
-
-  IntColumn get nodeCid => integer().nullable()();
-
-  TextColumn get title => text().withDefault(const Constant('未命名'))();
-}
-
-class FFragments extends TableCloudBase {
-  IntColumn get fatherFragmentId => integer().nullable()();
-
-  IntColumn get fatherFragmentCid => integer().nullable()();
-
-  IntColumn get nodeId => integer().nullable()();
-
-  IntColumn get nodeCid => integer().nullable()();
-
-  IntColumn get ruleId => integer().nullable()();
-
-  IntColumn get ruleCid => integer().nullable()();
-
-  TextColumn get title => text().withDefault(const Constant('未命名'))();
-}
-
-class FCompletes extends TableCloudBase {
-  IntColumn get nodeId => integer().nullable()();
-
-  IntColumn get nodeCid => integer().nullable()();
-
-  IntColumn get fragmentId => integer().nullable()();
-
-  IntColumn get fragmentCid => integer().nullable()();
-
-  IntColumn get ruleId => integer().nullable()();
-
-  IntColumn get ruleCid => integer().nullable()();
-
-  TextColumn get title => text().withDefault(const Constant('未命名'))();
-}
-
-class FMemorys extends TableCloudBase {
-  IntColumn get nodeId => integer().nullable()();
-
-  IntColumn get nodeCid => integer().nullable()();
-
-  IntColumn get fragmentId => integer().nullable()();
-
-  IntColumn get fragmentCid => integer().nullable()();
-
-  IntColumn get ruleId => integer().nullable()();
-
-  IntColumn get ruleCid => integer().nullable()();
-
-  TextColumn get title => text().withDefault(const Constant('未命名'))();
+  IntColumn get fragmentBCloudId => integer().nullable()();
 }

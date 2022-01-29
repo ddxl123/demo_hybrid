@@ -1,4 +1,3 @@
-import 'package:hybrid/data/drift/db/DriftDb.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 /// 版本号规范：
@@ -42,7 +41,7 @@ class AppVersionManager {
   ///
 
   /// 获取被记录在本地的应用版本。
-  Future<String> getSavedAppVersion() async => await DriftDb.instance.easyDAO.getSavedAppVersion();
+  Future<String> getSavedAppVersion() async => 'SavedAppVersion null';
 
   /// 获取当前应用版本
   Future<String> getCurrentAppVersion() async => (await PackageInfo.fromPlatform()).version;

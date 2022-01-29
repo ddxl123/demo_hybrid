@@ -11,7 +11,7 @@ class TableLocalBase extends Table {
 
 class TableCloudBase extends TableLocalBase {
   /// 可空。
-  IntColumn get cloudId => integer().customConstraint('UNIQUE')();
+  IntColumn get cloudId => integer().nullable().customConstraint('UNIQUE')();
 
   /// 同步 curd 类型。为空则表示该行不需要进行同步。
   ///

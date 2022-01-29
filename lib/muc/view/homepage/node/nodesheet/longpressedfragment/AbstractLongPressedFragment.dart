@@ -21,7 +21,7 @@ abstract class AbstractLongPressedFragment<FDM extends ModelBase> extends Abstra
   @override
   List<Widget> body() {
     return <Widget>[
-      AutoPositioned(
+      FollowPositioned(
         child: SbRoundedBox(
           children: <Widget>[
             TextButton(

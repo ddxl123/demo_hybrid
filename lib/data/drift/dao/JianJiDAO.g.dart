@@ -2,12 +2,10 @@
 
 // ignore_for_file: implicit_dynamic_parameter
 
-part of 'EasyDAO.dart';
+part of 'JianJiDAO.dart';
 
 // **************************************************************************
 // DaoGenerator
 // **************************************************************************
 
-mixin _$EasyDAOMixin on DatabaseAccessor<DriftDb> {
-  $AppVersionInfosTable get appVersionInfos => attachedDatabase.appVersionInfos;
-}
+mixin _$JianJiDAOMixin on DatabaseAccessor<DriftDb> {}

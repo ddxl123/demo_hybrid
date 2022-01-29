@@ -53,12 +53,14 @@ class TransferManager {
 
   final Map<String, SqliteCurdTransactionChain> sqliteCurdTransactionsInRequester = <String, SqliteCurdTransactionChain>{};
 
+  /// 给当前引擎绑定数据监听对象。
+  ///
   /// [currentEntryPointName] 必须比 [transferListener] 更先进行初始化，
   /// 因为 [transferListener] 需要 [currentEntryPointName]。
   ///
   /// [putTransferListener] 不能用对象传入，而必须用函数传入。
   /// 因为如果用对象传入，则会导致执行 [binding] 前 [TransferListener] 会先被构造，这时 [currentEntryPointName] 还并未初始化过，从而导致程序出错。
-  void binding(String entryPointName, TransferListener putTransferListener()) {
+  void binding(String entryPointName, TransferListener Function() putTransferListener) {
     currentEntryPointName = entryPointName;
     transferListener = putTransferListener();
   }

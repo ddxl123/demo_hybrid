@@ -13,8 +13,8 @@ abstract class AbstractLongPressedPoolRoute extends SbRoute {
   @override
   List<Widget> body() {
     final Offset position = touchPosition;
-    return <AutoPositioned>[
-      AutoPositioned(
+    return <FollowPositioned>[
+      FollowPositioned(
         touchPosition: position,
         child: SbRoundedBox(
           children: <Widget>[

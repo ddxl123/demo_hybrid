@@ -19,7 +19,7 @@ abstract class AbstractMoreRoute<FDM extends ModelBase> extends AbstractPoolEntr
   @override
   List<Widget> body() {
     return <Widget>[
-      AutoPositioned(
+      FollowPositioned(
         child: SbRoundedBox(
           children: <Widget>[
             TextButton(

@@ -1,11 +1,9 @@
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:flutter/material.dart';
-import 'package:hybrid/data/drift/db/DriftDb.dart';
+import 'package:hybrid/jianji/JianJiHome.dart';
 
-import 'engine/entry/data_center/DataCenterEntry.dart';
 import 'engine/init/EngineInit.dart';
-import 'engine/transfer/listener/DataCenterTransferListener.dart';
 import 'engine/transfer/listener/MainDataTransferListener.dart';
 
 /// TODO: 增加防止时间回退特性（监听）。
@@ -14,16 +12,13 @@ import 'engine/transfer/listener/MainDataTransferListener.dart';
 ///
 /// 当有其他引擎启动时，该入口也可以被销毁。
 void main() async {
-  DriftDb.instance;
-  engineInitBeforeRun('main', () => MainDataTransferListener());
+  flutterEngineBinding('main', () => MainDataTransferListener());
   runApp(
-    const EngineApp(
-      MaterialApp(
-        home: Scaffold(
-          body: Text('dasda'),
-        ),
+    FlutterEngineApp(
+      child: MaterialApp(
+        home: JianJiHome(),
       ),
-      true,
+      isSetOnReadyImdtWhenFirstFrameInitialized: true,
     ),
   );
 }
@@ -40,11 +35,11 @@ void main() async {
 /// 数据中心。
 ///
 /// 全部的引擎的数据来源及操作全部由该入口控制。
-@pragma('vm:entry-point')
-void data_center() async {
-  engineInitBeforeRun('data_center', () => DataCenterTransferListener());
-  runApp(EngineApp(DataCenterEntry(), false));
-}
+// @pragma('vm:entry-point')
+// void data_center() async {
+//   flutterEngineBinding('data_center', () => DataCenterTransferListener());
+//   // runApp(FlutterEngineApp(DataCenterEntry(), false));
+// }
 
 // @pragma('vm:entry-point')
 // void login_and_register() {

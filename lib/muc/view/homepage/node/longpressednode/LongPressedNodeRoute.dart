@@ -17,7 +17,7 @@ abstract class LongPressedNodeRouteBase extends AbstractPoolEntryRoute {
   @override
   List<Widget> body() {
     return <Widget>[
-      AutoPositioned(
+      FollowPositioned(
         touchPosition: touchPosition,
         child: SbRoundedBox(
           children: <Widget>[

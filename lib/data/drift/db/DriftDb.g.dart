@@ -1262,8 +1262,6 @@ class Fragment extends DataClass implements Insertable<Fragment> {
   final String? question;
   final String? answer;
   final String? description;
-  final int? folderId;
-  final int? folderCloudId;
   Fragment(
       {this.cloudId,
       this.syncCurd,
@@ -1273,9 +1271,7 @@ class Fragment extends DataClass implements Insertable<Fragment> {
       required this.updatedAt,
       this.question,
       this.answer,
-      this.description,
-      this.folderId,
-      this.folderCloudId});
+      this.description});
   factory Fragment.fromData(Map<String, dynamic> data, {String? prefix}) {
     final effectivePrefix = prefix ?? '';
     return Fragment(
@@ -1297,10 +1293,6 @@ class Fragment extends DataClass implements Insertable<Fragment> {
           .mapFromDatabaseResponse(data['${effectivePrefix}answer']),
       description: const StringType()
           .mapFromDatabaseResponse(data['${effectivePrefix}description']),
-      folderId: const IntType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}folder_id']),
-      folderCloudId: const IntType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}folder_cloud_id']),
     );
   }
   @override
@@ -1327,12 +1319,6 @@ class Fragment extends DataClass implements Insertable<Fragment> {
     if (!nullToAbsent || description != null) {
       map['description'] = Variable<String?>(description);
     }
-    if (!nullToAbsent || folderId != null) {
-      map['folder_id'] = Variable<int?>(folderId);
-    }
-    if (!nullToAbsent || folderCloudId != null) {
-      map['folder_cloud_id'] = Variable<int?>(folderCloudId);
-    }
     return map;
   }
 
@@ -1358,12 +1344,6 @@ class Fragment extends DataClass implements Insertable<Fragment> {
       description: description == null && nullToAbsent
           ? const Value.absent()
           : Value(description),
-      folderId: folderId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(folderId),
-      folderCloudId: folderCloudId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(folderCloudId),
     );
   }
 
@@ -1381,8 +1361,6 @@ class Fragment extends DataClass implements Insertable<Fragment> {
       question: serializer.fromJson<String?>(json['question']),
       answer: serializer.fromJson<String?>(json['answer']),
       description: serializer.fromJson<String?>(json['description']),
-      folderId: serializer.fromJson<int?>(json['folderId']),
-      folderCloudId: serializer.fromJson<int?>(json['folderCloudId']),
     );
   }
   @override
@@ -1398,8 +1376,6 @@ class Fragment extends DataClass implements Insertable<Fragment> {
       'question': serializer.toJson<String?>(question),
       'answer': serializer.toJson<String?>(answer),
       'description': serializer.toJson<String?>(description),
-      'folderId': serializer.toJson<int?>(folderId),
-      'folderCloudId': serializer.toJson<int?>(folderCloudId),
     };
   }
 
@@ -1412,9 +1388,7 @@ class Fragment extends DataClass implements Insertable<Fragment> {
           DateTime? updatedAt,
           String? question,
           String? answer,
-          String? description,
-          int? folderId,
-          int? folderCloudId}) =>
+          String? description}) =>
       Fragment(
         cloudId: cloudId ?? this.cloudId,
         syncCurd: syncCurd ?? this.syncCurd,
@@ -1425,8 +1399,6 @@ class Fragment extends DataClass implements Insertable<Fragment> {
         question: question ?? this.question,
         answer: answer ?? this.answer,
         description: description ?? this.description,
-        folderId: folderId ?? this.folderId,
-        folderCloudId: folderCloudId ?? this.folderCloudId,
       );
   @override
   String toString() {
@@ -1439,26 +1411,14 @@ class Fragment extends DataClass implements Insertable<Fragment> {
           ..write('updatedAt: $updatedAt, ')
           ..write('question: $question, ')
           ..write('answer: $answer, ')
-          ..write('description: $description, ')
-          ..write('folderId: $folderId, ')
-          ..write('folderCloudId: $folderCloudId')
+          ..write('description: $description')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-      cloudId,
-      syncCurd,
-      syncUpdateColumns,
-      id,
-      createdAt,
-      updatedAt,
-      question,
-      answer,
-      description,
-      folderId,
-      folderCloudId);
+  int get hashCode => Object.hash(cloudId, syncCurd, syncUpdateColumns, id,
+      createdAt, updatedAt, question, answer, description);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1471,9 +1431,7 @@ class Fragment extends DataClass implements Insertable<Fragment> {
           other.updatedAt == this.updatedAt &&
           other.question == this.question &&
           other.answer == this.answer &&
-          other.description == this.description &&
-          other.folderId == this.folderId &&
-          other.folderCloudId == this.folderCloudId);
+          other.description == this.description);
 }
 
 class FragmentsCompanion extends UpdateCompanion<Fragment> {
@@ -1486,8 +1444,6 @@ class FragmentsCompanion extends UpdateCompanion<Fragment> {
   final Value<String?> question;
   final Value<String?> answer;
   final Value<String?> description;
-  final Value<int?> folderId;
-  final Value<int?> folderCloudId;
   const FragmentsCompanion({
     this.cloudId = const Value.absent(),
     this.syncCurd = const Value.absent(),
@@ -1498,8 +1454,6 @@ class FragmentsCompanion extends UpdateCompanion<Fragment> {
     this.question = const Value.absent(),
     this.answer = const Value.absent(),
     this.description = const Value.absent(),
-    this.folderId = const Value.absent(),
-    this.folderCloudId = const Value.absent(),
   });
   FragmentsCompanion.insert({
     this.cloudId = const Value.absent(),
@@ -1511,8 +1465,6 @@ class FragmentsCompanion extends UpdateCompanion<Fragment> {
     this.question = const Value.absent(),
     this.answer = const Value.absent(),
     this.description = const Value.absent(),
-    this.folderId = const Value.absent(),
-    this.folderCloudId = const Value.absent(),
   });
   static Insertable<Fragment> custom({
     Expression<int?>? cloudId,
@@ -1524,8 +1476,6 @@ class FragmentsCompanion extends UpdateCompanion<Fragment> {
     Expression<String?>? question,
     Expression<String?>? answer,
     Expression<String?>? description,
-    Expression<int?>? folderId,
-    Expression<int?>? folderCloudId,
   }) {
     return RawValuesInsertable({
       if (cloudId != null) 'cloud_id': cloudId,
@@ -1537,8 +1487,6 @@ class FragmentsCompanion extends UpdateCompanion<Fragment> {
       if (question != null) 'question': question,
       if (answer != null) 'answer': answer,
       if (description != null) 'description': description,
-      if (folderId != null) 'folder_id': folderId,
-      if (folderCloudId != null) 'folder_cloud_id': folderCloudId,
     });
   }
 
@@ -1551,9 +1499,7 @@ class FragmentsCompanion extends UpdateCompanion<Fragment> {
       Value<DateTime>? updatedAt,
       Value<String?>? question,
       Value<String?>? answer,
-      Value<String?>? description,
-      Value<int?>? folderId,
-      Value<int?>? folderCloudId}) {
+      Value<String?>? description}) {
     return FragmentsCompanion(
       cloudId: cloudId ?? this.cloudId,
       syncCurd: syncCurd ?? this.syncCurd,
@@ -1564,8 +1510,6 @@ class FragmentsCompanion extends UpdateCompanion<Fragment> {
       question: question ?? this.question,
       answer: answer ?? this.answer,
       description: description ?? this.description,
-      folderId: folderId ?? this.folderId,
-      folderCloudId: folderCloudId ?? this.folderCloudId,
     );
   }
 
@@ -1599,12 +1543,6 @@ class FragmentsCompanion extends UpdateCompanion<Fragment> {
     if (description.present) {
       map['description'] = Variable<String?>(description.value);
     }
-    if (folderId.present) {
-      map['folder_id'] = Variable<int?>(folderId.value);
-    }
-    if (folderCloudId.present) {
-      map['folder_cloud_id'] = Variable<int?>(folderCloudId.value);
-    }
     return map;
   }
 
@@ -1619,9 +1557,7 @@ class FragmentsCompanion extends UpdateCompanion<Fragment> {
           ..write('updatedAt: $updatedAt, ')
           ..write('question: $question, ')
           ..write('answer: $answer, ')
-          ..write('description: $description, ')
-          ..write('folderId: $folderId, ')
-          ..write('folderCloudId: $folderCloudId')
+          ..write('description: $description')
           ..write(')'))
         .toString();
   }
@@ -1687,17 +1623,6 @@ class $FragmentsTable extends Fragments
   late final GeneratedColumn<String?> description = GeneratedColumn<String?>(
       'description', aliasedName, true,
       type: const StringType(), requiredDuringInsert: false);
-  final VerificationMeta _folderIdMeta = const VerificationMeta('folderId');
-  @override
-  late final GeneratedColumn<int?> folderId = GeneratedColumn<int?>(
-      'folder_id', aliasedName, true,
-      type: const IntType(), requiredDuringInsert: false);
-  final VerificationMeta _folderCloudIdMeta =
-      const VerificationMeta('folderCloudId');
-  @override
-  late final GeneratedColumn<int?> folderCloudId = GeneratedColumn<int?>(
-      'folder_cloud_id', aliasedName, true,
-      type: const IntType(), requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         cloudId,
@@ -1708,9 +1633,7 @@ class $FragmentsTable extends Fragments
         updatedAt,
         question,
         answer,
-        description,
-        folderId,
-        folderCloudId
+        description
       ];
   @override
   String get aliasedName => _alias ?? 'fragments';
@@ -1760,16 +1683,6 @@ class $FragmentsTable extends Fragments
           description.isAcceptableOrUnknown(
               data['description']!, _descriptionMeta));
     }
-    if (data.containsKey('folder_id')) {
-      context.handle(_folderIdMeta,
-          folderId.isAcceptableOrUnknown(data['folder_id']!, _folderIdMeta));
-    }
-    if (data.containsKey('folder_cloud_id')) {
-      context.handle(
-          _folderCloudIdMeta,
-          folderCloudId.isAcceptableOrUnknown(
-              data['folder_cloud_id']!, _folderCloudIdMeta));
-    }
     return context;
   }
 
@@ -1784,6 +1697,1442 @@ class $FragmentsTable extends Fragments
   @override
   $FragmentsTable createAlias(String alias) {
     return $FragmentsTable(_db, alias);
+  }
+}
+
+class MemoryGroup extends DataClass implements Insertable<MemoryGroup> {
+  /// 可空。
+  final int? cloudId;
+
+  /// 同步 curd 类型。为空则表示该行不需要进行同步。
+  ///
+  /// 值： null C-0 U-1 R-2 D-3
+  ///
+  /// 不为 null 的可能性：
+  ///   1. 未上传更改。
+  ///   2. 客户端上传数据后，客户端被断掉，从而未对服务器上传成功的消息进行接收。（若是服务器断掉，则客户端会收到失败的响应）
+  ///
+  /// 若客户端请求——服务器响应，这个流程成功则设为 null，失败则保持为 curd。
+  /// 若为 2 的情况，应用会再次检索未上传的数据，再次进行上传，但无碍，因为服务端上传时，会对比 updatedAt。
+  ///   - 若新旧相同，则服务端已同步过，响应客户端将其置空。
+  ///   - 若新的晚于旧的，则需要服务端进行同步后，响应客户端将其置空。
+  ///   - 若新的早于旧的，则 1. 可能客户端、服务端时间被篡改；2. 该条数据在其他客户端已经被同步过了 TODO: 可依据此处设计多客户端登陆方案。
+  final int? syncCurd;
+
+  /// 当 [syncCurd] 为 U-1 时，[syncUpdateColumns] 不能为空。
+  ///
+  /// 值为字段名，如："username,password"。
+  final String? syncUpdateColumns;
+  final int id;
+
+  /// 必须是本地时间，不可空。
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final String? title;
+  MemoryGroup(
+      {this.cloudId,
+      this.syncCurd,
+      this.syncUpdateColumns,
+      required this.id,
+      required this.createdAt,
+      required this.updatedAt,
+      this.title});
+  factory MemoryGroup.fromData(Map<String, dynamic> data, {String? prefix}) {
+    final effectivePrefix = prefix ?? '';
+    return MemoryGroup(
+      cloudId: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}cloud_id']),
+      syncCurd: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}sync_curd']),
+      syncUpdateColumns: const StringType().mapFromDatabaseResponse(
+          data['${effectivePrefix}sync_update_columns']),
+      id: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
+      createdAt: const DateTimeType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}created_at'])!,
+      updatedAt: const DateTimeType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}updated_at'])!,
+      title: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}title']),
+    );
+  }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || cloudId != null) {
+      map['cloud_id'] = Variable<int?>(cloudId);
+    }
+    if (!nullToAbsent || syncCurd != null) {
+      map['sync_curd'] = Variable<int?>(syncCurd);
+    }
+    if (!nullToAbsent || syncUpdateColumns != null) {
+      map['sync_update_columns'] = Variable<String?>(syncUpdateColumns);
+    }
+    map['id'] = Variable<int>(id);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || title != null) {
+      map['title'] = Variable<String?>(title);
+    }
+    return map;
+  }
+
+  MemoryGroupsCompanion toCompanion(bool nullToAbsent) {
+    return MemoryGroupsCompanion(
+      cloudId: cloudId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cloudId),
+      syncCurd: syncCurd == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncCurd),
+      syncUpdateColumns: syncUpdateColumns == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncUpdateColumns),
+      id: Value(id),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      title:
+          title == null && nullToAbsent ? const Value.absent() : Value(title),
+    );
+  }
+
+  factory MemoryGroup.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MemoryGroup(
+      cloudId: serializer.fromJson<int?>(json['cloudId']),
+      syncCurd: serializer.fromJson<int?>(json['syncCurd']),
+      syncUpdateColumns:
+          serializer.fromJson<String?>(json['syncUpdateColumns']),
+      id: serializer.fromJson<int>(json['id']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      title: serializer.fromJson<String?>(json['title']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'cloudId': serializer.toJson<int?>(cloudId),
+      'syncCurd': serializer.toJson<int?>(syncCurd),
+      'syncUpdateColumns': serializer.toJson<String?>(syncUpdateColumns),
+      'id': serializer.toJson<int>(id),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'title': serializer.toJson<String?>(title),
+    };
+  }
+
+  MemoryGroup copyWith(
+          {int? cloudId,
+          int? syncCurd,
+          String? syncUpdateColumns,
+          int? id,
+          DateTime? createdAt,
+          DateTime? updatedAt,
+          String? title}) =>
+      MemoryGroup(
+        cloudId: cloudId ?? this.cloudId,
+        syncCurd: syncCurd ?? this.syncCurd,
+        syncUpdateColumns: syncUpdateColumns ?? this.syncUpdateColumns,
+        id: id ?? this.id,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+        title: title ?? this.title,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('MemoryGroup(')
+          ..write('cloudId: $cloudId, ')
+          ..write('syncCurd: $syncCurd, ')
+          ..write('syncUpdateColumns: $syncUpdateColumns, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('title: $title')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      cloudId, syncCurd, syncUpdateColumns, id, createdAt, updatedAt, title);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MemoryGroup &&
+          other.cloudId == this.cloudId &&
+          other.syncCurd == this.syncCurd &&
+          other.syncUpdateColumns == this.syncUpdateColumns &&
+          other.id == this.id &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.title == this.title);
+}
+
+class MemoryGroupsCompanion extends UpdateCompanion<MemoryGroup> {
+  final Value<int?> cloudId;
+  final Value<int?> syncCurd;
+  final Value<String?> syncUpdateColumns;
+  final Value<int> id;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<String?> title;
+  const MemoryGroupsCompanion({
+    this.cloudId = const Value.absent(),
+    this.syncCurd = const Value.absent(),
+    this.syncUpdateColumns = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.title = const Value.absent(),
+  });
+  MemoryGroupsCompanion.insert({
+    this.cloudId = const Value.absent(),
+    this.syncCurd = const Value.absent(),
+    this.syncUpdateColumns = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.title = const Value.absent(),
+  });
+  static Insertable<MemoryGroup> custom({
+    Expression<int?>? cloudId,
+    Expression<int?>? syncCurd,
+    Expression<String?>? syncUpdateColumns,
+    Expression<int>? id,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<String?>? title,
+  }) {
+    return RawValuesInsertable({
+      if (cloudId != null) 'cloud_id': cloudId,
+      if (syncCurd != null) 'sync_curd': syncCurd,
+      if (syncUpdateColumns != null) 'sync_update_columns': syncUpdateColumns,
+      if (id != null) 'id': id,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (title != null) 'title': title,
+    });
+  }
+
+  MemoryGroupsCompanion copyWith(
+      {Value<int?>? cloudId,
+      Value<int?>? syncCurd,
+      Value<String?>? syncUpdateColumns,
+      Value<int>? id,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
+      Value<String?>? title}) {
+    return MemoryGroupsCompanion(
+      cloudId: cloudId ?? this.cloudId,
+      syncCurd: syncCurd ?? this.syncCurd,
+      syncUpdateColumns: syncUpdateColumns ?? this.syncUpdateColumns,
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      title: title ?? this.title,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (cloudId.present) {
+      map['cloud_id'] = Variable<int?>(cloudId.value);
+    }
+    if (syncCurd.present) {
+      map['sync_curd'] = Variable<int?>(syncCurd.value);
+    }
+    if (syncUpdateColumns.present) {
+      map['sync_update_columns'] = Variable<String?>(syncUpdateColumns.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String?>(title.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MemoryGroupsCompanion(')
+          ..write('cloudId: $cloudId, ')
+          ..write('syncCurd: $syncCurd, ')
+          ..write('syncUpdateColumns: $syncUpdateColumns, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('title: $title')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $MemoryGroupsTable extends MemoryGroups
+    with TableInfo<$MemoryGroupsTable, MemoryGroup> {
+  final GeneratedDatabase _db;
+  final String? _alias;
+  $MemoryGroupsTable(this._db, [this._alias]);
+  final VerificationMeta _cloudIdMeta = const VerificationMeta('cloudId');
+  @override
+  late final GeneratedColumn<int?> cloudId = GeneratedColumn<int?>(
+      'cloud_id', aliasedName, true,
+      type: const IntType(),
+      requiredDuringInsert: false,
+      $customConstraints: 'UNIQUE');
+  final VerificationMeta _syncCurdMeta = const VerificationMeta('syncCurd');
+  @override
+  late final GeneratedColumn<int?> syncCurd = GeneratedColumn<int?>(
+      'sync_curd', aliasedName, true,
+      type: const IntType(), requiredDuringInsert: false);
+  final VerificationMeta _syncUpdateColumnsMeta =
+      const VerificationMeta('syncUpdateColumns');
+  @override
+  late final GeneratedColumn<String?> syncUpdateColumns =
+      GeneratedColumn<String?>('sync_update_columns', aliasedName, true,
+          type: const StringType(), requiredDuringInsert: false);
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int?> id = GeneratedColumn<int?>(
+      'id', aliasedName, false,
+      type: const IntType(),
+      requiredDuringInsert: false,
+      defaultConstraints: 'PRIMARY KEY AUTOINCREMENT');
+  final VerificationMeta _createdAtMeta = const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime?> createdAt = GeneratedColumn<DateTime?>(
+      'created_at', aliasedName, false,
+      type: const IntType(),
+      requiredDuringInsert: false,
+      clientDefault: () => DateTime.now());
+  final VerificationMeta _updatedAtMeta = const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime?> updatedAt = GeneratedColumn<DateTime?>(
+      'updated_at', aliasedName, false,
+      type: const IntType(),
+      requiredDuringInsert: false,
+      clientDefault: () => DateTime.now());
+  final VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String?> title = GeneratedColumn<String?>(
+      'title', aliasedName, true,
+      type: const StringType(), requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [cloudId, syncCurd, syncUpdateColumns, id, createdAt, updatedAt, title];
+  @override
+  String get aliasedName => _alias ?? 'memory_groups';
+  @override
+  String get actualTableName => 'memory_groups';
+  @override
+  VerificationContext validateIntegrity(Insertable<MemoryGroup> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('cloud_id')) {
+      context.handle(_cloudIdMeta,
+          cloudId.isAcceptableOrUnknown(data['cloud_id']!, _cloudIdMeta));
+    }
+    if (data.containsKey('sync_curd')) {
+      context.handle(_syncCurdMeta,
+          syncCurd.isAcceptableOrUnknown(data['sync_curd']!, _syncCurdMeta));
+    }
+    if (data.containsKey('sync_update_columns')) {
+      context.handle(
+          _syncUpdateColumnsMeta,
+          syncUpdateColumns.isAcceptableOrUnknown(
+              data['sync_update_columns']!, _syncUpdateColumnsMeta));
+    }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MemoryGroup map(Map<String, dynamic> data, {String? tablePrefix}) {
+    return MemoryGroup.fromData(data,
+        prefix: tablePrefix != null ? '$tablePrefix.' : null);
+  }
+
+  @override
+  $MemoryGroupsTable createAlias(String alias) {
+    return $MemoryGroupsTable(_db, alias);
+  }
+}
+
+class Folder2Fragment extends DataClass implements Insertable<Folder2Fragment> {
+  /// 可空。
+  final int? cloudId;
+
+  /// 同步 curd 类型。为空则表示该行不需要进行同步。
+  ///
+  /// 值： null C-0 U-1 R-2 D-3
+  ///
+  /// 不为 null 的可能性：
+  ///   1. 未上传更改。
+  ///   2. 客户端上传数据后，客户端被断掉，从而未对服务器上传成功的消息进行接收。（若是服务器断掉，则客户端会收到失败的响应）
+  ///
+  /// 若客户端请求——服务器响应，这个流程成功则设为 null，失败则保持为 curd。
+  /// 若为 2 的情况，应用会再次检索未上传的数据，再次进行上传，但无碍，因为服务端上传时，会对比 updatedAt。
+  ///   - 若新旧相同，则服务端已同步过，响应客户端将其置空。
+  ///   - 若新的晚于旧的，则需要服务端进行同步后，响应客户端将其置空。
+  ///   - 若新的早于旧的，则 1. 可能客户端、服务端时间被篡改；2. 该条数据在其他客户端已经被同步过了 TODO: 可依据此处设计多客户端登陆方案。
+  final int? syncCurd;
+
+  /// 当 [syncCurd] 为 U-1 时，[syncUpdateColumns] 不能为空。
+  ///
+  /// 值为字段名，如："username,password"。
+  final String? syncUpdateColumns;
+  final int id;
+
+  /// 必须是本地时间，不可空。
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final int? folderId;
+  final int? folderCloudId;
+  final int? fragmentId;
+  final int? fragmentCloudId;
+  Folder2Fragment(
+      {this.cloudId,
+      this.syncCurd,
+      this.syncUpdateColumns,
+      required this.id,
+      required this.createdAt,
+      required this.updatedAt,
+      this.folderId,
+      this.folderCloudId,
+      this.fragmentId,
+      this.fragmentCloudId});
+  factory Folder2Fragment.fromData(Map<String, dynamic> data,
+      {String? prefix}) {
+    final effectivePrefix = prefix ?? '';
+    return Folder2Fragment(
+      cloudId: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}cloud_id']),
+      syncCurd: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}sync_curd']),
+      syncUpdateColumns: const StringType().mapFromDatabaseResponse(
+          data['${effectivePrefix}sync_update_columns']),
+      id: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
+      createdAt: const DateTimeType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}created_at'])!,
+      updatedAt: const DateTimeType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}updated_at'])!,
+      folderId: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}folder_id']),
+      folderCloudId: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}folder_cloud_id']),
+      fragmentId: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}fragment_id']),
+      fragmentCloudId: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}fragment_cloud_id']),
+    );
+  }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || cloudId != null) {
+      map['cloud_id'] = Variable<int?>(cloudId);
+    }
+    if (!nullToAbsent || syncCurd != null) {
+      map['sync_curd'] = Variable<int?>(syncCurd);
+    }
+    if (!nullToAbsent || syncUpdateColumns != null) {
+      map['sync_update_columns'] = Variable<String?>(syncUpdateColumns);
+    }
+    map['id'] = Variable<int>(id);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || folderId != null) {
+      map['folder_id'] = Variable<int?>(folderId);
+    }
+    if (!nullToAbsent || folderCloudId != null) {
+      map['folder_cloud_id'] = Variable<int?>(folderCloudId);
+    }
+    if (!nullToAbsent || fragmentId != null) {
+      map['fragment_id'] = Variable<int?>(fragmentId);
+    }
+    if (!nullToAbsent || fragmentCloudId != null) {
+      map['fragment_cloud_id'] = Variable<int?>(fragmentCloudId);
+    }
+    return map;
+  }
+
+  Folder2FragmentsCompanion toCompanion(bool nullToAbsent) {
+    return Folder2FragmentsCompanion(
+      cloudId: cloudId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cloudId),
+      syncCurd: syncCurd == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncCurd),
+      syncUpdateColumns: syncUpdateColumns == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncUpdateColumns),
+      id: Value(id),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      folderId: folderId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(folderId),
+      folderCloudId: folderCloudId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(folderCloudId),
+      fragmentId: fragmentId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fragmentId),
+      fragmentCloudId: fragmentCloudId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fragmentCloudId),
+    );
+  }
+
+  factory Folder2Fragment.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Folder2Fragment(
+      cloudId: serializer.fromJson<int?>(json['cloudId']),
+      syncCurd: serializer.fromJson<int?>(json['syncCurd']),
+      syncUpdateColumns:
+          serializer.fromJson<String?>(json['syncUpdateColumns']),
+      id: serializer.fromJson<int>(json['id']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      folderId: serializer.fromJson<int?>(json['folderId']),
+      folderCloudId: serializer.fromJson<int?>(json['folderCloudId']),
+      fragmentId: serializer.fromJson<int?>(json['fragmentId']),
+      fragmentCloudId: serializer.fromJson<int?>(json['fragmentCloudId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'cloudId': serializer.toJson<int?>(cloudId),
+      'syncCurd': serializer.toJson<int?>(syncCurd),
+      'syncUpdateColumns': serializer.toJson<String?>(syncUpdateColumns),
+      'id': serializer.toJson<int>(id),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'folderId': serializer.toJson<int?>(folderId),
+      'folderCloudId': serializer.toJson<int?>(folderCloudId),
+      'fragmentId': serializer.toJson<int?>(fragmentId),
+      'fragmentCloudId': serializer.toJson<int?>(fragmentCloudId),
+    };
+  }
+
+  Folder2Fragment copyWith(
+          {int? cloudId,
+          int? syncCurd,
+          String? syncUpdateColumns,
+          int? id,
+          DateTime? createdAt,
+          DateTime? updatedAt,
+          int? folderId,
+          int? folderCloudId,
+          int? fragmentId,
+          int? fragmentCloudId}) =>
+      Folder2Fragment(
+        cloudId: cloudId ?? this.cloudId,
+        syncCurd: syncCurd ?? this.syncCurd,
+        syncUpdateColumns: syncUpdateColumns ?? this.syncUpdateColumns,
+        id: id ?? this.id,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+        folderId: folderId ?? this.folderId,
+        folderCloudId: folderCloudId ?? this.folderCloudId,
+        fragmentId: fragmentId ?? this.fragmentId,
+        fragmentCloudId: fragmentCloudId ?? this.fragmentCloudId,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('Folder2Fragment(')
+          ..write('cloudId: $cloudId, ')
+          ..write('syncCurd: $syncCurd, ')
+          ..write('syncUpdateColumns: $syncUpdateColumns, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('folderId: $folderId, ')
+          ..write('folderCloudId: $folderCloudId, ')
+          ..write('fragmentId: $fragmentId, ')
+          ..write('fragmentCloudId: $fragmentCloudId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      cloudId,
+      syncCurd,
+      syncUpdateColumns,
+      id,
+      createdAt,
+      updatedAt,
+      folderId,
+      folderCloudId,
+      fragmentId,
+      fragmentCloudId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Folder2Fragment &&
+          other.cloudId == this.cloudId &&
+          other.syncCurd == this.syncCurd &&
+          other.syncUpdateColumns == this.syncUpdateColumns &&
+          other.id == this.id &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.folderId == this.folderId &&
+          other.folderCloudId == this.folderCloudId &&
+          other.fragmentId == this.fragmentId &&
+          other.fragmentCloudId == this.fragmentCloudId);
+}
+
+class Folder2FragmentsCompanion extends UpdateCompanion<Folder2Fragment> {
+  final Value<int?> cloudId;
+  final Value<int?> syncCurd;
+  final Value<String?> syncUpdateColumns;
+  final Value<int> id;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int?> folderId;
+  final Value<int?> folderCloudId;
+  final Value<int?> fragmentId;
+  final Value<int?> fragmentCloudId;
+  const Folder2FragmentsCompanion({
+    this.cloudId = const Value.absent(),
+    this.syncCurd = const Value.absent(),
+    this.syncUpdateColumns = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.folderId = const Value.absent(),
+    this.folderCloudId = const Value.absent(),
+    this.fragmentId = const Value.absent(),
+    this.fragmentCloudId = const Value.absent(),
+  });
+  Folder2FragmentsCompanion.insert({
+    this.cloudId = const Value.absent(),
+    this.syncCurd = const Value.absent(),
+    this.syncUpdateColumns = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.folderId = const Value.absent(),
+    this.folderCloudId = const Value.absent(),
+    this.fragmentId = const Value.absent(),
+    this.fragmentCloudId = const Value.absent(),
+  });
+  static Insertable<Folder2Fragment> custom({
+    Expression<int?>? cloudId,
+    Expression<int?>? syncCurd,
+    Expression<String?>? syncUpdateColumns,
+    Expression<int>? id,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int?>? folderId,
+    Expression<int?>? folderCloudId,
+    Expression<int?>? fragmentId,
+    Expression<int?>? fragmentCloudId,
+  }) {
+    return RawValuesInsertable({
+      if (cloudId != null) 'cloud_id': cloudId,
+      if (syncCurd != null) 'sync_curd': syncCurd,
+      if (syncUpdateColumns != null) 'sync_update_columns': syncUpdateColumns,
+      if (id != null) 'id': id,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (folderId != null) 'folder_id': folderId,
+      if (folderCloudId != null) 'folder_cloud_id': folderCloudId,
+      if (fragmentId != null) 'fragment_id': fragmentId,
+      if (fragmentCloudId != null) 'fragment_cloud_id': fragmentCloudId,
+    });
+  }
+
+  Folder2FragmentsCompanion copyWith(
+      {Value<int?>? cloudId,
+      Value<int?>? syncCurd,
+      Value<String?>? syncUpdateColumns,
+      Value<int>? id,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
+      Value<int?>? folderId,
+      Value<int?>? folderCloudId,
+      Value<int?>? fragmentId,
+      Value<int?>? fragmentCloudId}) {
+    return Folder2FragmentsCompanion(
+      cloudId: cloudId ?? this.cloudId,
+      syncCurd: syncCurd ?? this.syncCurd,
+      syncUpdateColumns: syncUpdateColumns ?? this.syncUpdateColumns,
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      folderId: folderId ?? this.folderId,
+      folderCloudId: folderCloudId ?? this.folderCloudId,
+      fragmentId: fragmentId ?? this.fragmentId,
+      fragmentCloudId: fragmentCloudId ?? this.fragmentCloudId,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (cloudId.present) {
+      map['cloud_id'] = Variable<int?>(cloudId.value);
+    }
+    if (syncCurd.present) {
+      map['sync_curd'] = Variable<int?>(syncCurd.value);
+    }
+    if (syncUpdateColumns.present) {
+      map['sync_update_columns'] = Variable<String?>(syncUpdateColumns.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (folderId.present) {
+      map['folder_id'] = Variable<int?>(folderId.value);
+    }
+    if (folderCloudId.present) {
+      map['folder_cloud_id'] = Variable<int?>(folderCloudId.value);
+    }
+    if (fragmentId.present) {
+      map['fragment_id'] = Variable<int?>(fragmentId.value);
+    }
+    if (fragmentCloudId.present) {
+      map['fragment_cloud_id'] = Variable<int?>(fragmentCloudId.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Folder2FragmentsCompanion(')
+          ..write('cloudId: $cloudId, ')
+          ..write('syncCurd: $syncCurd, ')
+          ..write('syncUpdateColumns: $syncUpdateColumns, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('folderId: $folderId, ')
+          ..write('folderCloudId: $folderCloudId, ')
+          ..write('fragmentId: $fragmentId, ')
+          ..write('fragmentCloudId: $fragmentCloudId')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $Folder2FragmentsTable extends Folder2Fragments
+    with TableInfo<$Folder2FragmentsTable, Folder2Fragment> {
+  final GeneratedDatabase _db;
+  final String? _alias;
+  $Folder2FragmentsTable(this._db, [this._alias]);
+  final VerificationMeta _cloudIdMeta = const VerificationMeta('cloudId');
+  @override
+  late final GeneratedColumn<int?> cloudId = GeneratedColumn<int?>(
+      'cloud_id', aliasedName, true,
+      type: const IntType(),
+      requiredDuringInsert: false,
+      $customConstraints: 'UNIQUE');
+  final VerificationMeta _syncCurdMeta = const VerificationMeta('syncCurd');
+  @override
+  late final GeneratedColumn<int?> syncCurd = GeneratedColumn<int?>(
+      'sync_curd', aliasedName, true,
+      type: const IntType(), requiredDuringInsert: false);
+  final VerificationMeta _syncUpdateColumnsMeta =
+      const VerificationMeta('syncUpdateColumns');
+  @override
+  late final GeneratedColumn<String?> syncUpdateColumns =
+      GeneratedColumn<String?>('sync_update_columns', aliasedName, true,
+          type: const StringType(), requiredDuringInsert: false);
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int?> id = GeneratedColumn<int?>(
+      'id', aliasedName, false,
+      type: const IntType(),
+      requiredDuringInsert: false,
+      defaultConstraints: 'PRIMARY KEY AUTOINCREMENT');
+  final VerificationMeta _createdAtMeta = const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime?> createdAt = GeneratedColumn<DateTime?>(
+      'created_at', aliasedName, false,
+      type: const IntType(),
+      requiredDuringInsert: false,
+      clientDefault: () => DateTime.now());
+  final VerificationMeta _updatedAtMeta = const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime?> updatedAt = GeneratedColumn<DateTime?>(
+      'updated_at', aliasedName, false,
+      type: const IntType(),
+      requiredDuringInsert: false,
+      clientDefault: () => DateTime.now());
+  final VerificationMeta _folderIdMeta = const VerificationMeta('folderId');
+  @override
+  late final GeneratedColumn<int?> folderId = GeneratedColumn<int?>(
+      'folder_id', aliasedName, true,
+      type: const IntType(), requiredDuringInsert: false);
+  final VerificationMeta _folderCloudIdMeta =
+      const VerificationMeta('folderCloudId');
+  @override
+  late final GeneratedColumn<int?> folderCloudId = GeneratedColumn<int?>(
+      'folder_cloud_id', aliasedName, true,
+      type: const IntType(), requiredDuringInsert: false);
+  final VerificationMeta _fragmentIdMeta = const VerificationMeta('fragmentId');
+  @override
+  late final GeneratedColumn<int?> fragmentId = GeneratedColumn<int?>(
+      'fragment_id', aliasedName, true,
+      type: const IntType(), requiredDuringInsert: false);
+  final VerificationMeta _fragmentCloudIdMeta =
+      const VerificationMeta('fragmentCloudId');
+  @override
+  late final GeneratedColumn<int?> fragmentCloudId = GeneratedColumn<int?>(
+      'fragment_cloud_id', aliasedName, true,
+      type: const IntType(), requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        cloudId,
+        syncCurd,
+        syncUpdateColumns,
+        id,
+        createdAt,
+        updatedAt,
+        folderId,
+        folderCloudId,
+        fragmentId,
+        fragmentCloudId
+      ];
+  @override
+  String get aliasedName => _alias ?? 'folder2_fragments';
+  @override
+  String get actualTableName => 'folder2_fragments';
+  @override
+  VerificationContext validateIntegrity(Insertable<Folder2Fragment> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('cloud_id')) {
+      context.handle(_cloudIdMeta,
+          cloudId.isAcceptableOrUnknown(data['cloud_id']!, _cloudIdMeta));
+    }
+    if (data.containsKey('sync_curd')) {
+      context.handle(_syncCurdMeta,
+          syncCurd.isAcceptableOrUnknown(data['sync_curd']!, _syncCurdMeta));
+    }
+    if (data.containsKey('sync_update_columns')) {
+      context.handle(
+          _syncUpdateColumnsMeta,
+          syncUpdateColumns.isAcceptableOrUnknown(
+              data['sync_update_columns']!, _syncUpdateColumnsMeta));
+    }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    if (data.containsKey('folder_id')) {
+      context.handle(_folderIdMeta,
+          folderId.isAcceptableOrUnknown(data['folder_id']!, _folderIdMeta));
+    }
+    if (data.containsKey('folder_cloud_id')) {
+      context.handle(
+          _folderCloudIdMeta,
+          folderCloudId.isAcceptableOrUnknown(
+              data['folder_cloud_id']!, _folderCloudIdMeta));
+    }
+    if (data.containsKey('fragment_id')) {
+      context.handle(
+          _fragmentIdMeta,
+          fragmentId.isAcceptableOrUnknown(
+              data['fragment_id']!, _fragmentIdMeta));
+    }
+    if (data.containsKey('fragment_cloud_id')) {
+      context.handle(
+          _fragmentCloudIdMeta,
+          fragmentCloudId.isAcceptableOrUnknown(
+              data['fragment_cloud_id']!, _fragmentCloudIdMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Folder2Fragment map(Map<String, dynamic> data, {String? tablePrefix}) {
+    return Folder2Fragment.fromData(data,
+        prefix: tablePrefix != null ? '$tablePrefix.' : null);
+  }
+
+  @override
+  $Folder2FragmentsTable createAlias(String alias) {
+    return $Folder2FragmentsTable(_db, alias);
+  }
+}
+
+class MemoryGroup2Fragment extends DataClass
+    implements Insertable<MemoryGroup2Fragment> {
+  /// 可空。
+  final int? cloudId;
+
+  /// 同步 curd 类型。为空则表示该行不需要进行同步。
+  ///
+  /// 值： null C-0 U-1 R-2 D-3
+  ///
+  /// 不为 null 的可能性：
+  ///   1. 未上传更改。
+  ///   2. 客户端上传数据后，客户端被断掉，从而未对服务器上传成功的消息进行接收。（若是服务器断掉，则客户端会收到失败的响应）
+  ///
+  /// 若客户端请求——服务器响应，这个流程成功则设为 null，失败则保持为 curd。
+  /// 若为 2 的情况，应用会再次检索未上传的数据，再次进行上传，但无碍，因为服务端上传时，会对比 updatedAt。
+  ///   - 若新旧相同，则服务端已同步过，响应客户端将其置空。
+  ///   - 若新的晚于旧的，则需要服务端进行同步后，响应客户端将其置空。
+  ///   - 若新的早于旧的，则 1. 可能客户端、服务端时间被篡改；2. 该条数据在其他客户端已经被同步过了 TODO: 可依据此处设计多客户端登陆方案。
+  final int? syncCurd;
+
+  /// 当 [syncCurd] 为 U-1 时，[syncUpdateColumns] 不能为空。
+  ///
+  /// 值为字段名，如："username,password"。
+  final String? syncUpdateColumns;
+  final int id;
+
+  /// 必须是本地时间，不可空。
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final int? memoryGroupId;
+  final int? memoryGroupCloudId;
+  final int? fragmentId;
+  final int? fragmentCloudId;
+  MemoryGroup2Fragment(
+      {this.cloudId,
+      this.syncCurd,
+      this.syncUpdateColumns,
+      required this.id,
+      required this.createdAt,
+      required this.updatedAt,
+      this.memoryGroupId,
+      this.memoryGroupCloudId,
+      this.fragmentId,
+      this.fragmentCloudId});
+  factory MemoryGroup2Fragment.fromData(Map<String, dynamic> data,
+      {String? prefix}) {
+    final effectivePrefix = prefix ?? '';
+    return MemoryGroup2Fragment(
+      cloudId: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}cloud_id']),
+      syncCurd: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}sync_curd']),
+      syncUpdateColumns: const StringType().mapFromDatabaseResponse(
+          data['${effectivePrefix}sync_update_columns']),
+      id: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
+      createdAt: const DateTimeType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}created_at'])!,
+      updatedAt: const DateTimeType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}updated_at'])!,
+      memoryGroupId: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}memory_group_id']),
+      memoryGroupCloudId: const IntType().mapFromDatabaseResponse(
+          data['${effectivePrefix}memory_group_cloud_id']),
+      fragmentId: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}fragment_id']),
+      fragmentCloudId: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}fragment_cloud_id']),
+    );
+  }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || cloudId != null) {
+      map['cloud_id'] = Variable<int?>(cloudId);
+    }
+    if (!nullToAbsent || syncCurd != null) {
+      map['sync_curd'] = Variable<int?>(syncCurd);
+    }
+    if (!nullToAbsent || syncUpdateColumns != null) {
+      map['sync_update_columns'] = Variable<String?>(syncUpdateColumns);
+    }
+    map['id'] = Variable<int>(id);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || memoryGroupId != null) {
+      map['memory_group_id'] = Variable<int?>(memoryGroupId);
+    }
+    if (!nullToAbsent || memoryGroupCloudId != null) {
+      map['memory_group_cloud_id'] = Variable<int?>(memoryGroupCloudId);
+    }
+    if (!nullToAbsent || fragmentId != null) {
+      map['fragment_id'] = Variable<int?>(fragmentId);
+    }
+    if (!nullToAbsent || fragmentCloudId != null) {
+      map['fragment_cloud_id'] = Variable<int?>(fragmentCloudId);
+    }
+    return map;
+  }
+
+  MemoryGroup2FragmentsCompanion toCompanion(bool nullToAbsent) {
+    return MemoryGroup2FragmentsCompanion(
+      cloudId: cloudId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cloudId),
+      syncCurd: syncCurd == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncCurd),
+      syncUpdateColumns: syncUpdateColumns == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncUpdateColumns),
+      id: Value(id),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      memoryGroupId: memoryGroupId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(memoryGroupId),
+      memoryGroupCloudId: memoryGroupCloudId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(memoryGroupCloudId),
+      fragmentId: fragmentId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fragmentId),
+      fragmentCloudId: fragmentCloudId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fragmentCloudId),
+    );
+  }
+
+  factory MemoryGroup2Fragment.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MemoryGroup2Fragment(
+      cloudId: serializer.fromJson<int?>(json['cloudId']),
+      syncCurd: serializer.fromJson<int?>(json['syncCurd']),
+      syncUpdateColumns:
+          serializer.fromJson<String?>(json['syncUpdateColumns']),
+      id: serializer.fromJson<int>(json['id']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      memoryGroupId: serializer.fromJson<int?>(json['memoryGroupId']),
+      memoryGroupCloudId: serializer.fromJson<int?>(json['memoryGroupCloudId']),
+      fragmentId: serializer.fromJson<int?>(json['fragmentId']),
+      fragmentCloudId: serializer.fromJson<int?>(json['fragmentCloudId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'cloudId': serializer.toJson<int?>(cloudId),
+      'syncCurd': serializer.toJson<int?>(syncCurd),
+      'syncUpdateColumns': serializer.toJson<String?>(syncUpdateColumns),
+      'id': serializer.toJson<int>(id),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'memoryGroupId': serializer.toJson<int?>(memoryGroupId),
+      'memoryGroupCloudId': serializer.toJson<int?>(memoryGroupCloudId),
+      'fragmentId': serializer.toJson<int?>(fragmentId),
+      'fragmentCloudId': serializer.toJson<int?>(fragmentCloudId),
+    };
+  }
+
+  MemoryGroup2Fragment copyWith(
+          {int? cloudId,
+          int? syncCurd,
+          String? syncUpdateColumns,
+          int? id,
+          DateTime? createdAt,
+          DateTime? updatedAt,
+          int? memoryGroupId,
+          int? memoryGroupCloudId,
+          int? fragmentId,
+          int? fragmentCloudId}) =>
+      MemoryGroup2Fragment(
+        cloudId: cloudId ?? this.cloudId,
+        syncCurd: syncCurd ?? this.syncCurd,
+        syncUpdateColumns: syncUpdateColumns ?? this.syncUpdateColumns,
+        id: id ?? this.id,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+        memoryGroupId: memoryGroupId ?? this.memoryGroupId,
+        memoryGroupCloudId: memoryGroupCloudId ?? this.memoryGroupCloudId,
+        fragmentId: fragmentId ?? this.fragmentId,
+        fragmentCloudId: fragmentCloudId ?? this.fragmentCloudId,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('MemoryGroup2Fragment(')
+          ..write('cloudId: $cloudId, ')
+          ..write('syncCurd: $syncCurd, ')
+          ..write('syncUpdateColumns: $syncUpdateColumns, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('memoryGroupId: $memoryGroupId, ')
+          ..write('memoryGroupCloudId: $memoryGroupCloudId, ')
+          ..write('fragmentId: $fragmentId, ')
+          ..write('fragmentCloudId: $fragmentCloudId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      cloudId,
+      syncCurd,
+      syncUpdateColumns,
+      id,
+      createdAt,
+      updatedAt,
+      memoryGroupId,
+      memoryGroupCloudId,
+      fragmentId,
+      fragmentCloudId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MemoryGroup2Fragment &&
+          other.cloudId == this.cloudId &&
+          other.syncCurd == this.syncCurd &&
+          other.syncUpdateColumns == this.syncUpdateColumns &&
+          other.id == this.id &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.memoryGroupId == this.memoryGroupId &&
+          other.memoryGroupCloudId == this.memoryGroupCloudId &&
+          other.fragmentId == this.fragmentId &&
+          other.fragmentCloudId == this.fragmentCloudId);
+}
+
+class MemoryGroup2FragmentsCompanion
+    extends UpdateCompanion<MemoryGroup2Fragment> {
+  final Value<int?> cloudId;
+  final Value<int?> syncCurd;
+  final Value<String?> syncUpdateColumns;
+  final Value<int> id;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int?> memoryGroupId;
+  final Value<int?> memoryGroupCloudId;
+  final Value<int?> fragmentId;
+  final Value<int?> fragmentCloudId;
+  const MemoryGroup2FragmentsCompanion({
+    this.cloudId = const Value.absent(),
+    this.syncCurd = const Value.absent(),
+    this.syncUpdateColumns = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.memoryGroupId = const Value.absent(),
+    this.memoryGroupCloudId = const Value.absent(),
+    this.fragmentId = const Value.absent(),
+    this.fragmentCloudId = const Value.absent(),
+  });
+  MemoryGroup2FragmentsCompanion.insert({
+    this.cloudId = const Value.absent(),
+    this.syncCurd = const Value.absent(),
+    this.syncUpdateColumns = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.memoryGroupId = const Value.absent(),
+    this.memoryGroupCloudId = const Value.absent(),
+    this.fragmentId = const Value.absent(),
+    this.fragmentCloudId = const Value.absent(),
+  });
+  static Insertable<MemoryGroup2Fragment> custom({
+    Expression<int?>? cloudId,
+    Expression<int?>? syncCurd,
+    Expression<String?>? syncUpdateColumns,
+    Expression<int>? id,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int?>? memoryGroupId,
+    Expression<int?>? memoryGroupCloudId,
+    Expression<int?>? fragmentId,
+    Expression<int?>? fragmentCloudId,
+  }) {
+    return RawValuesInsertable({
+      if (cloudId != null) 'cloud_id': cloudId,
+      if (syncCurd != null) 'sync_curd': syncCurd,
+      if (syncUpdateColumns != null) 'sync_update_columns': syncUpdateColumns,
+      if (id != null) 'id': id,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (memoryGroupId != null) 'memory_group_id': memoryGroupId,
+      if (memoryGroupCloudId != null)
+        'memory_group_cloud_id': memoryGroupCloudId,
+      if (fragmentId != null) 'fragment_id': fragmentId,
+      if (fragmentCloudId != null) 'fragment_cloud_id': fragmentCloudId,
+    });
+  }
+
+  MemoryGroup2FragmentsCompanion copyWith(
+      {Value<int?>? cloudId,
+      Value<int?>? syncCurd,
+      Value<String?>? syncUpdateColumns,
+      Value<int>? id,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
+      Value<int?>? memoryGroupId,
+      Value<int?>? memoryGroupCloudId,
+      Value<int?>? fragmentId,
+      Value<int?>? fragmentCloudId}) {
+    return MemoryGroup2FragmentsCompanion(
+      cloudId: cloudId ?? this.cloudId,
+      syncCurd: syncCurd ?? this.syncCurd,
+      syncUpdateColumns: syncUpdateColumns ?? this.syncUpdateColumns,
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      memoryGroupId: memoryGroupId ?? this.memoryGroupId,
+      memoryGroupCloudId: memoryGroupCloudId ?? this.memoryGroupCloudId,
+      fragmentId: fragmentId ?? this.fragmentId,
+      fragmentCloudId: fragmentCloudId ?? this.fragmentCloudId,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (cloudId.present) {
+      map['cloud_id'] = Variable<int?>(cloudId.value);
+    }
+    if (syncCurd.present) {
+      map['sync_curd'] = Variable<int?>(syncCurd.value);
+    }
+    if (syncUpdateColumns.present) {
+      map['sync_update_columns'] = Variable<String?>(syncUpdateColumns.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (memoryGroupId.present) {
+      map['memory_group_id'] = Variable<int?>(memoryGroupId.value);
+    }
+    if (memoryGroupCloudId.present) {
+      map['memory_group_cloud_id'] = Variable<int?>(memoryGroupCloudId.value);
+    }
+    if (fragmentId.present) {
+      map['fragment_id'] = Variable<int?>(fragmentId.value);
+    }
+    if (fragmentCloudId.present) {
+      map['fragment_cloud_id'] = Variable<int?>(fragmentCloudId.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MemoryGroup2FragmentsCompanion(')
+          ..write('cloudId: $cloudId, ')
+          ..write('syncCurd: $syncCurd, ')
+          ..write('syncUpdateColumns: $syncUpdateColumns, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('memoryGroupId: $memoryGroupId, ')
+          ..write('memoryGroupCloudId: $memoryGroupCloudId, ')
+          ..write('fragmentId: $fragmentId, ')
+          ..write('fragmentCloudId: $fragmentCloudId')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $MemoryGroup2FragmentsTable extends MemoryGroup2Fragments
+    with TableInfo<$MemoryGroup2FragmentsTable, MemoryGroup2Fragment> {
+  final GeneratedDatabase _db;
+  final String? _alias;
+  $MemoryGroup2FragmentsTable(this._db, [this._alias]);
+  final VerificationMeta _cloudIdMeta = const VerificationMeta('cloudId');
+  @override
+  late final GeneratedColumn<int?> cloudId = GeneratedColumn<int?>(
+      'cloud_id', aliasedName, true,
+      type: const IntType(),
+      requiredDuringInsert: false,
+      $customConstraints: 'UNIQUE');
+  final VerificationMeta _syncCurdMeta = const VerificationMeta('syncCurd');
+  @override
+  late final GeneratedColumn<int?> syncCurd = GeneratedColumn<int?>(
+      'sync_curd', aliasedName, true,
+      type: const IntType(), requiredDuringInsert: false);
+  final VerificationMeta _syncUpdateColumnsMeta =
+      const VerificationMeta('syncUpdateColumns');
+  @override
+  late final GeneratedColumn<String?> syncUpdateColumns =
+      GeneratedColumn<String?>('sync_update_columns', aliasedName, true,
+          type: const StringType(), requiredDuringInsert: false);
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int?> id = GeneratedColumn<int?>(
+      'id', aliasedName, false,
+      type: const IntType(),
+      requiredDuringInsert: false,
+      defaultConstraints: 'PRIMARY KEY AUTOINCREMENT');
+  final VerificationMeta _createdAtMeta = const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime?> createdAt = GeneratedColumn<DateTime?>(
+      'created_at', aliasedName, false,
+      type: const IntType(),
+      requiredDuringInsert: false,
+      clientDefault: () => DateTime.now());
+  final VerificationMeta _updatedAtMeta = const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime?> updatedAt = GeneratedColumn<DateTime?>(
+      'updated_at', aliasedName, false,
+      type: const IntType(),
+      requiredDuringInsert: false,
+      clientDefault: () => DateTime.now());
+  final VerificationMeta _memoryGroupIdMeta =
+      const VerificationMeta('memoryGroupId');
+  @override
+  late final GeneratedColumn<int?> memoryGroupId = GeneratedColumn<int?>(
+      'memory_group_id', aliasedName, true,
+      type: const IntType(), requiredDuringInsert: false);
+  final VerificationMeta _memoryGroupCloudIdMeta =
+      const VerificationMeta('memoryGroupCloudId');
+  @override
+  late final GeneratedColumn<int?> memoryGroupCloudId = GeneratedColumn<int?>(
+      'memory_group_cloud_id', aliasedName, true,
+      type: const IntType(), requiredDuringInsert: false);
+  final VerificationMeta _fragmentIdMeta = const VerificationMeta('fragmentId');
+  @override
+  late final GeneratedColumn<int?> fragmentId = GeneratedColumn<int?>(
+      'fragment_id', aliasedName, true,
+      type: const IntType(), requiredDuringInsert: false);
+  final VerificationMeta _fragmentCloudIdMeta =
+      const VerificationMeta('fragmentCloudId');
+  @override
+  late final GeneratedColumn<int?> fragmentCloudId = GeneratedColumn<int?>(
+      'fragment_cloud_id', aliasedName, true,
+      type: const IntType(), requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        cloudId,
+        syncCurd,
+        syncUpdateColumns,
+        id,
+        createdAt,
+        updatedAt,
+        memoryGroupId,
+        memoryGroupCloudId,
+        fragmentId,
+        fragmentCloudId
+      ];
+  @override
+  String get aliasedName => _alias ?? 'memory_group2_fragments';
+  @override
+  String get actualTableName => 'memory_group2_fragments';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<MemoryGroup2Fragment> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('cloud_id')) {
+      context.handle(_cloudIdMeta,
+          cloudId.isAcceptableOrUnknown(data['cloud_id']!, _cloudIdMeta));
+    }
+    if (data.containsKey('sync_curd')) {
+      context.handle(_syncCurdMeta,
+          syncCurd.isAcceptableOrUnknown(data['sync_curd']!, _syncCurdMeta));
+    }
+    if (data.containsKey('sync_update_columns')) {
+      context.handle(
+          _syncUpdateColumnsMeta,
+          syncUpdateColumns.isAcceptableOrUnknown(
+              data['sync_update_columns']!, _syncUpdateColumnsMeta));
+    }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    if (data.containsKey('memory_group_id')) {
+      context.handle(
+          _memoryGroupIdMeta,
+          memoryGroupId.isAcceptableOrUnknown(
+              data['memory_group_id']!, _memoryGroupIdMeta));
+    }
+    if (data.containsKey('memory_group_cloud_id')) {
+      context.handle(
+          _memoryGroupCloudIdMeta,
+          memoryGroupCloudId.isAcceptableOrUnknown(
+              data['memory_group_cloud_id']!, _memoryGroupCloudIdMeta));
+    }
+    if (data.containsKey('fragment_id')) {
+      context.handle(
+          _fragmentIdMeta,
+          fragmentId.isAcceptableOrUnknown(
+              data['fragment_id']!, _fragmentIdMeta));
+    }
+    if (data.containsKey('fragment_cloud_id')) {
+      context.handle(
+          _fragmentCloudIdMeta,
+          fragmentCloudId.isAcceptableOrUnknown(
+              data['fragment_cloud_id']!, _fragmentCloudIdMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MemoryGroup2Fragment map(Map<String, dynamic> data, {String? tablePrefix}) {
+    return MemoryGroup2Fragment.fromData(data,
+        prefix: tablePrefix != null ? '$tablePrefix.' : null);
+  }
+
+  @override
+  $MemoryGroup2FragmentsTable createAlias(String alias) {
+    return $MemoryGroup2FragmentsTable(_db, alias);
   }
 }
 
@@ -2319,12 +3668,28 @@ abstract class _$DriftDb extends GeneratedDatabase {
   late final $UsersTable users = $UsersTable(this);
   late final $FoldersTable folders = $FoldersTable(this);
   late final $FragmentsTable fragments = $FragmentsTable(this);
+  late final $MemoryGroupsTable memoryGroups = $MemoryGroupsTable(this);
+  late final $Folder2FragmentsTable folder2Fragments =
+      $Folder2FragmentsTable(this);
+  late final $MemoryGroup2FragmentsTable memoryGroup2Fragments =
+      $MemoryGroup2FragmentsTable(this);
   late final $SimilarFragmentsTable similarFragments =
       $SimilarFragmentsTable(this);
-  late final JianJiDAO jianJiDAO = JianJiDAO(this as DriftDb);
+  late final InsertDAO insertDAO = InsertDAO(this as DriftDb);
+  late final DeleteDAO deleteDAO = DeleteDAO(this as DriftDb);
+  late final UpdateDAO updateDAO = UpdateDAO(this as DriftDb);
+  late final RetrieveDAO retrieveDAO = RetrieveDAO(this as DriftDb);
   @override
   Iterable<TableInfo> get allTables => allSchemaEntities.whereType<TableInfo>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [appInfos, users, folders, fragments, similarFragments];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+        appInfos,
+        users,
+        folders,
+        fragments,
+        memoryGroups,
+        folder2Fragments,
+        memoryGroup2Fragments,
+        similarFragments
+      ];
 }

@@ -1,6 +1,8 @@
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:get/get.dart';
 import 'package:hybrid/jianji/JianJiHome.dart';
 
 import 'engine/init/EngineInit.dart';
@@ -14,11 +16,12 @@ import 'engine/transfer/listener/MainDataTransferListener.dart';
 void main() async {
   flutterEngineBinding('main', () => MainDataTransferListener());
   runApp(
-    FlutterEngineApp(
-      child: MaterialApp(
-        home: JianJiHome(),
+    GetMaterialApp(
+      home: const FlutterEngineApp(
+        child: JianJiHome(),
+        isSetOnReadyImdtWhenFirstFrameInitialized: true,
       ),
-      isSetOnReadyImdtWhenFirstFrameInitialized: true,
+      builder: EasyLoading.init(),
     ),
   );
 }

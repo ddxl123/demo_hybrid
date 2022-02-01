@@ -124,10 +124,16 @@ class Fragments extends TableCloudBase {
   TextColumn get answer => text().nullable()();
 
   TextColumn get description => text().nullable()();
+}
 
+class Folder2Fragments extends TableCloudBase {
   IntColumn get folderId => integer().nullable()();
 
   IntColumn get folderCloudId => integer().nullable()();
+
+  IntColumn get fragmentId => integer().nullable()();
+
+  IntColumn get fragmentCloudId => integer().nullable()();
 }
 
 class SimilarFragments extends TableCloudBase {
@@ -138,4 +144,18 @@ class SimilarFragments extends TableCloudBase {
   IntColumn get fragmentBId => integer().nullable()();
 
   IntColumn get fragmentBCloudId => integer().nullable()();
+}
+
+class MemoryGroups extends TableCloudBase {
+  TextColumn get title => text().nullable()();
+}
+
+class MemoryGroup2Fragments extends TableCloudBase {
+  IntColumn get memoryGroupId => integer().nullable()();
+
+  IntColumn get memoryGroupCloudId => integer().nullable()();
+
+  IntColumn get fragmentId => integer().nullable()();
+
+  IntColumn get fragmentCloudId => integer().nullable()();
 }

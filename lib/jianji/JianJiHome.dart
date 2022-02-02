@@ -6,9 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:hybrid/jianji/FolderListPage.dart';
-import 'package:hybrid/jianji/MemoryGroupPage.dart';
+import 'package:hybrid/jianji/MemoryGroupListPage.dart';
+import 'package:hybrid/jianji/controller/JianJiHomeGetXController.dart';
 
 import 'controller/GlobalGetXController.dart';
+import 'controller/MemoryGroupListGetXController.dart';
 
 class JianJiHome extends StatefulWidget {
   const JianJiHome({Key? key}) : super(key: key);
@@ -20,18 +22,19 @@ class JianJiHome extends StatefulWidget {
 class _JianJiHomeState extends State<JianJiHome> {
   final GlobalGetXController _globalGetXController = Get.put(GlobalGetXController());
 
+  final JianJiHomeGetXController _jianJiHomeGetXController = Get.put(JianJiHomeGetXController());
+  final MemoryGroupListGetXController _memoryGroupListGetXController = Get.put(MemoryGroupListGetXController());
+
   /// 当前 [CurvedNavigationBar] 的 index。
   /// 0 表示 Folder 页，1表示 记忆组 页。
-  int currentBody = 0;
+  int _currentBody = 0;
 
   // 双击返回键才会退出应用。
   int? _lastBackAppTime;
 
   final GlobalKey<CurvedNavigationBarState> _curvedNavigationBar = GlobalKey();
 
-  final PageController _pageController = PageController(initialPage: 0);
-
-  List<Widget> pages = <Widget>[const FolderListPage(), const MemoryGroupPage()];
+  final List<Widget> _pages = <Widget>[const FolderListPage(), const MemoryGroupListPage()];
 
   @override
   Widget build(BuildContext context) {
@@ -65,28 +68,27 @@ class _JianJiHomeState extends State<JianJiHome> {
           height: 50,
           onTap: (int index) {},
           letIndexChange: (int index) {
-            if (index == currentBody) {
+            if (index == _currentBody) {
               // 若已是当前页面时，不执行任何。
               return false;
             } else {
               log('message');
-              _pageController.animateToPage(index, duration: const Duration(milliseconds: 500), curve: Curves.easeOutCirc);
-              currentBody = index;
+              _jianJiHomeGetXController.animateToPage(index);
+              _currentBody = index;
               return true;
             }
           },
         ),
         body: PageView.builder(
-          controller: _pageController,
-          itemCount: pages.length,
+          controller: _jianJiHomeGetXController.pageController,
+          itemCount: _pages.length,
           onPageChanged: (int index) {
             _curvedNavigationBar.currentState?.setPage(index);
           },
           itemBuilder: (BuildContext context, int index) {
-            return pages[index];
+            return _pages[index];
           },
         ),
-        floatingActionButton: _globalGetXController.putGroupWidget(context),
       ),
     );
   }

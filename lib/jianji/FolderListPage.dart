@@ -8,6 +8,7 @@ import 'package:hybrid/jianji/FragmentListPage.dart';
 import 'package:hybrid/jianji/controller/FolderListPageGetXController.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
+import 'controller/FragmentListPageGetXController.dart';
 import 'controller/GlobalGetXController.dart';
 
 class FolderListPage extends StatefulWidget {
@@ -18,6 +19,7 @@ class FolderListPage extends StatefulWidget {
 }
 
 class _FolderListPageState extends State<FolderListPage> with AutomaticKeepAliveClientMixin {
+  final GlobalGetXController _globalGetXController = Get.find<GlobalGetXController>();
   final FolderListPageGetXController _folderListPageGetXController = Get.put(FolderListPageGetXController());
 
   @override
@@ -41,8 +43,9 @@ class _FolderListPageState extends State<FolderListPage> with AutomaticKeepAlive
                 isDestructiveAction: true,
               );
               if (result != null && result.isNotEmpty && result.first != '') {
-                _folderListPageGetXController
-                    .addFolder(await DriftDb.instance.insertDAO.insertFolder(FoldersCompanion.insert(title: drift.Value(result.first))));
+                EasyLoading.show();
+                await _folderListPageGetXController.insertSerializeFolder(FoldersCompanion.insert(title: drift.Value(result.first)));
+                EasyLoading.showSuccess('创建成功！');
               }
             },
             icon: const Icon(Icons.add),
@@ -66,19 +69,17 @@ class _FolderListPageState extends State<FolderListPage> with AutomaticKeepAlive
             },
           ),
           onRefresh: () async {
-            _folderListPageGetXController.folders.clear();
-            _folderListPageGetXController.offset = 0;
-            _folderListPageGetXController.folders.addAll((await DriftDb.instance.retrieveDAO.getFolders(_folderListPageGetXController.offset, 5)));
-            _folderListPageGetXController.offset = _folderListPageGetXController.folders.length;
+            _folderListPageGetXController.clearViewFolders();
+            await _folderListPageGetXController.getSerializeFolders();
             _folderListPageGetXController.refreshController.refreshCompleted();
           },
           onLoading: () async {
-            _folderListPageGetXController.folders.addAll((await DriftDb.instance.retrieveDAO.getFolders(_folderListPageGetXController.offset, 5)));
-            _folderListPageGetXController.offset = _folderListPageGetXController.folders.length;
+            await _folderListPageGetXController.getSerializeFolders();
             _folderListPageGetXController.refreshController.loadComplete();
           },
         ),
       ),
+      floatingActionButton: _globalGetXController.groupModelFloatingButton(context),
     );
   }
 
@@ -97,40 +98,55 @@ class FolderButton extends StatefulWidget {
 class _FolderButtonState extends State<FolderButton> {
   final GlobalGetXController _globalGetXController = Get.find<GlobalGetXController>();
   final FolderListPageGetXController _folderListPageGetXController = Get.find<FolderListPageGetXController>();
+  late final FragmentListPageGetXController _fragmentListPageGetXController;
+
+  @override
+  void initState() {
+    super.initState();
+    _fragmentListPageGetXController = Get.put(FragmentListPageGetXController(), tag: widget.folder.hashCode.toString());
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: TextButton(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Expanded(child: Text(widget.folder.title.toString())),
-            Obx(() {
-              if (_globalGetXController.isSelectModel.value) {
-                return Text(((_globalGetXController.selecteds[widget.folder.id]?.length) ?? 0).toString(), style: const TextStyle(color: Colors.green));
-              } else {
-                return Container();
-              }
-            }),
-          ],
+    return Obx(
+      () => Container(
+        child: TextButton(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Expanded(child: Text(widget.folder.title.toString())),
+              Text(_fragmentListPageGetXController.serializeFragmentsCount.toString()),
+              () {
+                if (_globalGetXController.isGroupModel()) {
+                  return Container(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
+                    child: Text(
+                      ((_globalGetXController.selectedsForGroupModel[widget.folder.id]?.length) ?? 0).toString(),
+                      style: const TextStyle(color: Colors.orange),
+                    ),
+                  );
+                } else {
+                  return Container();
+                }
+              }(),
+            ],
+          ),
+          style: const ButtonStyle(alignment: Alignment.centerLeft),
+          onPressed: () async {
+            Get.to(() => FragmentListPage(folder: widget.folder));
+          },
+          onLongPress: () async {
+            final OkCancelResult result =
+                await showOkCancelAlertDialog(context: context, title: '确定删除？', okLabel: '确定', cancelLabel: '取消', isDestructiveAction: true);
+            if (result == OkCancelResult.ok) {
+              EasyLoading.show();
+              await _folderListPageGetXController.deleteSerializeFolder(widget.folder);
+              EasyLoading.showSuccess('删除成功！');
+            }
+          },
         ),
-        style: const ButtonStyle(alignment: Alignment.centerLeft),
-        onPressed: () async {
-          Get.to(FragmentListPage(folder: widget.folder));
-        },
-        onLongPress: () async {
-          final OkCancelResult result =
-              await showOkCancelAlertDialog(context: context, title: '确定删除？', okLabel: '确定', cancelLabel: '取消', isDestructiveAction: true);
-          if (result == OkCancelResult.ok) {
-            EasyLoading.show();
-            await DriftDb.instance.deleteDAO.deleteFolderWith(widget.folder);
-            EasyLoading.showSuccess('删除成功！');
-            _folderListPageGetXController.removeFolder(widget.folder);
-          }
-        },
+        decoration: const BoxDecoration(border: Border(bottom: BorderSide(width: 0.5, color: Color.fromRGBO(0, 0, 0, 0.2)))),
       ),
-      decoration: const BoxDecoration(border: Border(bottom: BorderSide(width: 0.5, color: Color.fromRGBO(0, 0, 0, 0.2)))),
     );
   }
 }

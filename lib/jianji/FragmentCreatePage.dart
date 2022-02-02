@@ -118,13 +118,12 @@ class _FragmentCreatePageState extends State<FragmentCreatePage> {
                     );
                   }
                 }
-                final List<Fragment> result = await DriftDb.instance.insertDAO.insertFragments(fragmentsCompanions, widget.folder);
                 if (fragmentsCompanions.isEmpty) {
                   EasyLoading.showToast('没有可添加项');
                   Get.back();
                 } else {
+                  await _fragmentListPageGetXController.insertSerializeFragments(widget.folder, fragmentsCompanions);
                   EasyLoading.showSuccess('添加成功');
-                  _fragmentListPageGetXController.addFragments(widget.folder, result);
                   Get.back();
                 }
               },

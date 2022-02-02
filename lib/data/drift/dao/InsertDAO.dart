@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:hybrid/data/drift/db/DriftDb.dart';
 import 'package:hybrid/data/drift/table/Cloud.dart';
 import 'package:hybrid/data/drift/table/Local.dart';
+import 'package:hybrid/util/SbHelper.dart';
 
 part 'InsertDAO.g.dart';
 
@@ -44,5 +45,48 @@ class InsertDAO extends DatabaseAccessor<DriftDb> with _$InsertDAOMixin {
         return newFragments;
       },
     );
+  }
+
+  Future<MemoryGroup> insertMemoryGroup(MemoryGroupsCompanion memoryGroupsCompanion) async {
+    return await into(memoryGroups).insertReturning(memoryGroupsCompanion);
+  }
+
+  /// 将每个 [fragments] 插入到全部 [memoryGroups] 中。
+  Future<void> insertMemoryGroup2Fragments({
+    required List<MemoryGroup> memoryGroups,
+    required List<Fragment> fragments,
+    required Future<void> Function(MemoryGroup filteredMemoryGroup, List<Fragment> filteredFragments) filtered,
+  }) async {
+    await batch((batch) async {
+      for (var memoryGroup in memoryGroups) {
+        final List<MemoryGroup2FragmentsCompanion> memoryGroup2FragmentsCompanions = <MemoryGroup2FragmentsCompanion>[];
+        final List<Fragment> filteredFragments = <Fragment>[];
+
+        for (var element in fragments) {
+          final MemoryGroup2Fragment? m2f = await ((select(memoryGroup2Fragments))
+                ..where(
+                  (tbl) =>
+                      (tbl.fragmentId.equals(element.id) | tbl.fragmentCloudId.equals(element.cloudId)) &
+                      (tbl.memoryGroupId.equals(memoryGroup.id) | tbl.memoryGroupCloudId.equals(memoryGroup.cloudId)),
+                ))
+              .getSingleOrNull();
+          // 以防重复。
+          if (m2f == null) {
+            filteredFragments.add(element);
+
+            memoryGroup2FragmentsCompanions.add(
+              MemoryGroup2FragmentsCompanion.insert(
+                memoryGroupId: memoryGroup.id.toValue(),
+                memoryGroupCloudId: memoryGroup.cloudId.toValue(),
+                fragmentId: element.id.toValue(),
+                fragmentCloudId: element.cloudId.toValue(),
+              ),
+            );
+          }
+        }
+        await filtered(memoryGroup, filteredFragments);
+        batch.insertAll(memoryGroup2Fragments, memoryGroup2FragmentsCompanions);
+      }
+    });
   }
 }

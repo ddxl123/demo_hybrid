@@ -1,12 +1,19 @@
 // ignore_for_file: avoid_classes_with_only_static_members
 import 'dart:math';
 
+import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hybrid/data/mysql/httpstore/handler/HttpHandler.dart';
 import 'package:hybrid/util/sblogger/SbLogger.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:uuid/uuid.dart';
+
+extension ToValue on Object? {
+  drift.Value<T> toValue<T>() {
+    return drift.Value<T>(this as T);
+  }
+}
 
 /// 与 [HttpHandler] 基本一直。
 ///

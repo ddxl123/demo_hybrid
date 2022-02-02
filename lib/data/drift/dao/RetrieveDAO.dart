@@ -18,31 +18,70 @@ part 'RetrieveDAO.g.dart';
 class RetrieveDAO extends DatabaseAccessor<DriftDb> with _$RetrieveDAOMixin {
   RetrieveDAO(DriftDb attachedDatabase) : super(attachedDatabase);
 
-  /// 不包含 offset 本身，
   Future<List<Folder>> getFolders(int offset, int limit) async {
     return await (select(folders)..limit(limit, offset: offset)).get();
   }
 
-  Future<List<Fragment>> getFragments(Folder folder, int offset, int limit) async {
-    final result = await (select(folder2Fragments).join(
+  /// 获取 [folder] 内的 [Fragment]s，连带 [folder2Fragments] 查询。
+  Future<List<Fragment>> getFolder2Fragments(Folder folder, int offset, int limit) async {
+    final result = select(folder2Fragments).join(
       <Join>[
         innerJoin(
           folders,
-          (folders.id.equalsExp(folder2Fragments.folderId) | folders.cloudId.equalsExp(folder2Fragments.cloudId)),
+          folders.id.equalsExp(folder2Fragments.folderId) | folders.cloudId.equalsExp(folder2Fragments.cloudId),
         ),
         innerJoin(
           fragments,
-          (fragments.id.equalsExp(folder2Fragments.fragmentId) | fragments.cloudId.equalsExp(folder2Fragments.fragmentCloudId)),
+          fragments.id.equalsExp(folder2Fragments.fragmentId) | fragments.cloudId.equalsExp(folder2Fragments.fragmentCloudId),
         ),
       ],
-    )
-          ..where(folders.id.equals(folder.id) | folders.cloudId.equals(folder.cloudId))
-          ..limit(limit, offset: offset))
-        .get();
-    return result.map((e) => e.readTable(fragments)).toList();
+    );
+    result.where(folders.id.equals(folder.id) | folders.cloudId.equals(folder.cloudId));
+    result.limit(limit, offset: offset);
+    return (await result.get()).map((e) => e.readTable(fragments)).toList();
+  }
+
+  /// 获取 [MemoryGroup] 内的 [Fragment]s，连带 [memoryGroup2Fragments] 查询。
+  Future<List<Fragment>> getMemoryGroup2Fragments(MemoryGroup memoryGroup, int offset, int limit) async {
+    final result = select(memoryGroup2Fragments).join(
+      <Join>[
+        innerJoin(memoryGroups,
+            memoryGroups.id.equalsExp(memoryGroup2Fragments.memoryGroupId) | memoryGroups.cloudId.equalsExp(memoryGroup2Fragments.memoryGroupCloudId)),
+        innerJoin(fragments, fragments.id.equalsExp(memoryGroup2Fragments.fragmentId) | fragments.cloudId.equalsExp(memoryGroup2Fragments.fragmentCloudId)),
+      ],
+    );
+    result.where(memoryGroups.id.equals(memoryGroup.id) | memoryGroups.cloudId.equals(memoryGroup.cloudId));
+    result.limit(limit, offset: offset);
+    return (await result.get()).map((e) => e.readTable(fragments)).toList();
+  }
+
+  /// [ins] 为 [Fragment.id]，使用 [Fragment.id] 直接获取，不包括 [Fragment.couldId]。
+  Future<List<Fragment>> getFragmentsByIsIn(Iterable<int> ins) async {
+    return await (select(fragments)..where((tbl) => tbl.id.isIn(ins))).get();
   }
 
   Future<List<MemoryGroup>> getMemoryGroups(int offset, int limit) async {
     return await (select(memoryGroups)..limit(limit, offset: offset)).get();
+  }
+
+  /// [ins] 为 [MemoryGroup.id]，使用 [MemoryGroup.id] 直接获取，不包括 [MemoryGroup.couldId]。
+  Future<List<MemoryGroup>> getMemoryGroupsByIsIn(Iterable<int> ins) async {
+    return await (select(memoryGroups)..where((tbl) => tbl.id.isIn(ins))).get();
+  }
+
+  /// 获取 [memoryGroup] 内碎片数量。
+  Future<int> getMemoryGroup2FragmentCount(MemoryGroup memoryGroup) async {
+    final s = selectOnly(memoryGroup2Fragments);
+    s.where(memoryGroup2Fragments.memoryGroupId.equals(memoryGroup.id) | memoryGroup2Fragments.memoryGroupCloudId.equals(memoryGroup.cloudId));
+    s.addColumns([countAll()]);
+    return (await s.getSingle()).read(countAll());
+  }
+
+  /// 获取 [folder] 内碎片数量。
+  Future<int> getFolder2FragmentCount(Folder folder) async {
+    final s = selectOnly(folder2Fragments);
+    s.where(folder2Fragments.folderId.equals(folder.id) | folder2Fragments.folderCloudId.equals(folder.cloudId));
+    s.addColumns([countAll()]);
+    return (await s.getSingle()).read(countAll());
   }
 }

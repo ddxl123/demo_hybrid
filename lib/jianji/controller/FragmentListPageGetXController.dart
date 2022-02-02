@@ -10,17 +10,43 @@ class FragmentListPageGetXController extends GetxController {
 
   final RxList<Fragment> fragments = <Fragment>[].obs;
 
+  RxInt serializeFragmentsCount = 0.obs;
+
   /// 不包含 offset 本身。
   int offset = 0;
 
-  void removeFragment(Folder folder, Fragment fragment) {
-    _globalGetXController.cancelSelected(folder, fragment);
-    fragments.remove(fragment);
+  Future<void> deleteSerializeFragment(Folder forFolder, Fragment forFragment) async {
+    // 删除该碎片本地持久化。
+    await DriftDb.instance.deleteDAO.deleteFragmentWith(forFragment);
+    // 取消成组模式该碎片的选择。
+    _globalGetXController.cancelSelectedForGroupModel(forFolder, forFragment);
+    // 移除 widget。
+    fragments.remove(forFragment);
     offset -= 1;
+    serializeFragmentsCount.value -= 1;
   }
 
-  void addFragments(Folder folder, List<Fragment> newFragments) {
+  Future<void> getSerializeFragments(Folder forFolder) async {
+    // 获取持久化数据。
+    final List<Fragment> newFragments = await DriftDb.instance.retrieveDAO.getFolder2Fragments(forFolder, offset, 5);
+    // 插入到 widget 中。
     fragments.addAll(newFragments);
-    offset += fragments.length;
+    offset += newFragments.length;
+  }
+
+  Future<void> insertSerializeFragments(Folder folder, List<FragmentsCompanion> fragmentsCompanions) async {
+    // 持久化数据。
+    final List<Fragment> result = await DriftDb.instance.insertDAO.insertFragments(fragmentsCompanions, folder);
+    // 插入到 widget 中。
+    fragments.addAll(result);
+    offset += result.length;
+    serializeFragmentsCount.value += result.length;
+  }
+
+  Future<void> clearViewAndReGetSerializeFragments(Folder forFolder) async {
+    offset -= fragments.length;
+    fragments.clear();
+    await getSerializeFragments(forFolder);
+    serializeFragmentsCount.value = await DriftDb.instance.retrieveDAO.getFolder2FragmentCount(forFolder);
   }
 }

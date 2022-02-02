@@ -24,7 +24,7 @@ class _FragmentListPageState extends State<FragmentListPage> {
   @override
   void initState() {
     super.initState();
-    _fragmentListPageGetXController = Get.put(FragmentListPageGetXController(), tag: widget.folder.hashCode.toString());
+    _fragmentListPageGetXController = Get.find<FragmentListPageGetXController>(tag: widget.folder.hashCode.toString());
   }
 
   @override
@@ -53,28 +53,22 @@ class _FragmentListPageState extends State<FragmentListPage> {
             itemCount: _fragmentListPageGetXController.fragments.isEmpty ? 1 : _fragmentListPageGetXController.fragments.length,
             itemBuilder: (BuildContext context, int index) {
               if (_fragmentListPageGetXController.fragments.isEmpty) {
-                return const Text('还没有创建组！', textAlign: TextAlign.center);
+                return const Text('还没有创建过组！', textAlign: TextAlign.center);
               }
               return FragmentButton(fragment: _fragmentListPageGetXController.fragments[index], folder: widget.folder);
             },
           ),
           onRefresh: () async {
-            _fragmentListPageGetXController.fragments.clear();
-            _fragmentListPageGetXController.offset = 0;
-            _fragmentListPageGetXController.fragments
-                .addAll((await DriftDb.instance.retrieveDAO.getFragments(widget.folder, _fragmentListPageGetXController.offset, 5)));
-            _fragmentListPageGetXController.offset = _fragmentListPageGetXController.fragments.length;
+            await _fragmentListPageGetXController.clearViewAndReGetSerializeFragments(widget.folder);
             _fragmentListPageGetXController.refreshController.refreshCompleted();
           },
           onLoading: () async {
-            _fragmentListPageGetXController.fragments
-                .addAll((await DriftDb.instance.retrieveDAO.getFragments(widget.folder, _fragmentListPageGetXController.offset, 5)));
-            _fragmentListPageGetXController.offset = _fragmentListPageGetXController.fragments.length;
+            await _fragmentListPageGetXController.getSerializeFragments(widget.folder);
             _fragmentListPageGetXController.refreshController.loadComplete();
           },
         ),
       ),
-      floatingActionButton: _globalGetXController.putGroupWidget(context),
+      floatingActionButton: _globalGetXController.groupModelFloatingButton(context),
     );
   }
 }
@@ -112,16 +106,15 @@ class _FragmentButtonState extends State<FragmentButton> {
                   await showOkCancelAlertDialog(context: context, title: '确定删除？', okLabel: '确定', cancelLabel: '取消', isDestructiveAction: true);
               if (result == OkCancelResult.ok) {
                 EasyLoading.show();
-                await DriftDb.instance.deleteDAO.deleteFragmentWith(widget.fragment);
+                await _fragmentListPageGetXController.deleteSerializeFragment(widget.folder, widget.fragment);
                 EasyLoading.showSuccess('删除成功！');
-                _fragmentListPageGetXController.removeFragment(widget.folder, widget.fragment);
               }
             },
           ),
         ),
         Obx(
           () {
-            if (_globalGetXController.isSelectModel.value) {
+            if (_globalGetXController.isGroupModel()) {
               return IconButton(
                 icon: const Icon(
                   Icons.circle,
@@ -137,14 +130,15 @@ class _FragmentButtonState extends State<FragmentButton> {
         ),
         Obx(
           () {
-            if (_globalGetXController.isSelectModel.value) {
+            if (_globalGetXController.isGroupModel()) {
               return IconButton(
-                icon: Icon(Icons.circle, size: 15, color: _globalGetXController.isSelected(widget.folder, widget.fragment) ? Colors.blue : Colors.grey),
+                icon: Icon(Icons.circle,
+                    size: 15, color: _globalGetXController.isSelectedForGroupModel(widget.folder, widget.fragment) ? Colors.orange : Colors.grey),
                 onPressed: () {
-                  if (_globalGetXController.isSelected(widget.folder, widget.fragment)) {
-                    _globalGetXController.cancelSelected(widget.folder, widget.fragment);
+                  if (_globalGetXController.isSelectedForGroupModel(widget.folder, widget.fragment)) {
+                    _globalGetXController.cancelSelectedForGroupModel(widget.folder, widget.fragment);
                   } else {
-                    _globalGetXController.addSelected(widget.folder, widget.fragment);
+                    _globalGetXController.addSelectedForGroupModel(widget.folder, widget.fragment);
                   }
                 },
               );

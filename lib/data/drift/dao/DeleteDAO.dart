@@ -55,4 +55,13 @@ class DeleteDAO extends DatabaseAccessor<DriftDb> with _$DeleteDAOMixin {
       },
     );
   }
+
+  /// 删除 [MemoryGroup2Fragment]
+  Future<void> deleteMemoryGroup2FragmentWith(MemoryGroup memoryGroup, Fragment fragment) async {
+    await (delete(memoryGroup2Fragments)
+          ..where((tbl) =>
+              (tbl.memoryGroupId.equals(memoryGroup.id) | tbl.memoryGroupCloudId.equals(memoryGroup.cloudId)) &
+              (tbl.fragmentId.equals(fragment.id) | tbl.fragmentCloudId.equals(fragment.cloudId))))
+        .go();
+  }
 }

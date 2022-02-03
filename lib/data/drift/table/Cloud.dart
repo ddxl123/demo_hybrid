@@ -101,7 +101,7 @@ import 'Base.dart';
 ///
 
 class Users extends TableCloudBase {
-  TextColumn get username => text().withDefault(const Constant('还没名字'))();
+  TextColumn get username => text().withDefault(const Constant('还没名字')) ();
 
   TextColumn get password => text().nullable()();
 

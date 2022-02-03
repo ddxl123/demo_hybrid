@@ -17,4 +17,8 @@ part 'UpdateDAO.g.dart';
 ])
 class UpdateDAO extends DatabaseAccessor<DriftDb> with _$UpdateDAOMixin {
   UpdateDAO(DriftDb attachedDatabase) : super(attachedDatabase);
+
+  Future<bool> updateFragment(Fragment fragment) async {
+    return await update(fragments).replace(fragment);
+  }
 }

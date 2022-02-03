@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
@@ -60,6 +62,17 @@ class _MemoryGroupListPageState extends State<MemoryGroupListPage> with Automati
       ),
       body: Obx(
         () => SmartRefresher(
+          footer: ClassicFooter(
+            height: 120,
+            loadingText: '获取中...',
+            idleText: '上拉刷新',
+            canLoadingText: '可以松手了',
+            failedText: '刷新失败！',
+            noDataText: '没有更多数据',
+            outerBuilder: (child) {
+              return Padding(padding: const EdgeInsets.fromLTRB(0, 0, 0, 100), child: child);
+            },
+          ),
           physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
           controller: _memoryGroupListGetXController.refreshController,
           enablePullUp: true,
@@ -90,15 +103,43 @@ class _MemoryGroupListPageState extends State<MemoryGroupListPage> with Automati
           if (_globalGetXController.isGroupModel()) {
             return _globalGetXController.groupModelFloatingButton(context);
           } else {
-            return FloatingActionButton(
-              backgroundColor: Colors.green,
-              child: const Text('记'),
-              heroTag: Object().hashCode.toString(),
-              onPressed: () {
-                if (_memoryGroupListGetXController.memoryGroups.isEmpty) {
-                  EasyLoading.showToast('请先创建记忆组！');
-                }
-              },
+            return Container(
+              margin: const EdgeInsets.fromLTRB(0, 0, 20, 60),
+              child: FloatingActionButton(
+                backgroundColor: Colors.green,
+                child: Text(_globalGetXController.isMemoryModel() ? _globalGetXController.selectedCountForMemoryModel().toString() : '记'),
+                heroTag: Object().hashCode.toString(),
+                onPressed: () async {
+                  if (_memoryGroupListGetXController.memoryGroups.isEmpty) {
+                    EasyLoading.showToast('请先创建记忆组！');
+                  } else {
+                    if (_globalGetXController.isMemoryModel()) {
+                      final int? result = await showModalActionSheet(
+                        context: context,
+                        actions: <SheetAction<int>>[
+                          const SheetAction(key: 2, label: '清空已选记忆组', isDestructiveAction: true),
+                          const SheetAction(key: 1, label: '开始记忆', isDestructiveAction: true),
+                          const SheetAction(key: 0, label: '退出记忆模式'),
+                        ],
+                        title: '',
+                        message: '即将记忆的知识点数量 ${_globalGetXController.selectedCountForMemoryModel.value}',
+                        cancelLabel: '取消',
+                      );
+                      if (result == 0) {
+                        _globalGetXController.changeSelectModelToNone();
+                        EasyLoading.showToast('已退出记忆模式！');
+                      } else if (result == 1) {
+                      } else if (result == 2) {
+                        _globalGetXController.cancelSelectedAllForMemoryModel();
+                        EasyLoading.showToast('已清空已选记忆组！');
+                      }
+                    } else {
+                      _globalGetXController.changeSelectModelToMemory();
+                      EasyLoading.showToast('已切换记忆模式！');
+                    }
+                  }
+                },
+              ),
             );
           }
         },
@@ -126,55 +167,81 @@ class _MemoryGroupButtonState extends State<MemoryGroupButton> {
   @override
   void initState() {
     super.initState();
+    log('init');
     _fragmentMemoryListPageGetXController = Get.put(FragmentMemoryListPageGetXController(), tag: widget.memoryGroup.hashCode.toString());
   }
 
   @override
   Widget build(BuildContext context) {
     return Obx(
-      () => Container(
-        child: TextButton(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              Expanded(child: Text(widget.memoryGroup.title.toString())),
-              Text(_fragmentMemoryListPageGetXController.serializeFragmentMemorysCount.value.toString()),
-              () {
-                if (_globalGetXController.isGroupModel()) {
-                  return IconButton(
-                    icon: Icon(Icons.circle,
-                        color: _globalGetXController.selectedMemoryGroupsForGroupModel.contains(widget.memoryGroup.id) ? Colors.orange : Colors.grey),
-                    iconSize: 15,
-                    onPressed: () {
-                      if (_globalGetXController.selectedMemoryGroupsForGroupModel.contains(widget.memoryGroup.id)) {
-                        _globalGetXController.selectedMemoryGroupsForGroupModel.remove(widget.memoryGroup.id);
-                      } else {
-                        _globalGetXController.selectedMemoryGroupsForGroupModel.add(widget.memoryGroup.id);
-                      }
-                    },
-                  );
-                } else {
-                  return Container();
-                }
-              }(),
-            ],
+      () {
+        return Container(
+          child: TextButton(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Expanded(child: Text(widget.memoryGroup.title.toString())),
+                Text(_fragmentMemoryListPageGetXController.serializeFragmentMemorysCount.value.toString()),
+                () {
+                  if (_globalGetXController.isGroupModel()) {
+                    return IconButton(
+                      icon: Icon(
+                        Icons.circle,
+                        color: _globalGetXController.selectedMemoryGroupsForGroupModel.contains(widget.memoryGroup.id) ? Colors.orange : Colors.grey,
+                      ),
+                      iconSize: 15,
+                      onPressed: () {
+                        if (_globalGetXController.selectedMemoryGroupsForGroupModel.contains(widget.memoryGroup.id)) {
+                          _globalGetXController.selectedMemoryGroupsForGroupModel.remove(widget.memoryGroup.id);
+                        } else {
+                          _globalGetXController.selectedMemoryGroupsForGroupModel.add(widget.memoryGroup.id);
+                        }
+                      },
+                    );
+                  } else if (_globalGetXController.isMemoryModel()) {
+                    return IconButton(
+                      icon: Icon(
+                        Icons.circle,
+                        color: _globalGetXController.selectedMemoryGroupsForMemoryModel.containsKey(widget.memoryGroup.id) ? Colors.green : Colors.grey,
+                      ),
+                      iconSize: 15,
+                      onPressed: () {
+                        if (_globalGetXController.selectedMemoryGroupsForMemoryModel.containsKey(widget.memoryGroup.id)) {
+                          _globalGetXController.cancelSelectedSingleForMemoryModel(
+                            widget.memoryGroup,
+                            _fragmentMemoryListPageGetXController.serializeFragmentMemorysCount.value,
+                          );
+                        } else {
+                          _globalGetXController.addSelectedSingleForMemoryModel(
+                            widget.memoryGroup,
+                            _fragmentMemoryListPageGetXController.serializeFragmentMemorysCount.value,
+                          );
+                        }
+                      },
+                    );
+                  } else {
+                    return Container();
+                  }
+                }(),
+              ],
+            ),
+            style: const ButtonStyle(alignment: Alignment.centerLeft),
+            onPressed: () async {
+              Get.to(() => FragmentMemoryListPage(memoryGroup: widget.memoryGroup));
+            },
+            onLongPress: () async {
+              final OkCancelResult result =
+                  await showOkCancelAlertDialog(context: context, title: '确定删除？', okLabel: '确定', cancelLabel: '取消', isDestructiveAction: true);
+              if (result == OkCancelResult.ok) {
+                EasyLoading.show();
+                await _memoryGroupListGetXController.deleteSerializeMemoryGroup(widget.memoryGroup);
+                EasyLoading.showSuccess('删除成功！');
+              }
+            },
           ),
-          style: const ButtonStyle(alignment: Alignment.centerLeft),
-          onPressed: () async {
-            Get.to(() => FragmentMemoryListPage(memoryGroup: widget.memoryGroup));
-          },
-          onLongPress: () async {
-            final OkCancelResult result =
-                await showOkCancelAlertDialog(context: context, title: '确定删除？', okLabel: '确定', cancelLabel: '取消', isDestructiveAction: true);
-            if (result == OkCancelResult.ok) {
-              EasyLoading.show();
-              await _memoryGroupListGetXController.deleteSerializeMemoryGroup(widget.memoryGroup);
-              EasyLoading.showSuccess('删除成功！');
-            }
-          },
-        ),
-        decoration: const BoxDecoration(border: Border(bottom: BorderSide(width: 0.5, color: Color.fromRGBO(0, 0, 0, 0.2)))),
-      ),
+          decoration: const BoxDecoration(border: Border(bottom: BorderSide(width: 0.5, color: Color.fromRGBO(0, 0, 0, 0.2)))),
+        );
+      },
     );
   }
 }

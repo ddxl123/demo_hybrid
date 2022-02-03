@@ -41,6 +41,13 @@ class RetrieveDAO extends DatabaseAccessor<DriftDb> with _$RetrieveDAOMixin {
     return (await result.get()).map((e) => e.readTable(fragments)).toList();
   }
 
+  /// 获取 [folder] 内的 [Fragment]s 的 ids，只需查询 [folder2Fragments]。
+  Future<List<int>> getFolder2FragmentsIds(Folder folder) async {
+    return (await (select(folder2Fragments)..where((tbl) => tbl.folderId.equals(folder.id) | tbl.folderCloudId.equals(folder.cloudId))).get())
+        .map((e) => e.fragmentId!)
+        .toList();
+  }
+
   /// 获取 [MemoryGroup] 内的 [Fragment]s，连带 [memoryGroup2Fragments] 查询。
   Future<List<Fragment>> getMemoryGroup2Fragments(MemoryGroup memoryGroup, int offset, int limit) async {
     final result = select(memoryGroup2Fragments).join(
@@ -83,5 +90,13 @@ class RetrieveDAO extends DatabaseAccessor<DriftDb> with _$RetrieveDAOMixin {
     s.where(folder2Fragments.folderId.equals(folder.id) | folder2Fragments.folderCloudId.equals(folder.cloudId));
     s.addColumns([countAll()]);
     return (await s.getSingle()).read(countAll());
+  }
+
+  Future<bool> getIsExistMemoryGroup(Fragment fragment) async {
+    return (await (select(memoryGroup2Fragments)..where((tbl) => tbl.fragmentId.equals(fragment.id) | tbl.fragmentCloudId.equals(fragment.cloudId)))
+                .getSingleOrNull()) ==
+            null
+        ? false
+        : true;
   }
 }

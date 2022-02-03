@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:get/get.dart';
 import 'package:hybrid/data/drift/db/DriftDb.dart';
 import 'package:hybrid/jianji/controller/GlobalGetXController.dart';
@@ -19,7 +21,7 @@ class FragmentListPageGetXController extends GetxController {
     // 删除该碎片本地持久化。
     await DriftDb.instance.deleteDAO.deleteFragmentWith(forFragment);
     // 取消成组模式该碎片的选择。
-    _globalGetXController.cancelSelectedForGroupModel(forFolder, forFragment);
+    _globalGetXController.cancelSelectedSingleForGroupModel(forFolder, forFragment);
     // 移除 widget。
     fragments.remove(forFragment);
     offset -= 1;
@@ -48,5 +50,23 @@ class FragmentListPageGetXController extends GetxController {
     fragments.clear();
     await getSerializeFragments(forFolder);
     serializeFragmentsCount.value = await DriftDb.instance.retrieveDAO.getFolder2FragmentCount(forFolder);
+  }
+
+  Future<void> updateSerializeFragment(Fragment oldFragment, Fragment newFragment) async {
+    await DriftDb.instance.updateDAO.updateFragment(newFragment);
+    late int oldIndex;
+    for (int i = 0; i < fragments.length; i++) {
+      if (fragments[i] == oldFragment) {
+        oldIndex = i;
+        break;
+      }
+    }
+    fragments.remove(oldFragment);
+    fragments.insert(oldIndex, newFragment);
+    // refresh();
+  }
+
+  Future<bool> isExistInMemoryGroup(Fragment fragment) async {
+    return await DriftDb.instance.retrieveDAO.getIsExistMemoryGroup(fragment);
   }
 }

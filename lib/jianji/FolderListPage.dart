@@ -54,6 +54,17 @@ class _FolderListPageState extends State<FolderListPage> with AutomaticKeepAlive
       ),
       body: Obx(
         () => SmartRefresher(
+          footer: ClassicFooter(
+            height: 120,
+            loadingText: '获取中...',
+            idleText: '上拉刷新',
+            canLoadingText: '可以松手了',
+            failedText: '刷新失败！',
+            noDataText: '没有更多数据',
+            outerBuilder: (child) {
+              return Padding(padding: const EdgeInsets.fromLTRB(0, 0, 0, 100), child: child);
+            },
+          ),
           physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
           controller: _folderListPageGetXController.refreshController,
           enablePullUp: true,

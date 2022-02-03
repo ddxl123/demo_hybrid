@@ -56,11 +56,12 @@ class _JianJiHomeState extends State<JianJiHome> {
         return false;
       },
       child: Scaffold(
+        extendBody: true,
         bottomNavigationBar: CurvedNavigationBar(
           animationCurve: Curves.easeOutCirc,
           key: _curvedNavigationBar,
           color: Colors.blue,
-          backgroundColor: Colors.white,
+          backgroundColor: Colors.transparent,
           items: const <Widget>[
             Icon(Icons.group_work, size: 30, color: Colors.white),
             Icon(Icons.group_work_outlined, size: 30, color: Colors.white),

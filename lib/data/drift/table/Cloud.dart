@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:hybrid/jianji/controller/GlobalGetXController.dart';
 
 import 'Base.dart';
 
@@ -101,7 +102,7 @@ import 'Base.dart';
 ///
 
 class Users extends TableCloudBase {
-  TextColumn get username => text().withDefault(const Constant('还没名字')) ();
+  TextColumn get username => text().withDefault(const Constant('还没名字'))();
 
   TextColumn get password => text().nullable()();
 
@@ -158,4 +159,16 @@ class MemoryGroup2Fragments extends TableCloudBase {
   IntColumn get fragmentId => integer().nullable()();
 
   IntColumn get fragmentCloudId => integer().nullable()();
+}
+
+class Remembers extends TableCloudBase {
+  IntColumn get fragmentId => integer().nullable()();
+
+  IntColumn get fragmentCloudId => integer().nullable()();
+
+  /// 记忆次数。
+  IntColumn get rememberTimes => integer().withDefault(const Constant(0))();
+
+  /// 对应 [RememberStatus]，所有 rows 只能存在一个不为 [RememberStatus.none]。
+  IntColumn get status => integer().withDefault(const Constant(0))();
 }

@@ -5,10 +5,11 @@ import 'package:hybrid/data/drift/db/DriftDb.dart';
 import 'package:hybrid/jianji/FragmentEditPage.dart';
 
 class FragmentSnapshotPage extends StatefulWidget {
-  const FragmentSnapshotPage({Key? key, required this.fragment, this.folder, this.memoryGroup}) : super(key: key);
+  const FragmentSnapshotPage({Key? key, required this.fragment, this.folder, this.memoryGroup, this.isEnableEdit = true}) : super(key: key);
   final Folder? folder;
   final MemoryGroup? memoryGroup;
   final Fragment fragment;
+  final bool isEnableEdit;
 
   @override
   _FragmentSnapshotPageState createState() => _FragmentSnapshotPageState();
@@ -28,13 +29,15 @@ class _FragmentSnapshotPageState extends State<FragmentSnapshotPage> {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () async {
-              _fragment = await Get.to(() => FragmentEditPage(fragment: _fragment, folder: widget.folder, memoryGroup: widget.memoryGroup));
-              if (mounted) setState(() {});
-            },
-          ),
+          widget.isEnableEdit
+              ? IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () async {
+                    _fragment = await Get.to(() => FragmentEditPage(fragment: _fragment, folder: widget.folder, memoryGroup: widget.memoryGroup));
+                    if (mounted) setState(() {});
+                  },
+                )
+              : Container(),
         ],
       ),
       body: SingleChildScrollView(

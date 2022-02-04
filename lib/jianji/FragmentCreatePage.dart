@@ -149,6 +149,7 @@ class _FragmentCreatePageState extends State<FragmentCreatePage> {
         body: Form(
           key: _formKey,
           child: ListView.builder(
+            cacheExtent: double.maxFinite,
             physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
             itemCount: _fragmentCard.length + 1,
             itemBuilder: (BuildContext formContext, int index) {

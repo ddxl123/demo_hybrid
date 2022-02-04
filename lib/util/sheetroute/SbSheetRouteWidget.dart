@@ -115,7 +115,7 @@ class _SbSheetRouteWidgetState<T> extends State<SbSheetRouteWidget<T>> with Sing
       },
       builder: (State state) {
         return widget.sbSheetPage.headerSliver();
-      },
+      }, initValue: null,
     );
   }
 
@@ -127,7 +127,7 @@ class _SbSheetRouteWidgetState<T> extends State<SbSheetRouteWidget<T>> with Sing
       },
       builder: (State state) {
         return widget.sbSheetPage.bodySliver();
-      },
+      }, initValue: null,
     );
   }
 
@@ -139,7 +139,7 @@ class _SbSheetRouteWidgetState<T> extends State<SbSheetRouteWidget<T>> with Sing
       },
       builder: (State state) {
         return LoadAreaWidget<T>(sheetPageController.loadAreaController);
-      },
+      }, initValue: null,
     );
   }
 }

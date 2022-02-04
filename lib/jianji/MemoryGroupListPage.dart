@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
@@ -7,6 +5,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:hybrid/data/drift/db/DriftDb.dart';
 import 'package:hybrid/jianji/FragmentMemoryListPage.dart';
+import 'package:hybrid/jianji/RememberingPage.dart';
 import 'package:hybrid/jianji/controller/JianJiHomeGetXController.dart';
 import 'package:hybrid/jianji/controller/MemoryGroupListGetXController.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -110,6 +109,10 @@ class _MemoryGroupListPageState extends State<MemoryGroupListPage> with Automati
                 child: Text(_globalGetXController.isMemoryModel() ? _globalGetXController.selectedCountForMemoryModel().toString() : '记'),
                 heroTag: Object().hashCode.toString(),
                 onPressed: () async {
+                  if (_globalGetXController.isRemembering.value) {
+                    EasyLoading.showToast('当前已有正在执行的记忆任务！');
+                    return;
+                  }
                   if (_memoryGroupListGetXController.memoryGroups.isEmpty) {
                     EasyLoading.showToast('请先创建记忆组！');
                   } else {
@@ -129,12 +132,23 @@ class _MemoryGroupListPageState extends State<MemoryGroupListPage> with Automati
                         _globalGetXController.changeSelectModelToNone();
                         EasyLoading.showToast('已退出记忆模式！');
                       } else if (result == 1) {
+                        // 开始记忆
+                        if (_globalGetXController.selectedCountForMemoryModel.value == 0) {
+                          EasyLoading.showToast('选择知识点数量为0\n（在 记忆组 中选择）');
+                        } else {
+                          // 启动记忆。
+                          EasyLoading.showToast('已开始记忆！返回或重启应用不会影响记忆进度！');
+                          _globalGetXController.writeRemembers();
+                          Get.to(() => const RememberingPage());
+                        }
                       } else if (result == 2) {
                         _globalGetXController.cancelSelectedAllForMemoryModel();
                         EasyLoading.showToast('已清空已选记忆组！');
                       }
                     } else {
                       _globalGetXController.changeSelectModelToMemory();
+                      // 重置记忆模式，以防知识点被删除，导致数量不正确。
+                      _globalGetXController.cancelSelectedAllForMemoryModel();
                       EasyLoading.showToast('已切换记忆模式！');
                     }
                   }
@@ -167,7 +181,6 @@ class _MemoryGroupButtonState extends State<MemoryGroupButton> {
   @override
   void initState() {
     super.initState();
-    log('init');
     _fragmentMemoryListPageGetXController = Get.put(FragmentMemoryListPageGetXController(), tag: widget.memoryGroup.hashCode.toString());
   }
 
@@ -230,12 +243,24 @@ class _MemoryGroupButtonState extends State<MemoryGroupButton> {
               Get.to(() => FragmentMemoryListPage(memoryGroup: widget.memoryGroup));
             },
             onLongPress: () async {
-              final OkCancelResult result =
-                  await showOkCancelAlertDialog(context: context, title: '确定删除？', okLabel: '确定', cancelLabel: '取消', isDestructiveAction: true);
+              final OkCancelResult result = await showOkCancelAlertDialog(
+                context: context,
+                title: '确定删除？',
+                okLabel: '确定',
+                cancelLabel: '取消',
+                isDestructiveAction: true,
+              );
               if (result == OkCancelResult.ok) {
-                EasyLoading.show();
-                await _memoryGroupListGetXController.deleteSerializeMemoryGroup(widget.memoryGroup);
-                EasyLoading.showSuccess('删除成功！');
+                if (_globalGetXController.isRemembering.value) {
+                  EasyLoading.showToast('当前已有正在执行的记忆任务，只能新增不能删除！');
+                }
+                if (_globalGetXController.isMemoryModel()) {
+                  EasyLoading.showToast('记忆模式下不能进行删除！');
+                } else {
+                  EasyLoading.show();
+                  await _memoryGroupListGetXController.deleteSerializeMemoryGroup(widget.memoryGroup);
+                  EasyLoading.showSuccess('删除成功！');
+                }
               }
             },
           ),

@@ -11,13 +11,13 @@ class HttpHandler {
     _singleResult.setData(httpStore);
   }
 
-  /// 必须额外配置 [data]。
+  /// 必须额外配置 [value]。
   /// 若把 data(这里为 [httpStore]) 也在 [_singleResult] 中转化成 json，而不采用将 [httpStore] 手动传入，
   /// 则 fromJson 后，会造成真正的 [httpStore] 与 [json] 解析的 [httpStore] 不属于同一个对象的问题！
   factory HttpHandler.fromJson(HttpStore newHttpStore, Map<String, Object?> json) => HttpHandler(newHttpStore)
     .._singleResult.resetAllExcludeData(SingleResult.fromJson(json: json, dataCast: (Object data) => throw '当 data 为 null 时，dataCast 函数不应该被调用！'));
 
-  /// 必须额外移除 [data]
+  /// 必须额外移除 [value]
   Map<String, Object?> toJson() => _singleResult.toJsonExcludeData();
 
   final SingleResult<HttpStore> _singleResult = SingleResult<HttpStore>();

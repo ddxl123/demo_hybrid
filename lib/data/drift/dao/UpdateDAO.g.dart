@@ -20,4 +20,5 @@ mixin _$UpdateDAOMixin on DatabaseAccessor<DriftDb> {
       attachedDatabase.memoryGroup2Fragments;
   $SimilarFragmentsTable get similarFragments =>
       attachedDatabase.similarFragments;
+  $RemembersTable get remembers => attachedDatabase.remembers;
 }

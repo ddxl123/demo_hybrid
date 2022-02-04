@@ -15,6 +15,7 @@ part 'InsertDAO.g.dart';
   Folder2Fragments,
   MemoryGroup2Fragments,
   SimilarFragments,
+  Remembers,
 ])
 class InsertDAO extends DatabaseAccessor<DriftDb> with _$InsertDAOMixin {
   InsertDAO(DriftDb attachedDatabase) : super(attachedDatabase);
@@ -51,18 +52,18 @@ class InsertDAO extends DatabaseAccessor<DriftDb> with _$InsertDAOMixin {
     return await into(memoryGroups).insertReturning(memoryGroupsCompanion);
   }
 
-  /// 将每个 [fragments] 插入到全部 [memoryGroups] 中。
+  /// 将每个 [forFragments] 插入到全部 [forMemoryGroups] 中。
   Future<void> insertMemoryGroup2Fragments({
-    required List<MemoryGroup> memoryGroups,
-    required List<Fragment> fragments,
+    required List<MemoryGroup> forMemoryGroups,
+    required List<Fragment> forFragments,
     required Future<void> Function(MemoryGroup filteredMemoryGroup, List<Fragment> filteredFragments) filtered,
   }) async {
     await batch((batch) async {
-      for (var memoryGroup in memoryGroups) {
+      for (var memoryGroup in forMemoryGroups) {
         final List<MemoryGroup2FragmentsCompanion> memoryGroup2FragmentsCompanions = <MemoryGroup2FragmentsCompanion>[];
         final List<Fragment> filteredFragments = <Fragment>[];
 
-        for (var element in fragments) {
+        for (var element in forFragments) {
           final MemoryGroup2Fragment? m2f = await ((select(memoryGroup2Fragments))
                 ..where(
                   (tbl) =>
@@ -88,5 +89,17 @@ class InsertDAO extends DatabaseAccessor<DriftDb> with _$InsertDAOMixin {
         batch.insertAll(memoryGroup2Fragments, memoryGroup2FragmentsCompanions);
       }
     });
+  }
+
+  /// 插入 [Remember]s
+  Future<void> insertRemembers(List<Fragment> forFragments) async {
+    await batch(
+      (batch) async {
+        batch.insertAll(
+          remembers,
+          forFragments.map((e) => RemembersCompanion.insert(fragmentId: e.id.toValue(), fragmentCloudId: e.id.toValue())),
+        );
+      },
+    );
   }
 }

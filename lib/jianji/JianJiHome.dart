@@ -7,6 +7,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:hybrid/jianji/FolderListPage.dart';
 import 'package:hybrid/jianji/MemoryGroupListPage.dart';
+import 'package:hybrid/jianji/RememberingPage.dart';
 import 'package:hybrid/jianji/controller/JianJiHomeGetXController.dart';
 
 import 'controller/GlobalGetXController.dart';
@@ -55,41 +56,76 @@ class _JianJiHomeState extends State<JianJiHome> {
         );
         return false;
       },
-      child: Scaffold(
-        extendBody: true,
-        bottomNavigationBar: CurvedNavigationBar(
-          animationCurve: Curves.easeOutCirc,
-          key: _curvedNavigationBar,
-          color: Colors.blue,
-          backgroundColor: Colors.transparent,
-          items: const <Widget>[
-            Icon(Icons.group_work, size: 30, color: Colors.white),
-            Icon(Icons.group_work_outlined, size: 30, color: Colors.white),
-          ],
-          height: 50,
-          onTap: (int index) {},
-          letIndexChange: (int index) {
-            if (index == _currentBody) {
-              // 若已是当前页面时，不执行任何。
-              return false;
-            } else {
-              log('message');
-              _jianJiHomeGetXController.animateToPage(index);
-              _currentBody = index;
-              return true;
-            }
-          },
-        ),
-        body: PageView.builder(
-          controller: _jianJiHomeGetXController.pageController,
-          itemCount: _pages.length,
-          onPageChanged: (int index) {
-            _curvedNavigationBar.currentState?.setPage(index);
-          },
-          itemBuilder: (BuildContext context, int index) {
-            return _pages[index];
-          },
-        ),
+      child: Stack(
+        children: [
+          Scaffold(
+            extendBody: true,
+            bottomNavigationBar: CurvedNavigationBar(
+              animationCurve: Curves.easeOutCirc,
+              key: _curvedNavigationBar,
+              color: Colors.blue,
+              backgroundColor: Colors.transparent,
+              items: const <Widget>[
+                Icon(Icons.group_work, size: 30, color: Colors.white),
+                Icon(Icons.group_work_outlined, size: 30, color: Colors.white),
+              ],
+              height: 50,
+              onTap: (int index) {},
+              letIndexChange: (int index) {
+                if (index == _currentBody) {
+                  // 若已是当前页面时，不执行任何。
+                  return false;
+                } else {
+                  log('message');
+                  _jianJiHomeGetXController.animateToPage(index);
+                  _currentBody = index;
+                  return true;
+                }
+              },
+            ),
+            body: PageView.builder(
+              controller: _jianJiHomeGetXController.pageController,
+              itemCount: _pages.length,
+              onPageChanged: (int index) {
+                _curvedNavigationBar.currentState?.setPage(index);
+              },
+              itemBuilder: (BuildContext context, int index) {
+                return _pages[index];
+              },
+            ),
+          ),
+          Obx(
+            () {
+              if (_globalGetXController.isRemembering.value) {
+                return ObxValue<RxList<dynamic>>(
+                  (positionValue) {
+                    return Positioned(
+                      right: positionValue.first,
+                      bottom: positionValue.last,
+                      child: Listener(
+                        child: FloatingActionButton(
+                          child: positionValue[1].value ? const Text('可移动') : const Icon(Icons.album_outlined, color: Colors.green),
+                          backgroundColor: Colors.greenAccent,
+                          onPressed: () {
+                            Get.to(() => RememberingPage());
+                          },
+                        ),
+                        onPointerMove: (d) {
+                          positionValue[1].value = false;
+                          positionValue.first -= d.delta.dx;
+                          positionValue.last -= d.delta.dy;
+                        },
+                      ),
+                    );
+                  },
+                  [30.0, true.obs, 200.0].obs,
+                );
+              } else {
+                return Container();
+              }
+            },
+          ),
+        ],
       ),
     );
   }

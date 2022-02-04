@@ -14,6 +14,7 @@ part 'DeleteDAO.g.dart';
   Folder2Fragments,
   MemoryGroup2Fragments,
   SimilarFragments,
+  Remembers,
 ])
 class DeleteDAO extends DatabaseAccessor<DriftDb> with _$DeleteDAOMixin {
   DeleteDAO(DriftDb attachedDatabase) : super(attachedDatabase);
@@ -63,5 +64,10 @@ class DeleteDAO extends DatabaseAccessor<DriftDb> with _$DeleteDAOMixin {
               (tbl.memoryGroupId.equals(memoryGroup.id) | tbl.memoryGroupCloudId.equals(memoryGroup.cloudId)) &
               (tbl.fragmentId.equals(fragment.id) | tbl.fragmentCloudId.equals(fragment.cloudId))))
         .go();
+  }
+
+  /// 删除 [remembers] 表全部数据。
+  Future<void> deleteRememberAll() async {
+    await delete(remembers).go();
   }
 }

@@ -14,6 +14,7 @@ part 'UpdateDAO.g.dart';
   Folder2Fragments,
   MemoryGroup2Fragments,
   SimilarFragments,
+  Remembers,
 ])
 class UpdateDAO extends DatabaseAccessor<DriftDb> with _$UpdateDAOMixin {
   UpdateDAO(DriftDb attachedDatabase) : super(attachedDatabase);

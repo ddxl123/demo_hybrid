@@ -3662,6 +3662,518 @@ class $SimilarFragmentsTable extends SimilarFragments
   }
 }
 
+class Remember extends DataClass implements Insertable<Remember> {
+  /// 可空。
+  final int? cloudId;
+
+  /// 同步 curd 类型。为空则表示该行不需要进行同步。
+  ///
+  /// 值： null C-0 U-1 R-2 D-3
+  ///
+  /// 不为 null 的可能性：
+  ///   1. 未上传更改。
+  ///   2. 客户端上传数据后，客户端被断掉，从而未对服务器上传成功的消息进行接收。（若是服务器断掉，则客户端会收到失败的响应）
+  ///
+  /// 若客户端请求——服务器响应，这个流程成功则设为 null，失败则保持为 curd。
+  /// 若为 2 的情况，应用会再次检索未上传的数据，再次进行上传，但无碍，因为服务端上传时，会对比 updatedAt。
+  ///   - 若新旧相同，则服务端已同步过，响应客户端将其置空。
+  ///   - 若新的晚于旧的，则需要服务端进行同步后，响应客户端将其置空。
+  ///   - 若新的早于旧的，则 1. 可能客户端、服务端时间被篡改；2. 该条数据在其他客户端已经被同步过了 TODO: 可依据此处设计多客户端登陆方案。
+  final int? syncCurd;
+
+  /// 当 [syncCurd] 为 U-1 时，[syncUpdateColumns] 不能为空。
+  ///
+  /// 值为字段名，如："username,password"。
+  final String? syncUpdateColumns;
+  final int id;
+
+  /// 必须是本地时间，不可空。
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final int? fragmentId;
+  final int? fragmentCloudId;
+
+  /// 记忆次数。
+  final int rememberTimes;
+
+  /// 对应 [RememberStatus]，所有 rows 只能存在一个不为 [RememberStatus.none]。
+  final int status;
+  Remember(
+      {this.cloudId,
+      this.syncCurd,
+      this.syncUpdateColumns,
+      required this.id,
+      required this.createdAt,
+      required this.updatedAt,
+      this.fragmentId,
+      this.fragmentCloudId,
+      required this.rememberTimes,
+      required this.status});
+  factory Remember.fromData(Map<String, dynamic> data, {String? prefix}) {
+    final effectivePrefix = prefix ?? '';
+    return Remember(
+      cloudId: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}cloud_id']),
+      syncCurd: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}sync_curd']),
+      syncUpdateColumns: const StringType().mapFromDatabaseResponse(
+          data['${effectivePrefix}sync_update_columns']),
+      id: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
+      createdAt: const DateTimeType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}created_at'])!,
+      updatedAt: const DateTimeType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}updated_at'])!,
+      fragmentId: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}fragment_id']),
+      fragmentCloudId: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}fragment_cloud_id']),
+      rememberTimes: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}remember_times'])!,
+      status: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}status'])!,
+    );
+  }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || cloudId != null) {
+      map['cloud_id'] = Variable<int?>(cloudId);
+    }
+    if (!nullToAbsent || syncCurd != null) {
+      map['sync_curd'] = Variable<int?>(syncCurd);
+    }
+    if (!nullToAbsent || syncUpdateColumns != null) {
+      map['sync_update_columns'] = Variable<String?>(syncUpdateColumns);
+    }
+    map['id'] = Variable<int>(id);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || fragmentId != null) {
+      map['fragment_id'] = Variable<int?>(fragmentId);
+    }
+    if (!nullToAbsent || fragmentCloudId != null) {
+      map['fragment_cloud_id'] = Variable<int?>(fragmentCloudId);
+    }
+    map['remember_times'] = Variable<int>(rememberTimes);
+    map['status'] = Variable<int>(status);
+    return map;
+  }
+
+  RemembersCompanion toCompanion(bool nullToAbsent) {
+    return RemembersCompanion(
+      cloudId: cloudId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cloudId),
+      syncCurd: syncCurd == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncCurd),
+      syncUpdateColumns: syncUpdateColumns == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncUpdateColumns),
+      id: Value(id),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      fragmentId: fragmentId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fragmentId),
+      fragmentCloudId: fragmentCloudId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fragmentCloudId),
+      rememberTimes: Value(rememberTimes),
+      status: Value(status),
+    );
+  }
+
+  factory Remember.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Remember(
+      cloudId: serializer.fromJson<int?>(json['cloudId']),
+      syncCurd: serializer.fromJson<int?>(json['syncCurd']),
+      syncUpdateColumns:
+          serializer.fromJson<String?>(json['syncUpdateColumns']),
+      id: serializer.fromJson<int>(json['id']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      fragmentId: serializer.fromJson<int?>(json['fragmentId']),
+      fragmentCloudId: serializer.fromJson<int?>(json['fragmentCloudId']),
+      rememberTimes: serializer.fromJson<int>(json['rememberTimes']),
+      status: serializer.fromJson<int>(json['status']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'cloudId': serializer.toJson<int?>(cloudId),
+      'syncCurd': serializer.toJson<int?>(syncCurd),
+      'syncUpdateColumns': serializer.toJson<String?>(syncUpdateColumns),
+      'id': serializer.toJson<int>(id),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'fragmentId': serializer.toJson<int?>(fragmentId),
+      'fragmentCloudId': serializer.toJson<int?>(fragmentCloudId),
+      'rememberTimes': serializer.toJson<int>(rememberTimes),
+      'status': serializer.toJson<int>(status),
+    };
+  }
+
+  Remember copyWith(
+          {int? cloudId,
+          int? syncCurd,
+          String? syncUpdateColumns,
+          int? id,
+          DateTime? createdAt,
+          DateTime? updatedAt,
+          int? fragmentId,
+          int? fragmentCloudId,
+          int? rememberTimes,
+          int? status}) =>
+      Remember(
+        cloudId: cloudId ?? this.cloudId,
+        syncCurd: syncCurd ?? this.syncCurd,
+        syncUpdateColumns: syncUpdateColumns ?? this.syncUpdateColumns,
+        id: id ?? this.id,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+        fragmentId: fragmentId ?? this.fragmentId,
+        fragmentCloudId: fragmentCloudId ?? this.fragmentCloudId,
+        rememberTimes: rememberTimes ?? this.rememberTimes,
+        status: status ?? this.status,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('Remember(')
+          ..write('cloudId: $cloudId, ')
+          ..write('syncCurd: $syncCurd, ')
+          ..write('syncUpdateColumns: $syncUpdateColumns, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('fragmentId: $fragmentId, ')
+          ..write('fragmentCloudId: $fragmentCloudId, ')
+          ..write('rememberTimes: $rememberTimes, ')
+          ..write('status: $status')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(cloudId, syncCurd, syncUpdateColumns, id,
+      createdAt, updatedAt, fragmentId, fragmentCloudId, rememberTimes, status);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Remember &&
+          other.cloudId == this.cloudId &&
+          other.syncCurd == this.syncCurd &&
+          other.syncUpdateColumns == this.syncUpdateColumns &&
+          other.id == this.id &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.fragmentId == this.fragmentId &&
+          other.fragmentCloudId == this.fragmentCloudId &&
+          other.rememberTimes == this.rememberTimes &&
+          other.status == this.status);
+}
+
+class RemembersCompanion extends UpdateCompanion<Remember> {
+  final Value<int?> cloudId;
+  final Value<int?> syncCurd;
+  final Value<String?> syncUpdateColumns;
+  final Value<int> id;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int?> fragmentId;
+  final Value<int?> fragmentCloudId;
+  final Value<int> rememberTimes;
+  final Value<int> status;
+  const RemembersCompanion({
+    this.cloudId = const Value.absent(),
+    this.syncCurd = const Value.absent(),
+    this.syncUpdateColumns = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.fragmentId = const Value.absent(),
+    this.fragmentCloudId = const Value.absent(),
+    this.rememberTimes = const Value.absent(),
+    this.status = const Value.absent(),
+  });
+  RemembersCompanion.insert({
+    this.cloudId = const Value.absent(),
+    this.syncCurd = const Value.absent(),
+    this.syncUpdateColumns = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.fragmentId = const Value.absent(),
+    this.fragmentCloudId = const Value.absent(),
+    this.rememberTimes = const Value.absent(),
+    this.status = const Value.absent(),
+  });
+  static Insertable<Remember> custom({
+    Expression<int?>? cloudId,
+    Expression<int?>? syncCurd,
+    Expression<String?>? syncUpdateColumns,
+    Expression<int>? id,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int?>? fragmentId,
+    Expression<int?>? fragmentCloudId,
+    Expression<int>? rememberTimes,
+    Expression<int>? status,
+  }) {
+    return RawValuesInsertable({
+      if (cloudId != null) 'cloud_id': cloudId,
+      if (syncCurd != null) 'sync_curd': syncCurd,
+      if (syncUpdateColumns != null) 'sync_update_columns': syncUpdateColumns,
+      if (id != null) 'id': id,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (fragmentId != null) 'fragment_id': fragmentId,
+      if (fragmentCloudId != null) 'fragment_cloud_id': fragmentCloudId,
+      if (rememberTimes != null) 'remember_times': rememberTimes,
+      if (status != null) 'status': status,
+    });
+  }
+
+  RemembersCompanion copyWith(
+      {Value<int?>? cloudId,
+      Value<int?>? syncCurd,
+      Value<String?>? syncUpdateColumns,
+      Value<int>? id,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
+      Value<int?>? fragmentId,
+      Value<int?>? fragmentCloudId,
+      Value<int>? rememberTimes,
+      Value<int>? status}) {
+    return RemembersCompanion(
+      cloudId: cloudId ?? this.cloudId,
+      syncCurd: syncCurd ?? this.syncCurd,
+      syncUpdateColumns: syncUpdateColumns ?? this.syncUpdateColumns,
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      fragmentId: fragmentId ?? this.fragmentId,
+      fragmentCloudId: fragmentCloudId ?? this.fragmentCloudId,
+      rememberTimes: rememberTimes ?? this.rememberTimes,
+      status: status ?? this.status,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (cloudId.present) {
+      map['cloud_id'] = Variable<int?>(cloudId.value);
+    }
+    if (syncCurd.present) {
+      map['sync_curd'] = Variable<int?>(syncCurd.value);
+    }
+    if (syncUpdateColumns.present) {
+      map['sync_update_columns'] = Variable<String?>(syncUpdateColumns.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (fragmentId.present) {
+      map['fragment_id'] = Variable<int?>(fragmentId.value);
+    }
+    if (fragmentCloudId.present) {
+      map['fragment_cloud_id'] = Variable<int?>(fragmentCloudId.value);
+    }
+    if (rememberTimes.present) {
+      map['remember_times'] = Variable<int>(rememberTimes.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<int>(status.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RemembersCompanion(')
+          ..write('cloudId: $cloudId, ')
+          ..write('syncCurd: $syncCurd, ')
+          ..write('syncUpdateColumns: $syncUpdateColumns, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('fragmentId: $fragmentId, ')
+          ..write('fragmentCloudId: $fragmentCloudId, ')
+          ..write('rememberTimes: $rememberTimes, ')
+          ..write('status: $status')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $RemembersTable extends Remembers
+    with TableInfo<$RemembersTable, Remember> {
+  final GeneratedDatabase _db;
+  final String? _alias;
+  $RemembersTable(this._db, [this._alias]);
+  final VerificationMeta _cloudIdMeta = const VerificationMeta('cloudId');
+  @override
+  late final GeneratedColumn<int?> cloudId = GeneratedColumn<int?>(
+      'cloud_id', aliasedName, true,
+      type: const IntType(),
+      requiredDuringInsert: false,
+      $customConstraints: 'UNIQUE');
+  final VerificationMeta _syncCurdMeta = const VerificationMeta('syncCurd');
+  @override
+  late final GeneratedColumn<int?> syncCurd = GeneratedColumn<int?>(
+      'sync_curd', aliasedName, true,
+      type: const IntType(), requiredDuringInsert: false);
+  final VerificationMeta _syncUpdateColumnsMeta =
+      const VerificationMeta('syncUpdateColumns');
+  @override
+  late final GeneratedColumn<String?> syncUpdateColumns =
+      GeneratedColumn<String?>('sync_update_columns', aliasedName, true,
+          type: const StringType(), requiredDuringInsert: false);
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int?> id = GeneratedColumn<int?>(
+      'id', aliasedName, false,
+      type: const IntType(),
+      requiredDuringInsert: false,
+      defaultConstraints: 'PRIMARY KEY AUTOINCREMENT');
+  final VerificationMeta _createdAtMeta = const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime?> createdAt = GeneratedColumn<DateTime?>(
+      'created_at', aliasedName, false,
+      type: const IntType(),
+      requiredDuringInsert: false,
+      clientDefault: () => DateTime.now());
+  final VerificationMeta _updatedAtMeta = const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime?> updatedAt = GeneratedColumn<DateTime?>(
+      'updated_at', aliasedName, false,
+      type: const IntType(),
+      requiredDuringInsert: false,
+      clientDefault: () => DateTime.now());
+  final VerificationMeta _fragmentIdMeta = const VerificationMeta('fragmentId');
+  @override
+  late final GeneratedColumn<int?> fragmentId = GeneratedColumn<int?>(
+      'fragment_id', aliasedName, true,
+      type: const IntType(), requiredDuringInsert: false);
+  final VerificationMeta _fragmentCloudIdMeta =
+      const VerificationMeta('fragmentCloudId');
+  @override
+  late final GeneratedColumn<int?> fragmentCloudId = GeneratedColumn<int?>(
+      'fragment_cloud_id', aliasedName, true,
+      type: const IntType(), requiredDuringInsert: false);
+  final VerificationMeta _rememberTimesMeta =
+      const VerificationMeta('rememberTimes');
+  @override
+  late final GeneratedColumn<int?> rememberTimes = GeneratedColumn<int?>(
+      'remember_times', aliasedName, false,
+      type: const IntType(),
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  final VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<int?> status = GeneratedColumn<int?>(
+      'status', aliasedName, false,
+      type: const IntType(),
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  @override
+  List<GeneratedColumn> get $columns => [
+        cloudId,
+        syncCurd,
+        syncUpdateColumns,
+        id,
+        createdAt,
+        updatedAt,
+        fragmentId,
+        fragmentCloudId,
+        rememberTimes,
+        status
+      ];
+  @override
+  String get aliasedName => _alias ?? 'remembers';
+  @override
+  String get actualTableName => 'remembers';
+  @override
+  VerificationContext validateIntegrity(Insertable<Remember> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('cloud_id')) {
+      context.handle(_cloudIdMeta,
+          cloudId.isAcceptableOrUnknown(data['cloud_id']!, _cloudIdMeta));
+    }
+    if (data.containsKey('sync_curd')) {
+      context.handle(_syncCurdMeta,
+          syncCurd.isAcceptableOrUnknown(data['sync_curd']!, _syncCurdMeta));
+    }
+    if (data.containsKey('sync_update_columns')) {
+      context.handle(
+          _syncUpdateColumnsMeta,
+          syncUpdateColumns.isAcceptableOrUnknown(
+              data['sync_update_columns']!, _syncUpdateColumnsMeta));
+    }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    if (data.containsKey('fragment_id')) {
+      context.handle(
+          _fragmentIdMeta,
+          fragmentId.isAcceptableOrUnknown(
+              data['fragment_id']!, _fragmentIdMeta));
+    }
+    if (data.containsKey('fragment_cloud_id')) {
+      context.handle(
+          _fragmentCloudIdMeta,
+          fragmentCloudId.isAcceptableOrUnknown(
+              data['fragment_cloud_id']!, _fragmentCloudIdMeta));
+    }
+    if (data.containsKey('remember_times')) {
+      context.handle(
+          _rememberTimesMeta,
+          rememberTimes.isAcceptableOrUnknown(
+              data['remember_times']!, _rememberTimesMeta));
+    }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Remember map(Map<String, dynamic> data, {String? tablePrefix}) {
+    return Remember.fromData(data,
+        prefix: tablePrefix != null ? '$tablePrefix.' : null);
+  }
+
+  @override
+  $RemembersTable createAlias(String alias) {
+    return $RemembersTable(_db, alias);
+  }
+}
+
 abstract class _$DriftDb extends GeneratedDatabase {
   _$DriftDb(QueryExecutor e) : super(SqlTypeSystem.defaultInstance, e);
   late final $AppInfosTable appInfos = $AppInfosTable(this);
@@ -3675,6 +4187,7 @@ abstract class _$DriftDb extends GeneratedDatabase {
       $MemoryGroup2FragmentsTable(this);
   late final $SimilarFragmentsTable similarFragments =
       $SimilarFragmentsTable(this);
+  late final $RemembersTable remembers = $RemembersTable(this);
   late final InsertDAO insertDAO = InsertDAO(this as DriftDb);
   late final DeleteDAO deleteDAO = DeleteDAO(this as DriftDb);
   late final UpdateDAO updateDAO = UpdateDAO(this as DriftDb);
@@ -3690,6 +4203,7 @@ abstract class _$DriftDb extends GeneratedDatabase {
         memoryGroups,
         folder2Fragments,
         memoryGroup2Fragments,
-        similarFragments
+        similarFragments,
+        remembers
       ];
 }

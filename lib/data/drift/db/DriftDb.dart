@@ -24,6 +24,7 @@ part 'DriftDb.g.dart';
     Folder2Fragments,
     MemoryGroup2Fragments,
     SimilarFragments,
+    Remembers,
   ],
   daos: <Type>[
     InsertDAO,

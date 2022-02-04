@@ -147,12 +147,24 @@ class _FolderButtonState extends State<FolderButton> {
             Get.to(() => FragmentListPage(folder: widget.folder));
           },
           onLongPress: () async {
-            final OkCancelResult result =
-                await showOkCancelAlertDialog(context: context, title: '确定删除？', okLabel: '确定', cancelLabel: '取消', isDestructiveAction: true);
+            final OkCancelResult result = await showOkCancelAlertDialog(
+              context: context,
+              title: '确定删除？',
+              okLabel: '确定',
+              cancelLabel: '取消',
+              isDestructiveAction: true,
+            );
             if (result == OkCancelResult.ok) {
-              EasyLoading.show();
-              await _folderListPageGetXController.deleteSerializeFolder(widget.folder);
-              EasyLoading.showSuccess('删除成功！');
+              if (_globalGetXController.isRemembering.value) {
+                EasyLoading.showToast('当前已有正在执行的记忆任务，只能新增不能删除！');
+              }
+              if (_globalGetXController.isMemoryModel()) {
+                EasyLoading.showToast('记忆模式下不能进行删除');
+              } else {
+                EasyLoading.show();
+                await _folderListPageGetXController.deleteSerializeFolder(widget.folder);
+                EasyLoading.showSuccess('删除成功！');
+              }
             }
           },
         ),

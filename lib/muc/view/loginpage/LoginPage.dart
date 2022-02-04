@@ -156,6 +156,7 @@ class LoginPage extends SbRoute {
           },
         );
       },
+      initValue: null,
     );
   }
 

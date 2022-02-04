@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:hybrid/data/drift/db/DriftDb.dart';
 import 'package:hybrid/jianji/FragmentSnapshotPage.dart';
 import 'package:hybrid/jianji/controller/FragmentMemoryListPageGetXController.dart';
+import 'package:hybrid/jianji/controller/GlobalGetXController.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 class FragmentMemoryListPage extends StatefulWidget {
@@ -66,7 +67,7 @@ class _FragmentMemoryListPageState extends State<FragmentMemoryListPage> {
             _fragmentMemoryListPageGetXController.refreshController.refreshCompleted();
           },
           onLoading: () async {
-            await _fragmentMemoryListPageGetXController.getSerializeFragmentMemorys(widget.memoryGroup);
+            await _fragmentMemoryListPageGetXController.getManySerializeFragmentMemorys(widget.memoryGroup);
             _fragmentMemoryListPageGetXController.refreshController.loadComplete();
           },
         ),
@@ -85,6 +86,7 @@ class FragmentMemoryButton extends StatefulWidget {
 }
 
 class _FragmentMemoryButtonState extends State<FragmentMemoryButton> {
+  final GlobalGetXController _globalGetXController = Get.find<GlobalGetXController>();
   late final FragmentMemoryListPageGetXController _fragmentMemoryListPageGetXController;
 
   @override
@@ -111,9 +113,13 @@ class _FragmentMemoryButtonState extends State<FragmentMemoryButton> {
           final OkCancelResult result = await showOkCancelAlertDialog(
               context: context, title: '是否从该记忆组中移除下面知识点？（不会删除该知识点）\n${widget.fragment.question}', okLabel: '移除', cancelLabel: '取消', isDestructiveAction: true);
           if (result == OkCancelResult.ok) {
-            EasyLoading.show();
-            await _fragmentMemoryListPageGetXController.deleteSerializeFragmentMemory(widget.memoryGroup, widget.fragment);
-            EasyLoading.showSuccess('移除成功！');
+            if (_globalGetXController.isRemembering.value) {
+              EasyLoading.showToast('当前已有正在执行的记忆任务，只能新增不能删除！');
+            } else {
+              EasyLoading.show();
+              await _fragmentMemoryListPageGetXController.deleteSingleSerializeFragmentMemory(widget.memoryGroup, widget.fragment);
+              EasyLoading.showSuccess('移除成功！');
+            }
           }
         },
       ),

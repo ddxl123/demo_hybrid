@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -8,9 +6,10 @@ import 'package:hybrid/data/drift/db/DriftDb.dart';
 import 'package:hybrid/jianji/FragmentCreatePage.dart';
 import 'package:hybrid/jianji/FragmentSnapshotPage.dart';
 import 'package:hybrid/jianji/controller/FragmentListPageGetXController.dart';
-import 'package:hybrid/jianji/controller/GlobalGetXController.dart';
 import 'package:hybrid/util/sheetroute/Helper.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+
+import 'controller/GlobalGetXController.dart';
 
 class FragmentListPage extends StatefulWidget {
   const FragmentListPage({Key? key, required this.folder}) : super(key: key);
@@ -60,7 +59,7 @@ class _FragmentListPageState extends State<FragmentListPage> {
                       },
                     );
                   },
-                  false.obs,
+                  true.obs,
                 );
               } else {
                 return Container();
@@ -128,8 +127,6 @@ class _FragmentButtonState extends State<FragmentButton> {
   final GlobalGetXController _globalGetXController = Get.find<GlobalGetXController>();
   late final FragmentListPageGetXController _fragmentListPageGetXController;
 
-  bool _isExistInMemoryGroup = false;
-
   @override
   void initState() {
     super.initState();
@@ -150,12 +147,24 @@ class _FragmentButtonState extends State<FragmentButton> {
                 Get.to(() => FragmentSnapshotPage(folder: widget.folder, fragment: widget.fragment));
               },
               onLongPress: () async {
-                final OkCancelResult result =
-                    await showOkCancelAlertDialog(context: context, title: '确定删除？', okLabel: '确定', cancelLabel: '取消', isDestructiveAction: true);
+                final OkCancelResult result = await showOkCancelAlertDialog(
+                  context: context,
+                  title: '确定删除？',
+                  okLabel: '确定',
+                  cancelLabel: '取消',
+                  isDestructiveAction: true,
+                );
                 if (result == OkCancelResult.ok) {
-                  EasyLoading.show();
-                  await _fragmentListPageGetXController.deleteSerializeFragment(widget.folder, widget.fragment);
-                  EasyLoading.showSuccess('删除成功！');
+                  if (_globalGetXController.isRemembering.value) {
+                    EasyLoading.showToast('当前已有正在执行的记忆任务，只能新增不能删除！');
+                  }
+                  if (_globalGetXController.isMemoryModel()) {
+                    EasyLoading.showToast('记忆模式下不能进行删除');
+                  } else {
+                    EasyLoading.show();
+                    await _fragmentListPageGetXController.deleteSerializeFragment(widget.folder, widget.fragment);
+                    EasyLoading.showSuccess('删除成功！');
+                  }
                 }
               },
             ),
@@ -163,21 +172,22 @@ class _FragmentButtonState extends State<FragmentButton> {
           Obx(
             () {
               if (_globalGetXController.isGroupModel()) {
-                return StatefulInitBuilder(
-                  init: (StatefulInitBuilderState state) {
+                return StatefulInitBuilder<bool>(
+                  initValue: false,
+                  init: (StatefulInitBuilderState<bool> state) {
                     _fragmentListPageGetXController.isExistInMemoryGroup(widget.fragment).then(
                       (value) {
-                        _isExistInMemoryGroup = value;
-                        if (state.mounted) state.setState(() {});
+                        state.value = value;
+                        state.refresh();
                       },
                     );
                   },
-                  builder: (StatefulInitBuilderState state) {
-                    if (_isExistInMemoryGroup) {
+                  builder: (StatefulInitBuilderState<bool> state) {
+                    if (state.value) {
                       return IconButton(
                         icon: const Icon(Icons.circle, size: 15, color: Colors.green),
                         onPressed: () {
-                          if (mounted) setState(() {});
+
                         },
                       );
                     } else {

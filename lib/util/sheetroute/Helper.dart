@@ -1,25 +1,36 @@
 import 'package:flutter/material.dart';
 
-class StatefulInitBuilder extends StatefulWidget {
-  const StatefulInitBuilder({required this.init, required this.builder});
+class StatefulInitBuilder<T> extends StatefulWidget {
+  const StatefulInitBuilder({required this.initValue, required this.init, required this.builder, this.dispose, Key? key}) : super(key: key);
 
-  final void Function(StatefulInitBuilderState state) init;
-  final Widget Function(StatefulInitBuilderState state) builder;
+  final T initValue;
+  final void Function(StatefulInitBuilderState<T> state) init;
+  final Widget Function(StatefulInitBuilderState<T> state) builder;
+  final void Function(StatefulInitBuilderState<T> state)? dispose;
 
   @override
-  StatefulInitBuilderState createState() => StatefulInitBuilderState();
+  StatefulInitBuilderState<T> createState() => StatefulInitBuilderState<T>();
 }
 
-class StatefulInitBuilderState extends State<StatefulInitBuilder> {
+class StatefulInitBuilderState<T> extends State<StatefulInitBuilder<T>> {
+  late T value;
+
   @override
   void initState() {
     super.initState();
+    value = widget.initValue;
     widget.init(this);
   }
 
   @override
   Widget build(BuildContext context) {
     return widget.builder(this);
+  }
+
+  @override
+  void dispose() {
+    widget.dispose?.call(this);
+    super.dispose();
   }
 
   void refresh() {

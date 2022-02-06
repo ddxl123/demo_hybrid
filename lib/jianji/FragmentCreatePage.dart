@@ -108,6 +108,7 @@ class _FragmentCreatePageState extends State<FragmentCreatePage> {
       child: Scaffold(
         backgroundColor: const Color.fromRGBO(240, 240, 240, 1),
         appBar: AppBar(
+          backgroundColor: Colors.white,
           leading: IconButton(
             icon: const Icon(Icons.close),
             color: Colors.red,
@@ -119,7 +120,7 @@ class _FragmentCreatePageState extends State<FragmentCreatePage> {
           ),
           actions: <Widget>[
             IconButton(
-              icon: const Icon(Icons.check, color: Colors.lightGreenAccent),
+              icon: const Icon(Icons.check, color: Colors.green),
               onPressed: () async {
                 EasyLoading.show();
                 final List<FragmentsCompanion> fragmentsCompanions = <FragmentsCompanion>[];

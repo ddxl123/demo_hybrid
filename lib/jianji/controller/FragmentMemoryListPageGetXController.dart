@@ -32,7 +32,7 @@ class FragmentMemoryListPageGetXController extends GetxController {
   }
 
   Future<void> getManySerializeFragmentMemorys(MemoryGroup forMemoryGroup) async {
-    final List<Fragment> newFragments = await DriftDb.instance.retrieveDAO.getMemoryGroup2Fragments(forMemoryGroup, offset, 5);
+    final List<Fragment> newFragments = await DriftDb.instance.retrieveDAO.getMemoryGroup2Fragments(forMemoryGroup, offset, 50);
     // 插入到 widget 中。
     fragmentMemorys.addAll(newFragments);
     offset += newFragments.length;
@@ -46,15 +46,9 @@ class FragmentMemoryListPageGetXController extends GetxController {
     refresh();
   }
 
-  Future<void> updateSerializeFragment(Fragment oldFragment, Fragment newFragment) async {
+  Future<void> updateSerializeFragmentMemory(Fragment oldFragment, Fragment newFragment) async {
     await DriftDb.instance.updateDAO.updateFragment(newFragment);
-    late int oldIndex;
-    for (int i = 0; i < fragmentMemorys.length; i++) {
-      if (fragmentMemorys[i] == oldFragment) {
-        oldIndex = i;
-        break;
-      }
-    }
+    int oldIndex = fragmentMemorys.indexOf(oldFragment);
     fragmentMemorys.remove(oldFragment);
     fragmentMemorys.insert(oldIndex, newFragment);
   }

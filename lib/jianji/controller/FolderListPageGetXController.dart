@@ -26,10 +26,38 @@ class FolderListPageGetXController extends GetxController {
 
   Future<void> getSerializeFolders() async {
     // 获取持久化数据。
-    final List<Folder> result = await DriftDb.instance.retrieveDAO.getFolders(offset, 5);
+    final List<Folder> result = await DriftDb.instance.retrieveDAO.getFoldersBySort(offset, 9999);
     // 插入到 widget 中。
     folders.addAll(result);
     offset += result.length;
+  }
+
+  /// [upOrDown] 0表示向上移动，1表示向下移动
+  Future<void> sortSerializeFolder(Folder currentFolder, int upOrDown) async {
+    final int? exchangedFolderId = await DriftDb.instance.updateDAO.updateSortFolder(currentFolder.sort!, upOrDown);
+    final currentIndex = folders.indexOf(currentFolder);
+    if (upOrDown == 0) {
+      if (currentIndex == 0) {
+        // 没有上一个。
+        return;
+      }
+      final afterPreviousFolder = await DriftDb.instance.retrieveDAO.getFolderById(exchangedFolderId!);
+      final afterCurrentFolder = await DriftDb.instance.retrieveDAO.getFolderById(currentFolder.id);
+      final previousIndex = currentIndex - 1;
+      folders.replaceRange(previousIndex, previousIndex + 2, [afterCurrentFolder!, afterPreviousFolder!]);
+      folders.refresh();
+    } else if (upOrDown == 1) {
+      if (currentIndex == folders.length - 1) {
+        // 没有下一个。
+        return;
+      }
+      final afterCurrentFolder = await DriftDb.instance.retrieveDAO.getFolderById(currentFolder.id);
+      final afterNextFolder = await DriftDb.instance.retrieveDAO.getFolderById(exchangedFolderId!);
+      folders.replaceRange(currentIndex, currentIndex + 2, [afterNextFolder!, afterCurrentFolder!]);
+      folders.refresh();
+    } else {
+      throw '未知 upOrDown: $upOrDown';
+    }
   }
 
   Future<void> insertSerializeFolder(FoldersCompanion newFoldersCompanion) async {

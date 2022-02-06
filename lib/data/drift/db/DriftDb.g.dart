@@ -876,6 +876,7 @@ class Folder extends DataClass implements Insertable<Folder> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final String? title;
+  final int? sort;
   Folder(
       {this.cloudId,
       this.syncCurd,
@@ -883,7 +884,8 @@ class Folder extends DataClass implements Insertable<Folder> {
       required this.id,
       required this.createdAt,
       required this.updatedAt,
-      this.title});
+      this.title,
+      this.sort});
   factory Folder.fromData(Map<String, dynamic> data, {String? prefix}) {
     final effectivePrefix = prefix ?? '';
     return Folder(
@@ -901,6 +903,8 @@ class Folder extends DataClass implements Insertable<Folder> {
           .mapFromDatabaseResponse(data['${effectivePrefix}updated_at'])!,
       title: const StringType()
           .mapFromDatabaseResponse(data['${effectivePrefix}title']),
+      sort: const IntType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}sort']),
     );
   }
   @override
@@ -921,6 +925,9 @@ class Folder extends DataClass implements Insertable<Folder> {
     if (!nullToAbsent || title != null) {
       map['title'] = Variable<String?>(title);
     }
+    if (!nullToAbsent || sort != null) {
+      map['sort'] = Variable<int?>(sort);
+    }
     return map;
   }
 
@@ -940,6 +947,7 @@ class Folder extends DataClass implements Insertable<Folder> {
       updatedAt: Value(updatedAt),
       title:
           title == null && nullToAbsent ? const Value.absent() : Value(title),
+      sort: sort == null && nullToAbsent ? const Value.absent() : Value(sort),
     );
   }
 
@@ -955,6 +963,7 @@ class Folder extends DataClass implements Insertable<Folder> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       title: serializer.fromJson<String?>(json['title']),
+      sort: serializer.fromJson<int?>(json['sort']),
     );
   }
   @override
@@ -968,6 +977,7 @@ class Folder extends DataClass implements Insertable<Folder> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'title': serializer.toJson<String?>(title),
+      'sort': serializer.toJson<int?>(sort),
     };
   }
 
@@ -978,7 +988,8 @@ class Folder extends DataClass implements Insertable<Folder> {
           int? id,
           DateTime? createdAt,
           DateTime? updatedAt,
-          String? title}) =>
+          String? title,
+          int? sort}) =>
       Folder(
         cloudId: cloudId ?? this.cloudId,
         syncCurd: syncCurd ?? this.syncCurd,
@@ -987,6 +998,7 @@ class Folder extends DataClass implements Insertable<Folder> {
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
         title: title ?? this.title,
+        sort: sort ?? this.sort,
       );
   @override
   String toString() {
@@ -997,14 +1009,15 @@ class Folder extends DataClass implements Insertable<Folder> {
           ..write('id: $id, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('title: $title')
+          ..write('title: $title, ')
+          ..write('sort: $sort')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-      cloudId, syncCurd, syncUpdateColumns, id, createdAt, updatedAt, title);
+  int get hashCode => Object.hash(cloudId, syncCurd, syncUpdateColumns, id,
+      createdAt, updatedAt, title, sort);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1015,7 +1028,8 @@ class Folder extends DataClass implements Insertable<Folder> {
           other.id == this.id &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
-          other.title == this.title);
+          other.title == this.title &&
+          other.sort == this.sort);
 }
 
 class FoldersCompanion extends UpdateCompanion<Folder> {
@@ -1026,6 +1040,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<String?> title;
+  final Value<int?> sort;
   const FoldersCompanion({
     this.cloudId = const Value.absent(),
     this.syncCurd = const Value.absent(),
@@ -1034,6 +1049,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.title = const Value.absent(),
+    this.sort = const Value.absent(),
   });
   FoldersCompanion.insert({
     this.cloudId = const Value.absent(),
@@ -1043,6 +1059,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.title = const Value.absent(),
+    this.sort = const Value.absent(),
   });
   static Insertable<Folder> custom({
     Expression<int?>? cloudId,
@@ -1052,6 +1069,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<String?>? title,
+    Expression<int?>? sort,
   }) {
     return RawValuesInsertable({
       if (cloudId != null) 'cloud_id': cloudId,
@@ -1061,6 +1079,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (title != null) 'title': title,
+      if (sort != null) 'sort': sort,
     });
   }
 
@@ -1071,7 +1090,8 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
       Value<int>? id,
       Value<DateTime>? createdAt,
       Value<DateTime>? updatedAt,
-      Value<String?>? title}) {
+      Value<String?>? title,
+      Value<int?>? sort}) {
     return FoldersCompanion(
       cloudId: cloudId ?? this.cloudId,
       syncCurd: syncCurd ?? this.syncCurd,
@@ -1080,6 +1100,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       title: title ?? this.title,
+      sort: sort ?? this.sort,
     );
   }
 
@@ -1107,6 +1128,9 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
     if (title.present) {
       map['title'] = Variable<String?>(title.value);
     }
+    if (sort.present) {
+      map['sort'] = Variable<int?>(sort.value);
+    }
     return map;
   }
 
@@ -1119,7 +1143,8 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
           ..write('id: $id, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('title: $title')
+          ..write('title: $title, ')
+          ..write('sort: $sort')
           ..write(')'))
         .toString();
   }
@@ -1173,9 +1198,22 @@ class $FoldersTable extends Folders with TableInfo<$FoldersTable, Folder> {
   late final GeneratedColumn<String?> title = GeneratedColumn<String?>(
       'title', aliasedName, true,
       type: const StringType(), requiredDuringInsert: false);
+  final VerificationMeta _sortMeta = const VerificationMeta('sort');
   @override
-  List<GeneratedColumn> get $columns =>
-      [cloudId, syncCurd, syncUpdateColumns, id, createdAt, updatedAt, title];
+  late final GeneratedColumn<int?> sort = GeneratedColumn<int?>(
+      'sort', aliasedName, true,
+      type: const IntType(), requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        cloudId,
+        syncCurd,
+        syncUpdateColumns,
+        id,
+        createdAt,
+        updatedAt,
+        title,
+        sort
+      ];
   @override
   String get aliasedName => _alias ?? 'folders';
   @override
@@ -1213,6 +1251,10 @@ class $FoldersTable extends Folders with TableInfo<$FoldersTable, Folder> {
     if (data.containsKey('title')) {
       context.handle(
           _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+    }
+    if (data.containsKey('sort')) {
+      context.handle(
+          _sortMeta, sort.isAcceptableOrUnknown(data['sort']!, _sortMeta));
     }
     return context;
   }

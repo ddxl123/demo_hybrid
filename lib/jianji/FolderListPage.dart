@@ -1,11 +1,11 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
-import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:hybrid/data/drift/db/DriftDb.dart';
 import 'package:hybrid/jianji/FragmentListPage.dart';
 import 'package:hybrid/jianji/controller/FolderListPageGetXController.dart';
+import 'package:hybrid/util/SbHelper.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import 'controller/FragmentListPageGetXController.dart';
@@ -35,16 +35,23 @@ class _FolderListPageState extends State<FolderListPage> with AutomaticKeepAlive
               final List<String>? result = await showTextInputDialog(
                 context: context,
                 textFields: <DialogTextField>[
-                  const DialogTextField(hintText: '文件夹名称'),
+                  const DialogTextField(hintText: '类别名称'),
                 ],
-                title: '创建文件夹',
+                title: '创建类别',
                 okLabel: '创建',
                 cancelLabel: '取消',
                 isDestructiveAction: true,
               );
               if (result != null && result.isNotEmpty && result.first != '') {
                 EasyLoading.show();
-                await _folderListPageGetXController.insertSerializeFolder(FoldersCompanion.insert(title: drift.Value(result.first)));
+
+                final List<Folder> fs = await DriftDb.instance.retrieveDAO.getFoldersBySort(0, 9999);
+                await _folderListPageGetXController.insertSerializeFolder(
+                  FoldersCompanion.insert(
+                    title: result.first.toValue(),
+                    sort: (fs.isEmpty ? 0 : fs.last.sort! + 1).toValue(),
+                  ),
+                );
                 EasyLoading.showSuccess('创建成功！');
               }
             },
@@ -115,60 +122,125 @@ class _FolderButtonState extends State<FolderButton> {
   void initState() {
     super.initState();
     _fragmentListPageGetXController = Get.put(FragmentListPageGetXController(), tag: widget.folder.hashCode.toString());
+    DriftDb.instance.retrieveDAO.getFolder2FragmentCount(widget.folder).then((value) => _fragmentListPageGetXController.serializeFragmentsCount.value = value);
   }
 
   @override
   Widget build(BuildContext context) {
     return Obx(
-      () => Container(
-        child: TextButton(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              Expanded(child: Text(widget.folder.title.toString())),
-              Text(_fragmentListPageGetXController.serializeFragmentsCount.toString()),
-              () {
-                if (_globalGetXController.isGroupModel()) {
-                  return Container(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
-                    child: Text(
-                      ((_globalGetXController.selectedsForGroupModel[widget.folder.id]?.length) ?? 0).toString(),
-                      style: const TextStyle(color: Colors.orange),
-                    ),
-                  );
-                } else {
-                  return Container();
+      () => Column(
+        children: [
+          Container(
+            decoration: const BoxDecoration(border: Border(bottom: BorderSide(width: 0.5, color: Color.fromRGBO(0, 0, 0, 0.2)))),
+            child: TextButton(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  const Icon(Icons.folder),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  Expanded(child: Text(widget.folder.title.toString())),
+                  Text(_fragmentListPageGetXController.serializeFragmentsCount.toString()),
+                  () {
+                    if (_globalGetXController.isGroupModel()) {
+                      return Container(
+                        padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
+                        child: Text(
+                          ((_globalGetXController.selectedsForGroupModel[widget.folder.id]?.length) ?? 0).toString(),
+                          style: const TextStyle(color: Colors.orange),
+                        ),
+                      );
+                    } else {
+                      return Container();
+                    }
+                  }(),
+                ],
+              ),
+              style: const ButtonStyle(alignment: Alignment.centerLeft),
+              onPressed: () async {
+                Get.to(() => FragmentListPage(folder: widget.folder));
+              },
+              onLongPress: () async {
+                if (_fragmentListPageGetXController.isLongPress.value) {
+                  EasyLoading.showToast('再次长按可收回！');
                 }
-              }(),
-            ],
+                _fragmentListPageGetXController.isLongPress.value = !_fragmentListPageGetXController.isLongPress.value;
+              },
+            ),
           ),
-          style: const ButtonStyle(alignment: Alignment.centerLeft),
-          onPressed: () async {
-            Get.to(() => FragmentListPage(folder: widget.folder));
-          },
-          onLongPress: () async {
-            final OkCancelResult result = await showOkCancelAlertDialog(
-              context: context,
-              title: '确定删除？',
-              okLabel: '确定',
-              cancelLabel: '取消',
-              isDestructiveAction: true,
-            );
-            if (result == OkCancelResult.ok) {
-              if (_globalGetXController.isRemembering.value) {
-                EasyLoading.showToast('当前已有正在执行的记忆任务，只能新增不能删除！');
-              }
-              if (_globalGetXController.isMemoryModel()) {
-                EasyLoading.showToast('记忆模式下不能进行删除');
-              } else {
-                EasyLoading.show();
-                await _folderListPageGetXController.deleteSerializeFolder(widget.folder);
-                EasyLoading.showSuccess('删除成功！');
-              }
-            }
-          },
-        ),
-        decoration: const BoxDecoration(border: Border(bottom: BorderSide(width: 0.5, color: Color.fromRGBO(0, 0, 0, 0.2)))),
+          if (_fragmentListPageGetXController.isLongPress.value)
+            Row(
+              children: [
+                Expanded(
+                  child: Card(
+                    margin: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                    child: TextButton(
+                      child: const Text('删除', style: TextStyle(color: Colors.red)),
+                      onPressed: () async {
+                        final OkCancelResult result = await showOkCancelAlertDialog(
+                          context: context,
+                          title: '确定删除？',
+                          okLabel: '确定',
+                          cancelLabel: '取消',
+                          isDestructiveAction: true,
+                        );
+                        if (result == OkCancelResult.ok) {
+                          if (_globalGetXController.isRemembering.value) {
+                            EasyLoading.showToast('当前已有正在执行的记忆任务，只能新增不能删除！');
+                          } else {
+                            if (_globalGetXController.isMemoryModel()) {
+                              EasyLoading.showToast('记忆模式下不能进行删除');
+                            } else {
+                              EasyLoading.show();
+                              await _folderListPageGetXController.deleteSerializeFolder(widget.folder);
+                              EasyLoading.showSuccess('删除成功！');
+                            }
+                          }
+                        }
+                      },
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Card(
+                    margin: const EdgeInsets.fromLTRB(10, 5, 10, 0),
+                    child: TextButton(
+                      child: const Text('重命名'),
+                      onPressed: () async {},
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          if (_fragmentListPageGetXController.isLongPress.value)
+            Row(
+              children: [
+                Expanded(
+                  child: Card(
+                    margin: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+                    child: TextButton(
+                      child: const Text('上移'),
+                      onPressed: () async {
+                        await _folderListPageGetXController.sortSerializeFolder(widget.folder, 0);
+                      },
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Card(
+                    margin: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+                    child: TextButton(
+                      child: const Text('下移'),
+                      onPressed: () async {
+                        await _folderListPageGetXController.sortSerializeFolder(widget.folder, 1);
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            )
+        ],
       ),
     );
   }

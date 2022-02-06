@@ -5,6 +5,8 @@ import 'package:get/get.dart';
 import 'package:hybrid/data/drift/db/DriftDb.dart';
 import 'package:hybrid/jianji/FragmentSnapshotPage.dart';
 import 'package:hybrid/jianji/controller/GlobalGetXController.dart';
+import 'package:hybrid/jianji/controller/RememberingPageGetXController.dart';
+import 'package:hybrid/jianji/controller/RememberingRunPageGetXController.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 class RememberingPage extends StatefulWidget {
@@ -15,124 +17,152 @@ class RememberingPage extends StatefulWidget {
 }
 
 class _RememberingPageState extends State<RememberingPage> {
-  final RefreshController _refreshController = RefreshController(initialRefresh: true);
-  final List<Fragment> _fragments = <Fragment>[];
-  int _offset = 0;
-
-  RememberStatus _rememberStatus = RememberStatus.none;
-
-  Future<void> _getAndSetSerializeFragments() async {
-    final result = await DriftDb.instance.retrieveDAO.getRemember2Fragments(offset: _offset, limit: 5);
-    _fragments.addAll(result);
-    _offset += result.length;
-  }
-
-  Future<void> _clearAndSet() async {
-    _fragments.clear();
-    _offset = 0;
-    await _getAndSetSerializeFragments();
-  }
-
-  Future<void> _getToPage() async {
-    final result = await Get.to(() => const RememberingRunPage());
-    if (result == true) {
-      _rememberStatus = RememberStatus.none;
-      setState(() {});
-    }
-  }
+  final GlobalGetXController _globalGetXController = Get.find<GlobalGetXController>();
+  final RememberPageGetXController _rememberPageGetXController = Get.find<RememberPageGetXController>();
+  final RememberingRunPageGetXController _rememberingRunPageGetXController = Get.find<RememberingRunPageGetXController>();
 
   @override
   void initState() {
     super.initState();
-    DriftDb.instance.retrieveDAO.getRemembering().then(
+    DriftDb.instance.retrieveDAO.getRememberingOrNull().then(
       (value) {
         if (value == null) {
-          _rememberStatus = RememberStatus.none;
+          _rememberPageGetXController.rememberStatusSerialize.value = RememberStatus.none.index;
         } else {
-          _rememberStatus = RememberStatus.values[value.status];
+          _rememberPageGetXController.rememberStatusSerialize.value = value.status;
         }
-        setState(() {});
       },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('任务列表'),
-        actions: [
-          MaterialButton(
-            child: const Text('取消任务'),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body: SmartRefresher(
-        footer: const ClassicFooter(
-          height: 120,
-          loadingText: '获取中...',
-          idleText: '上拉刷新',
-          canLoadingText: '可以松手了',
-          failedText: '刷新失败！',
-          noDataText: '没有更多数据',
+    return Obx(() {
+      return Scaffold(
+        appBar: AppBar(
+          leading: const BackButton(color: Colors.blue),
+          backgroundColor: Colors.white,
+          elevation: 0,
+          title: Text('任务列表（${_rememberPageGetXController.rememberingCount.value}）', style: const TextStyle(color: Colors.blue)),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.info_outline),
+              color: Colors.grey,
+              onPressed: () {
+                EasyLoading.showToast('返回或重启应用不会影响记忆进度！\n已自动过滤掉重复内容', duration: const Duration(seconds: 5));
+              },
+            ),
+            MaterialButton(
+              child: const Text('取消任务', style: TextStyle(color: Colors.red)),
+              onPressed: () async {
+                final result = await showOkCancelAlertDialog(
+                  context: context,
+                  title: '确定取消任务？',
+                  okLabel: '确定取消',
+                  cancelLabel: '继续任务',
+                  isDestructiveAction: true,
+                );
+                if (result == OkCancelResult.ok) {
+                  await DriftDb.instance.deleteDAO.deleteRememberAll();
+                  _globalGetXController.isRemembering.value = false;
+                  Get.back();
+                  EasyLoading.showToast('取消成功！可轻触’记‘浮动按钮创建新任务！', duration: const Duration(seconds: 5));
+                }
+              },
+            ),
+          ],
         ),
-        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-        controller: _refreshController,
-        enablePullUp: true,
-        enablePullDown: true,
-        header: const WaterDropMaterialHeader(),
-        child: ListView.builder(
-          itemCount: _fragments.length,
-          itemBuilder: (BuildContext context, int index) {
-            return RememberingPageFragmentButton(fragment: _fragments[index]);
+        body: SmartRefresher(
+          footer: const ClassicFooter(
+            height: 120,
+            loadingText: '获取中...',
+            idleText: '上拉刷新',
+            canLoadingText: '可以松手了',
+            failedText: '刷新失败！',
+            noDataText: '没有更多数据',
+          ),
+          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+          controller: _rememberPageGetXController.refreshController,
+          enablePullUp: false,
+          enablePullDown: true,
+          header: const WaterDropMaterialHeader(),
+          child: ListView.builder(
+            itemCount: _rememberPageGetXController.fragments.length,
+            itemBuilder: (BuildContext context, int index) {
+              return RememberingPageFragmentButton(fragment: _rememberPageGetXController.fragments[index]);
+            },
+          ),
+          onRefresh: () async {
+            await _rememberPageGetXController.clearAndGetViewFragments();
+            _rememberPageGetXController.refreshController.refreshCompleted();
           },
         ),
-        onRefresh: () async {
-          await _clearAndSet();
-          _refreshController.refreshCompleted();
-          setState(() {});
-        },
-        onLoading: () async {
-          await _getAndSetSerializeFragments();
-          _refreshController.loadComplete();
-          setState(() {});
-        },
-      ),
-      floatingActionButton: () {
-        if (_rememberStatus == RememberStatus.none) {
-          return FloatingActionButton(
-            backgroundColor: Colors.orangeAccent,
-            child: const Text('未开始'),
-            onPressed: () async {
-              final int? result = await showModalActionSheet<int>(
-                context: context,
-                title: '请选择一种方式：',
-                actions: [
-                  const SheetAction(key: 1, label: '随机可重复', isDestructiveAction: true),
-                  const SheetAction(key: 0, label: '随机不可重复', isDestructiveAction: true),
-                ],
-              );
-              if (result == 0) {
-                _rememberStatus = RememberStatus.randomNotRepeat;
-                setState(() {});
-                _getToPage();
-              } else if (result == 1) {
-                _rememberStatus = RememberStatus.randomRepeat;
-                setState(() {});
-                _getToPage();
-              }
-            },
-          );
-        } else if (_rememberStatus == RememberStatus.randomNotRepeat) {
-          _getToPage();
-        } else if (_rememberStatus == RememberStatus.randomRepeat) {
-          _getToPage();
-        } else {
-          throw '未知 _rememberStatus: ${_rememberStatus.toString()}';
-        }
-      }(),
-    );
+        floatingActionButton: () {
+          if (_rememberPageGetXController.rememberStatusSerialize.value == RememberStatus.none.index) {
+            return FloatingActionButton(
+              backgroundColor: Colors.orangeAccent,
+              child: const Text('未开始'),
+              onPressed: () async {
+                final int? result = await showModalActionSheet<int>(
+                  context: context,
+                  title: '请选择一种方式：',
+                  actions: [
+                    SheetAction(
+                      key: 2,
+                      label: '问答翻转（${_rememberPageGetXController.isQuestionAndAnswerExchange.value ? '已翻转' : '未翻转'}）',
+                      isDestructiveAction: true,
+                    ),
+                    const SheetAction(key: 1, label: '随机可重复', isDestructiveAction: true),
+                    const SheetAction(key: 0, label: '随机不可重复', isDestructiveAction: true),
+                  ],
+                );
+                if (result == 0) {
+                  _rememberPageGetXController.rememberStatusSerialize.value = RememberStatus.randomNotRepeat.index;
+                  _rememberingRunPageGetXController.recordFragments.clear();
+                  await _rememberPageGetXController.setInitRemembering();
+                  await _rememberPageGetXController.toRunPage();
+                } else if (result == 1) {
+                  // _rememberPageGetXController.rememberStatusSerialize.value = RememberStatus.randomRepeat.index;
+                  // _rememberingRunPageGetXController.recordFragments.clear();
+                  // await _rememberPageGetXController.setInitRemembering();
+                  // await _rememberPageGetXController.toRunPage();
+                  EasyLoading.showToast('该选项有bug未解决，请选择 随机不可重复');
+                } else if (result == 2) {
+                  final isExchange = await showOkCancelAlertDialog(
+                    context: context,
+                    message: '${_rememberPageGetXController.isQuestionAndAnswerExchange.value ? '确定取消翻转问题和答案？' : '确定翻转问题和答案？'}\n单词记忆可进行尝试翻转！',
+                    okLabel: '确定',
+                    cancelLabel: '否定',
+                    isDestructiveAction: true,
+                  );
+                  if (isExchange == OkCancelResult.ok) {
+                    _rememberPageGetXController.isQuestionAndAnswerExchange.value = !_rememberPageGetXController.isQuestionAndAnswerExchange.value;
+                  }
+                }
+              },
+            );
+          } else if (_rememberPageGetXController.rememberStatusSerialize.value == RememberStatus.randomNotRepeat.index) {
+            return FloatingActionButton(
+              backgroundColor: Colors.green,
+              child: const Text('继续'),
+              onPressed: () async {
+                await _rememberPageGetXController.toRunPage();
+              },
+            );
+          } else if (_rememberPageGetXController.rememberStatusSerialize.value == RememberStatus.randomRepeat.index) {
+            return FloatingActionButton(
+              backgroundColor: Colors.green,
+              child: const Text('继续'),
+              onPressed: () async {
+                await _rememberPageGetXController.toRunPage();
+              },
+            );
+          } else {
+            throw '未知 _rememberStatus: ${_rememberPageGetXController.rememberStatusSerialize.toString()}';
+          }
+        }(),
+      );
+    });
   }
 }
 
@@ -145,6 +175,8 @@ class RememberingPageFragmentButton extends StatefulWidget {
 }
 
 class _RememberingPageFragmentButtonState extends State<RememberingPageFragmentButton> {
+  final RememberPageGetXController _rememberPageGetXController = Get.find<RememberPageGetXController>();
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -152,52 +184,19 @@ class _RememberingPageFragmentButtonState extends State<RememberingPageFragmentB
       child: TextButton(
         child: Text(widget.fragment.question.toString()),
         onPressed: () {
-          Get.to(() => FragmentSnapshotPage(fragment: widget.fragment, isEnableEdit: false));
+          Get.to(
+            () => FragmentSnapshotPage(
+              initEnterFragment: widget.fragment,
+              isEnableEdit: true,
+              pageTurningFragments: _rememberPageGetXController.fragments,
+              isSecret: true,
+              onUpdateSerialize: (Fragment oldFragment, Fragment newFragment) async {
+                await _rememberPageGetXController.updateSerializeRemembering(oldFragment, newFragment);
+              },
+            ),
+          );
         },
       ),
     );
-  }
-}
-
-class RememberingRunPage extends StatefulWidget {
-  const RememberingRunPage({Key? key}) : super(key: key);
-
-  @override
-  _RememberingRunPageState createState() => _RememberingRunPageState();
-}
-
-class _RememberingRunPageState extends State<RememberingRunPage> {
-  Fragment? _lastFragment;
-  late Fragment _fragment;
-  late final RememberStatus _rememberStatus;
-
-  Future<void> _getInitFragment() async {
-    final result = await DriftDb.instance.retrieveDAO.getRemembering();
-    if (result == null) {
-      EasyLoading.showToast('_getNextFragment 结果为 null, 但是仍然进入了 RememberingRunPage！');
-      Get.back(result: true);
-    } else {
-      _rememberStatus = RememberStatus.values[result.status];
-      // 这里说明，在正在记忆时，不能对 fragment 进行删除。
-      _fragment = await DriftDb.instance.retrieveDAO.getSingleFragmentById(result.fragmentId!);
-    }
-  }
-
-  Future<void> _getNextFragment() async {
-    if (_rememberStatus == RememberStatus.randomNotRepeat) {
-      final nr = await DriftDb.instance.retrieveDAO.getRandomNotRepeatRemember2Fragment();
-      if (nr == null) {}
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _getInitFragment();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container();
   }
 }

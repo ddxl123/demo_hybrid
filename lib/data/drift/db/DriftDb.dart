@@ -62,13 +62,5 @@ class DriftDb extends _$DriftDb {
   }
 
   @override
-  int get schemaVersion => 3;
-
-  @override
-  MigrationStrategy get migration => MigrationStrategy(
-        onCreate: (Migrator m) async {
-          await m.createAll();
-        },
-        onUpgrade: (Migrator m, int from, int to) async {},
-      );
+  int get schemaVersion => 1;
 }

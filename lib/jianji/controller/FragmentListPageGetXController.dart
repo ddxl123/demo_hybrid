@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:get/get.dart';
 import 'package:hybrid/data/drift/db/DriftDb.dart';
 import 'package:hybrid/jianji/controller/GlobalGetXController.dart';
@@ -13,6 +11,8 @@ class FragmentListPageGetXController extends GetxController {
   final RxList<Fragment> fragments = <Fragment>[].obs;
 
   RxInt serializeFragmentsCount = 0.obs;
+
+  RxBool isLongPress = false.obs;
 
   /// 不包含 offset 本身。
   int offset = 0;
@@ -30,7 +30,7 @@ class FragmentListPageGetXController extends GetxController {
 
   Future<void> getSerializeFragments(Folder forFolder) async {
     // 获取持久化数据。
-    final List<Fragment> newFragments = await DriftDb.instance.retrieveDAO.getFolder2Fragments(forFolder, offset, 5);
+    final List<Fragment> newFragments = await DriftDb.instance.retrieveDAO.getFolder2Fragments(forFolder, offset, 50);
     // 插入到 widget 中。
     fragments.addAll(newFragments);
     offset += newFragments.length;
@@ -54,13 +54,7 @@ class FragmentListPageGetXController extends GetxController {
 
   Future<void> updateSerializeFragment(Fragment oldFragment, Fragment newFragment) async {
     await DriftDb.instance.updateDAO.updateFragment(newFragment);
-    late int oldIndex;
-    for (int i = 0; i < fragments.length; i++) {
-      if (fragments[i] == oldFragment) {
-        oldIndex = i;
-        break;
-      }
-    }
+    int oldIndex = fragments.indexOf(oldFragment);
     fragments.remove(oldFragment);
     fragments.insert(oldIndex, newFragment);
     // refresh();

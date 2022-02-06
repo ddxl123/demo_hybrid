@@ -1,5 +1,4 @@
 import 'package:drift/drift.dart';
-import 'package:hybrid/jianji/controller/GlobalGetXController.dart';
 
 import 'Base.dart';
 
@@ -117,6 +116,8 @@ class Users extends TableCloudBase {
 
 class Folders extends TableCloudBase {
   TextColumn get title => text().nullable()();
+
+  IntColumn get sort => integer().nullable()();
 }
 
 class Fragments extends TableCloudBase {

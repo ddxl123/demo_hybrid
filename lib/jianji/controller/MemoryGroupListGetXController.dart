@@ -20,7 +20,7 @@ class MemoryGroupListGetXController extends GetxController {
   }
 
   Future<void> getSerializeMemoryGroups() async {
-    final List<MemoryGroup> result = await DriftDb.instance.retrieveDAO.getMemoryGroups(offset, 5);
+    final List<MemoryGroup> result = await DriftDb.instance.retrieveDAO.getMemoryGroups(offset, 9999);
     memoryGroups.addAll(result);
     offset += result.length;
   }

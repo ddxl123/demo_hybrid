@@ -97,33 +97,51 @@ class _FragmentMemoryButtonState extends State<FragmentMemoryButton> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: TextButton(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Expanded(child: Text(widget.fragment.question.toString())),
-          ],
-        ),
-        style: const ButtonStyle(alignment: Alignment.centerLeft),
-        onPressed: () async {
-          Get.to(() => FragmentSnapshotPage(fragment: widget.fragment, memoryGroup: widget.memoryGroup));
-        },
-        onLongPress: () async {
-          final OkCancelResult result = await showOkCancelAlertDialog(
-              context: context, title: '是否从该记忆组中移除下面知识点？（不会删除该知识点）\n${widget.fragment.question}', okLabel: '移除', cancelLabel: '取消', isDestructiveAction: true);
-          if (result == OkCancelResult.ok) {
-            if (_globalGetXController.isRemembering.value) {
-              EasyLoading.showToast('当前已有正在执行的记忆任务，只能新增不能删除！');
-            } else {
-              EasyLoading.show();
-              await _fragmentMemoryListPageGetXController.deleteSingleSerializeFragmentMemory(widget.memoryGroup, widget.fragment);
-              EasyLoading.showSuccess('移除成功！');
+    return Card(
+      elevation: 1,
+      margin: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+      child: Container(
+        child: TextButton(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Expanded(child: Text(widget.fragment.question.toString())),
+            ],
+          ),
+          style: const ButtonStyle(alignment: Alignment.centerLeft),
+          onPressed: () async {
+            Get.to(
+              () => FragmentSnapshotPage(
+                initEnterFragment: widget.fragment,
+                pageTurningFragments: _fragmentMemoryListPageGetXController.fragmentMemorys,
+                isEnableEdit: true,
+                isSecret: true,
+                onUpdateSerialize: (Fragment oldFragment, Fragment newFragment) async {
+                  await _fragmentMemoryListPageGetXController.updateSerializeFragmentMemory(oldFragment, newFragment);
+                },
+              ),
+            );
+          },
+          onLongPress: () async {
+            final OkCancelResult result = await showOkCancelAlertDialog(
+                context: context,
+                title: '是否从该记忆组中移除下面知识点？（不会删除该知识点）\n${widget.fragment.question}',
+                okLabel: '移除',
+                cancelLabel: '取消',
+                isDestructiveAction: true);
+            if (result == OkCancelResult.ok) {
+              if (_globalGetXController.isRemembering.value) {
+                EasyLoading.showToast('当前已有正在执行的记忆任务，只能新增不能删除！');
+              } else {
+                EasyLoading.show();
+                await _fragmentMemoryListPageGetXController.deleteSingleSerializeFragmentMemory(widget.memoryGroup, widget.fragment);
+                EasyLoading.showSuccess('移除成功！');
+              }
             }
-          }
-        },
+          },
+        ),
+        decoration: const BoxDecoration(border: Border(bottom: BorderSide(width: 0.5, color: Color.fromRGBO(0, 0, 0, 0.2)))),
       ),
-      decoration: const BoxDecoration(border: Border(bottom: BorderSide(width: 0.5, color: Color.fromRGBO(0, 0, 0, 0.2)))),
     );
   }
 }

@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:hybrid/data/drift/db/DriftDb.dart';
-import 'package:hybrid/jianji/controller/FragmentListPageGetXController.dart';
-import 'package:hybrid/jianji/controller/FragmentMemoryListPageGetXController.dart';
 
 class FragmentEdit {
   String? question = '';
@@ -18,9 +16,11 @@ class FragmentEdit {
 }
 
 class FragmentEditPage extends StatefulWidget {
-  const FragmentEditPage({Key? key, required this.fragment, this.folder, this.memoryGroup}) : super(key: key);
-  final Folder? folder;
-  final MemoryGroup? memoryGroup;
+  /// 返回会传递 Get.back(after-edit_Fragment)
+  const FragmentEditPage({Key? key, required this.fragment}) : super(key: key);
+
+  // final Folder? folder;
+  // final MemoryGroup? memoryGroup;
   final Fragment fragment;
 
   @override
@@ -28,8 +28,8 @@ class FragmentEditPage extends StatefulWidget {
 }
 
 class _FragmentEditPageState extends State<FragmentEditPage> {
-  late final FragmentListPageGetXController _fragmentListPageGetXController;
-  late final FragmentMemoryListPageGetXController _fragmentMemoryListPageGetXController;
+  // late final FragmentListPageGetXController _fragmentListPageGetXController;
+  // late final FragmentMemoryListPageGetXController _fragmentMemoryListPageGetXController;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -42,12 +42,12 @@ class _FragmentEditPageState extends State<FragmentEditPage> {
     super.initState();
     _fragment = widget.fragment;
 
-    if (widget.folder != null) {
-      _fragmentListPageGetXController = Get.find<FragmentListPageGetXController>(tag: widget.folder.hashCode.toString());
-    }
-    if (widget.memoryGroup != null) {
-      _fragmentMemoryListPageGetXController = Get.find<FragmentMemoryListPageGetXController>(tag: widget.memoryGroup.hashCode.toString());
-    }
+    // if (widget.folder != null) {
+    //   _fragmentListPageGetXController = Get.find<FragmentListPageGetXController>(tag: widget.folder.hashCode.toString());
+    // }
+    // if (widget.memoryGroup != null) {
+    //   _fragmentMemoryListPageGetXController = Get.find<FragmentMemoryListPageGetXController>(tag: widget.memoryGroup.hashCode.toString());
+    // }
   }
 
   bool isEdited() {
@@ -90,6 +90,8 @@ class _FragmentEditPageState extends State<FragmentEditPage> {
       child: Scaffold(
         backgroundColor: const Color.fromRGBO(240, 240, 240, 1),
         appBar: AppBar(
+          elevation: 0,
+          backgroundColor: Colors.white,
           leading: IconButton(
             icon: const Icon(Icons.close),
             color: Colors.red,
@@ -101,7 +103,7 @@ class _FragmentEditPageState extends State<FragmentEditPage> {
           ),
           actions: <Widget>[
             IconButton(
-              icon: const Icon(Icons.check, color: Colors.lightGreenAccent),
+              icon: const Icon(Icons.check, color: Colors.green),
               onPressed: () async {
                 EasyLoading.show();
                 if (!isEdited()) {
@@ -113,13 +115,13 @@ class _FragmentEditPageState extends State<FragmentEditPage> {
                     answer: _fragmentEdit.answer,
                     description: _fragmentEdit.description,
                   );
-                  if (widget.folder != null) {
-                    await _fragmentListPageGetXController.updateSerializeFragment(_fragment, newFragment);
-                  } else if (widget.memoryGroup != null) {
-                    await _fragmentMemoryListPageGetXController.updateSerializeFragment(_fragment, newFragment);
-                  } else {
-                    throw '发送异常: folder: ${widget.folder.toString()}, memoryGroup: ${widget.memoryGroup.toString()}';
-                  }
+                  // if (widget.folder != null) {
+                  //   await _fragmentListPageGetXController.updateSerializeFragment(_fragment, newFragment);
+                  // } else if (widget.memoryGroup != null) {
+                  //   await _fragmentMemoryListPageGetXController.updateSerializeFragment(_fragment, newFragment);
+                  // } else {
+                  //   throw '发送异常: folder: ${widget.folder.toString()}, memoryGroup: ${widget.memoryGroup.toString()}';
+                  // }
                   _fragment = newFragment;
                   Get.back(result: _fragment);
                   EasyLoading.showSuccess('修改成功！');

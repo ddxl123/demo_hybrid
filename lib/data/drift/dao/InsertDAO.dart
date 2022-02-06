@@ -58,47 +58,55 @@ class InsertDAO extends DatabaseAccessor<DriftDb> with _$InsertDAOMixin {
     required List<Fragment> forFragments,
     required Future<void> Function(MemoryGroup filteredMemoryGroup, List<Fragment> filteredFragments) filtered,
   }) async {
-    await batch((batch) async {
-      for (var memoryGroup in forMemoryGroups) {
-        final List<MemoryGroup2FragmentsCompanion> memoryGroup2FragmentsCompanions = <MemoryGroup2FragmentsCompanion>[];
-        final List<Fragment> filteredFragments = <Fragment>[];
+    await transaction(
+      () async {
+        for (var memoryGroup in forMemoryGroups) {
+          final List<MemoryGroup2FragmentsCompanion> memoryGroup2FragmentsCompanions = <MemoryGroup2FragmentsCompanion>[];
+          final List<Fragment> filteredFragments = <Fragment>[];
 
-        for (var element in forFragments) {
-          final MemoryGroup2Fragment? m2f = await ((select(memoryGroup2Fragments))
-                ..where(
-                  (tbl) =>
-                      (tbl.fragmentId.equals(element.id) | tbl.fragmentCloudId.equals(element.cloudId)) &
-                      (tbl.memoryGroupId.equals(memoryGroup.id) | tbl.memoryGroupCloudId.equals(memoryGroup.cloudId)),
-                ))
-              .getSingleOrNull();
-          // 以防重复。
-          if (m2f == null) {
-            filteredFragments.add(element);
+          for (var element in forFragments) {
+            final MemoryGroup2Fragment? m2f = await ((select(memoryGroup2Fragments))
+                  ..where(
+                    (tbl) =>
+                        (tbl.fragmentId.equals(element.id) | tbl.fragmentCloudId.equals(element.cloudId)) &
+                        (tbl.memoryGroupId.equals(memoryGroup.id) | tbl.memoryGroupCloudId.equals(memoryGroup.cloudId)),
+                  ))
+                .getSingleOrNull();
+            // 以防重复。
+            if (m2f == null) {
+              filteredFragments.add(element);
 
-            memoryGroup2FragmentsCompanions.add(
-              MemoryGroup2FragmentsCompanion.insert(
-                memoryGroupId: memoryGroup.id.toValue(),
-                memoryGroupCloudId: memoryGroup.cloudId.toValue(),
-                fragmentId: element.id.toValue(),
-                fragmentCloudId: element.cloudId.toValue(),
-              ),
-            );
+              memoryGroup2FragmentsCompanions.add(
+                MemoryGroup2FragmentsCompanion.insert(
+                  memoryGroupId: memoryGroup.id.toValue(),
+                  memoryGroupCloudId: memoryGroup.cloudId.toValue(),
+                  fragmentId: element.id.toValue(),
+                  fragmentCloudId: element.cloudId.toValue(),
+                ),
+              );
+            }
+          }
+          await filtered(memoryGroup, filteredFragments);
+          for (var element in memoryGroup2FragmentsCompanions) {
+            await into(memoryGroup2Fragments).insert(element);
           }
         }
-        await filtered(memoryGroup, filteredFragments);
-        batch.insertAll(memoryGroup2Fragments, memoryGroup2FragmentsCompanions);
-      }
-    });
+      },
+    );
   }
 
-  /// 插入 [Remember]s
+  /// 插入 [Remember]s。
+  /// 每个插入都会检查对应的 [Fragment.id] 是否重复，重复则不插入。
   Future<void> insertRemembers(List<Fragment> forFragments) async {
-    await batch(
-      (batch) async {
-        batch.insertAll(
-          remembers,
-          forFragments.map((e) => RemembersCompanion.insert(fragmentId: e.id.toValue(), fragmentCloudId: e.id.toValue())),
-        );
+    // 此处不能用 batch，因为 batch 内的插入并不能在 batch 内部得出结果。
+    await transaction(
+      () async {
+        for (var element in forFragments) {
+          final isExist = await DriftDb.instance.retrieveDAO.getIsExistRememberByFragmentId(element.id);
+          if (!isExist) {
+            await into(remembers).insert(RemembersCompanion.insert(fragmentId: element.id.toValue(), fragmentCloudId: element.cloudId.toValue()));
+          }
+        }
       },
     );
   }

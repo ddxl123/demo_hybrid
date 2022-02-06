@@ -9,9 +9,11 @@ import 'package:hybrid/jianji/FolderListPage.dart';
 import 'package:hybrid/jianji/MemoryGroupListPage.dart';
 import 'package:hybrid/jianji/RememberingPage.dart';
 import 'package:hybrid/jianji/controller/JianJiHomeGetXController.dart';
+import 'package:hybrid/jianji/controller/RememberingRunPageGetXController.dart';
 
 import 'controller/GlobalGetXController.dart';
 import 'controller/MemoryGroupListGetXController.dart';
+import 'controller/RememberingPageGetXController.dart';
 
 class JianJiHome extends StatefulWidget {
   const JianJiHome({Key? key}) : super(key: key);
@@ -25,6 +27,8 @@ class _JianJiHomeState extends State<JianJiHome> {
 
   final JianJiHomeGetXController _jianJiHomeGetXController = Get.put(JianJiHomeGetXController());
   final MemoryGroupListGetXController _memoryGroupListGetXController = Get.put(MemoryGroupListGetXController());
+  final RememberPageGetXController _rememberPageGetXController = Get.put(RememberPageGetXController());
+  final RememberingRunPageGetXController _rememberingRunPageGetXController = Get.put(RememberingRunPageGetXController());
 
   /// 当前 [CurvedNavigationBar] 的 index。
   /// 0 表示 Folder 页，1表示 记忆组 页。
@@ -104,10 +108,10 @@ class _JianJiHomeState extends State<JianJiHome> {
                       bottom: positionValue.last,
                       child: Listener(
                         child: FloatingActionButton(
-                          child: positionValue[1].value ? const Text('可移动') : const Icon(Icons.album_outlined, color: Colors.green),
+                          child: positionValue[1].value ? const Text('可移动') : const Text('任务', style: TextStyle(color: Colors.green)),
                           backgroundColor: Colors.greenAccent,
                           onPressed: () {
-                            Get.to(() => RememberingPage());
+                            Get.to(() => const RememberingPage());
                           },
                         ),
                         onPointerMove: (d) {

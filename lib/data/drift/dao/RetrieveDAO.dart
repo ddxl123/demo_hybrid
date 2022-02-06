@@ -2,7 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:hybrid/data/drift/db/DriftDb.dart';
 import 'package:hybrid/data/drift/table/Cloud.dart';
 import 'package:hybrid/data/drift/table/Local.dart';
-import 'package:hybrid/jianji/controller/GlobalGetXController.dart';
+import 'package:hybrid/jianji/controller/RememberingPageGetXController.dart';
 
 part 'RetrieveDAO.g.dart';
 
@@ -20,8 +20,15 @@ part 'RetrieveDAO.g.dart';
 class RetrieveDAO extends DatabaseAccessor<DriftDb> with _$RetrieveDAOMixin {
   RetrieveDAO(DriftDb attachedDatabase) : super(attachedDatabase);
 
-  Future<List<Folder>> getFolders(int offset, int limit) async {
-    return await (select(folders)..limit(limit, offset: offset)).get();
+  Future<Folder?> getFolderById(int folderId) async {
+    return await (select(folders)..where((tbl) => tbl.id.equals(folderId))).getSingleOrNull();
+  }
+
+  Future<List<Folder>> getFoldersBySort(int offset, int limit) async {
+    return await (select(folders)
+          ..orderBy([(u) => OrderingTerm.asc(u.sort)])
+          ..limit(limit, offset: offset))
+        .get();
   }
 
   /// 获取 [folder] 内的 [Fragment]s，连带 [folder2Fragments] 查询。
@@ -65,7 +72,10 @@ class RetrieveDAO extends DatabaseAccessor<DriftDb> with _$RetrieveDAOMixin {
   }
 
   Future<Fragment> getSingleFragmentById(int fragmentId) async {
-    return await (select(fragments)..where((tbl) => tbl.id.equals(fragmentId))).getSingle();
+    return await (select(fragments)
+          ..where((tbl) => tbl.id.equals(fragmentId))
+          ..limit(1))
+        .getSingle();
   }
 
   /// [ids] 为 [Fragment.id]，使用 [Fragment.id] 直接获取，不包括 [Fragment.couldId]。
@@ -122,32 +132,72 @@ class RetrieveDAO extends DatabaseAccessor<DriftDb> with _$RetrieveDAOMixin {
     return (await result.get()).map((e) => e.readTable(fragments)).toList();
   }
 
+  Future<List<Fragment>> getAllRemember2Fragments() async {
+    final List<Remember> rms = await select(remembers).get();
+    return await (select(fragments, distinct: true)..where((tbl) => tbl.id.isIn(rms.map((e) => e.fragmentId)) | tbl.id.isIn(rms.map((e) => e.fragmentCloudId))))
+        .get();
+  }
+
+  Future<int> getAllRemember2FragmentsCount() async {
+    return (await select(remembers, distinct: true).get()).length;
+  }
+
+  Future<int> getAllCompleteRemember2FragmentsCount() async {
+    return (await (selectOnly(remembers)
+              ..where(remembers.rememberTimes.isBiggerOrEqualValue(1))
+              ..addColumns([countAll()]))
+            .getSingle())
+        .read(countAll());
+  }
+
+  Future<bool> getIsExistRememberByFragmentId(int fragmentId) async {
+    final rs = await (select(remembers)..where((tbl) => tbl.fragmentId.equals(fragmentId))).get();
+    if (rs.isEmpty) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
   /// 获取被标记为 非 [RememberStatus.none] 的行。
   /// 如果返回 null，则为 [RememberStatus.none]。
-  Future<Remember?> getRemembering() async {
+  Future<Remember?> getRememberingOrNull() async {
     return await (select(remembers)
           ..where((tbl) => tbl.status.equals(RememberStatus.none.index).not())
           ..limit(1))
         .getSingleOrNull();
   }
 
-  Future<List<Fragment>> getRemember2Fragments({required int offset, required int limit}) async {
-    final List<Remember> rms = await (select(remembers)..limit(limit, offset: offset)).get();
-    return await (select(fragments, distinct: true)..where((tbl) => tbl.id.isIn(rms.map((e) => e.fragmentId)) | tbl.id.isIn(rms.map((e) => e.fragmentCloudId))))
-        .get();
-  }
-
-  /// 返回 null 说明本轮结束。
-  Future<Fragment?> getRandomNotRepeatRemember2Fragment() async {
-    final Remember? rms = await (select(remembers)
-          ..where((tbl) => tbl.rememberTimes.equals(0))
-          ..limit(1))
-        .getSingleOrNull();
-    if (rms == null) {
+  /// 获取被标记为 非 [RememberStatus.none] 的 [Remember] 所对应的 [Fragment]。
+  /// 如果返回 null，则为 [RememberStatus.none]。
+  /// 如果 [Fragment] 未找到，则会抛出异常。
+  Future<Fragment?> getRemembering2FragmentOrNull() async {
+    final Remember? rn = await getRememberingOrNull();
+    if (rn == null) {
       return null;
     }
-    return await (select(fragments)
-          ..where((tbl) => tbl.id.equals(rms.fragmentId) | tbl.cloudId.equals(rms.cloudId))
+    return await getSingleFragmentById(rn.fragmentId!);
+  }
+
+  /// 前提必须在 [remembers] 表中，存在至少一个 [Remember] 。
+  Future<Remember> getSingleRandomRemember() async {
+    return await (select(remembers)
+          ..orderBy([(u) => OrderingTerm.random()])
+          ..limit(1))
+        .getSingle();
+  }
+
+  Future<Remember?> getRandomNotRepeatRemember() async {
+    return await (select(remembers)
+          ..where((tbl) => tbl.rememberTimes.equals(0))
+          ..orderBy([(u) => OrderingTerm.random()])
+          ..limit(1))
+        .getSingleOrNull();
+  }
+
+  Future<Remember> getRandomRepeatRemember() async {
+    return await (select(remembers)
+          ..orderBy([(u) => OrderingTerm.random()])
           ..limit(1))
         .getSingle();
   }

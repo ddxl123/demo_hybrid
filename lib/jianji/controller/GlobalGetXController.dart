@@ -6,17 +6,6 @@ import 'package:hybrid/data/drift/db/DriftDb.dart';
 import 'package:hybrid/jianji/controller/FragmentMemoryListPageGetXController.dart';
 import 'package:hybrid/jianji/controller/JianJiHomeGetXController.dart';
 
-enum RememberStatus {
-  /// 表示无状态: 本轮结束 或且 用户可随意翻阅。
-  none,
-
-  /// 随机可重复。
-  randomRepeat,
-
-  /// 随机不可重复。
-  randomNotRepeat,
-}
-
 class GlobalGetXController extends GetxController {
   ///
 
@@ -275,9 +264,18 @@ class GlobalGetXController extends GetxController {
               if (selectedCountForGroupModel.value == 0) {
                 EasyLoading.showToast('没有可添加项！');
               } else {
-                EasyLoading.showToast('正在添加...');
-                await writeSelectedManyForGroupModelToRemember();
-                EasyLoading.showToast('已添加成功！');
+                final isOk = await showOkCancelAlertDialog(
+                  context: context,
+                  message: '确认添加到正在执行的记忆任务中？',
+                  okLabel: '确认',
+                  cancelLabel: '取消',
+                  isDestructiveAction: true,
+                );
+                if (isOk == OkCancelResult.ok) {
+                  EasyLoading.showToast('正在添加...');
+                  await writeSelectedManyForGroupModelToRemember();
+                  EasyLoading.showToast('已添加成功！');
+                }
               }
             }
           } else {
@@ -291,9 +289,9 @@ class GlobalGetXController extends GetxController {
 
   @override
   void onReady() {
-    DriftDb.instance.retrieveDAO.getRemembering().then(
+    DriftDb.instance.retrieveDAO.getAllRemember2FragmentsCount().then(
       (value) {
-        isRemembering.value = value == null ? false : true;
+        isRemembering.value = value > 0 ? true : false;
       },
     );
   }

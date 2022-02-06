@@ -135,8 +135,9 @@ class _FragmentButtonState extends State<FragmentButton> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(border: Border(bottom: BorderSide(width: 0.5, color: Color.fromRGBO(0, 0, 0, 0.2)))),
+    return Card(
+      elevation: 1,
+      margin: const EdgeInsets.fromLTRB(10, 10, 10, 0),
       child: Row(
         children: <Widget>[
           Expanded(
@@ -144,7 +145,17 @@ class _FragmentButtonState extends State<FragmentButton> {
               child: Text(widget.fragment.question.toString()),
               style: const ButtonStyle(alignment: Alignment.centerLeft),
               onPressed: () {
-                Get.to(() => FragmentSnapshotPage(folder: widget.folder, fragment: widget.fragment));
+                Get.to(
+                  () => FragmentSnapshotPage(
+                    initEnterFragment: widget.fragment,
+                    pageTurningFragments: _fragmentListPageGetXController.fragments,
+                    isEnableEdit: true,
+                    isSecret: true,
+                    onUpdateSerialize: (Fragment oldFragment, Fragment newFragment) async {
+                      await _fragmentListPageGetXController.updateSerializeFragment(oldFragment, newFragment);
+                    },
+                  ),
+                );
               },
               onLongPress: () async {
                 final OkCancelResult result = await showOkCancelAlertDialog(
@@ -157,13 +168,14 @@ class _FragmentButtonState extends State<FragmentButton> {
                 if (result == OkCancelResult.ok) {
                   if (_globalGetXController.isRemembering.value) {
                     EasyLoading.showToast('当前已有正在执行的记忆任务，只能新增不能删除！');
-                  }
-                  if (_globalGetXController.isMemoryModel()) {
-                    EasyLoading.showToast('记忆模式下不能进行删除');
                   } else {
-                    EasyLoading.show();
-                    await _fragmentListPageGetXController.deleteSerializeFragment(widget.folder, widget.fragment);
-                    EasyLoading.showSuccess('删除成功！');
+                    if (_globalGetXController.isMemoryModel()) {
+                      EasyLoading.showToast('记忆模式下不能进行删除');
+                    } else {
+                      EasyLoading.show();
+                      await _fragmentListPageGetXController.deleteSerializeFragment(widget.folder, widget.fragment);
+                      EasyLoading.showSuccess('删除成功！');
+                    }
                   }
                 }
               },
@@ -186,9 +198,7 @@ class _FragmentButtonState extends State<FragmentButton> {
                     if (state.value) {
                       return IconButton(
                         icon: const Icon(Icons.circle, size: 15, color: Colors.green),
-                        onPressed: () {
-
-                        },
+                        onPressed: () {},
                       );
                     } else {
                       return Container();

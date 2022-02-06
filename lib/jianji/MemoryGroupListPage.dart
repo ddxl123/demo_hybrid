@@ -137,7 +137,8 @@ class _MemoryGroupListPageState extends State<MemoryGroupListPage> with Automati
                           EasyLoading.showToast('选择知识点数量为0\n（在 记忆组 中选择）');
                         } else {
                           // 启动记忆。
-                          EasyLoading.showToast('已开始记忆！返回或重启应用不会影响记忆进度！');
+                          EasyLoading.showToast('已开始记忆！返回或重启应用不会影响记忆进度！\n已自动过滤掉重复内容', duration: const Duration(seconds: 5));
+                          _globalGetXController.isRemembering.value = true;
                           _globalGetXController.writeRemembers();
                           Get.to(() => const RememberingPage());
                         }
@@ -149,7 +150,7 @@ class _MemoryGroupListPageState extends State<MemoryGroupListPage> with Automati
                       _globalGetXController.changeSelectModelToMemory();
                       // 重置记忆模式，以防知识点被删除，导致数量不正确。
                       _globalGetXController.cancelSelectedAllForMemoryModel();
-                      EasyLoading.showToast('已切换记忆模式！');
+                      EasyLoading.showToast('已切换记忆模式！\n请在记忆组中进行选择', duration: const Duration(seconds: 3));
                     }
                   }
                 },
@@ -182,6 +183,9 @@ class _MemoryGroupButtonState extends State<MemoryGroupButton> {
   void initState() {
     super.initState();
     _fragmentMemoryListPageGetXController = Get.put(FragmentMemoryListPageGetXController(), tag: widget.memoryGroup.hashCode.toString());
+    DriftDb.instance.retrieveDAO
+        .getMemoryGroup2FragmentCount(widget.memoryGroup)
+        .then((value) => _fragmentMemoryListPageGetXController.serializeFragmentMemorysCount.value = value);
   }
 
   @override
@@ -193,6 +197,8 @@ class _MemoryGroupButtonState extends State<MemoryGroupButton> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
+                const Icon(Icons.folder),
+                const SizedBox(width: 10),
                 Expanded(child: Text(widget.memoryGroup.title.toString())),
                 Text(_fragmentMemoryListPageGetXController.serializeFragmentMemorysCount.value.toString()),
                 () {
@@ -253,13 +259,14 @@ class _MemoryGroupButtonState extends State<MemoryGroupButton> {
               if (result == OkCancelResult.ok) {
                 if (_globalGetXController.isRemembering.value) {
                   EasyLoading.showToast('当前已有正在执行的记忆任务，只能新增不能删除！');
-                }
-                if (_globalGetXController.isMemoryModel()) {
-                  EasyLoading.showToast('记忆模式下不能进行删除！');
                 } else {
-                  EasyLoading.show();
-                  await _memoryGroupListGetXController.deleteSerializeMemoryGroup(widget.memoryGroup);
-                  EasyLoading.showSuccess('删除成功！');
+                  if (_globalGetXController.isMemoryModel()) {
+                    EasyLoading.showToast('记忆模式下不能进行删除！');
+                  } else {
+                    EasyLoading.show();
+                    await _memoryGroupListGetXController.deleteSerializeMemoryGroup(widget.memoryGroup);
+                    EasyLoading.showSuccess('删除成功！');
+                  }
                 }
               }
             },

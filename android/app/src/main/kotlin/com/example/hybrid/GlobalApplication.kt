@@ -25,7 +25,7 @@ class GlobalApplication : Application() {
         super.onCreate()
         println("---------------- ${resources.displayMetrics.widthPixels}")
         context = this
-        startForegroundService(Intent(this, MainService::class.java))
+//        startForegroundService(Intent(this, MainService::class.java))
 
         println("-------------- Application onCreate")
     }

@@ -12,8 +12,6 @@ class FragmentListPageGetXController extends GetxController {
 
   RxInt serializeFragmentsCount = 0.obs;
 
-  RxBool isLongPress = false.obs;
-
   /// 不包含 offset 本身。
   int offset = 0;
 
@@ -30,7 +28,7 @@ class FragmentListPageGetXController extends GetxController {
 
   Future<void> getSerializeFragments(Folder forFolder) async {
     // 获取持久化数据。
-    final List<Fragment> newFragments = await DriftDb.instance.retrieveDAO.getFolder2Fragments(forFolder, offset, 50);
+    final List<Fragment> newFragments = await DriftDb.instance.retrieveDAO.getFolder2Fragments(forFolder, offset, 9999);
     // 插入到 widget 中。
     fragments.addAll(newFragments);
     offset += newFragments.length;

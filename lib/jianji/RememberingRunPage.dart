@@ -39,8 +39,10 @@ class _RememberingRunPageState extends State<RememberingRunPage> {
             isEnableEdit: false,
             pageTurningFragments: null,
             isSecret: true,
-            onUpdateSerialize: null,
             isRelyOnQuestionAndAnswerExchange: true,
+            onUpdateSerialize: (Fragment oldFragment, Fragment newFragment) async {
+              /// isEnableEdit: false
+            },
             appBar: AppBar(
               backgroundColor: Colors.white,
               elevation: 0,

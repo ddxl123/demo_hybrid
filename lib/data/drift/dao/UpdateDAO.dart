@@ -23,53 +23,6 @@ part 'UpdateDAO.g.dart';
 class UpdateDAO extends DatabaseAccessor<DriftDb> with _$UpdateDAOMixin {
   UpdateDAO(DriftDb attachedDatabase) : super(attachedDatabase);
 
-  /// [upOrDown] 0表示向上移动，1表示向下移动
-  /// 返回上一个或下一个 [Folder] id，为空表示没有上一个或下一个。
-  Future<int?> updateSortFolder(int currentFolderSort, int upOrDown) async {
-    return await transaction<int?>(
-      () async {
-        // 获取按照 sort 排序后的全部 folders。
-        final sortFolders = await DriftDb.instance.retrieveDAO.getFoldersBySort(0, 9999);
-
-        // 仅查看 sort。
-        // sorts_index 与 sortFolders_index 的 index 一一对应。
-        final sorts = sortFolders.map((e) => e.sort).toList();
-
-        final currentIndex = sorts.indexOf(currentFolderSort);
-        final currentFolder = sortFolders[currentIndex];
-
-        if (upOrDown == 0) {
-          if (currentIndex == 0) {
-            // 没有上一个了。
-            return null;
-          }
-          final previousIndex = sorts[currentIndex - 1]!;
-          final previousFolder = sortFolders[previousIndex];
-
-          await update(folders).replace(currentFolder.copyWith(sort: previousFolder.sort));
-          await update(folders).replace(previousFolder.copyWith(sort: currentFolder.sort));
-          return previousFolder.id;
-        } else if (upOrDown == 1) {
-          if (currentIndex == sorts.length - 1) {
-            // 没有下一个了。
-            return null;
-          }
-          log('message');
-          log(sorts.toString());
-          log(sortFolders.toString());
-          final nextIndex = sorts[currentIndex + 1]!;
-          final nextFolder = sortFolders[nextIndex];
-
-          await update(folders).replace(currentFolder.copyWith(sort: nextFolder.sort));
-          await update(folders).replace(nextFolder.copyWith(sort: currentFolder.sort));
-          return nextFolder.id;
-        } else {
-          throw '未知 upOrDown: $upOrDown';
-        }
-      },
-    );
-  }
-
   Future<bool> updateFragment(Fragment fragment) async {
     return await update(fragments).replace(fragment);
   }

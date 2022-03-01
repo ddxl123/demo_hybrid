@@ -42,9 +42,9 @@ class DriftDb extends _$DriftDb {
               final Directory dbFolder = await getApplicationDocumentsDirectory();
               final File file = File(join(dbFolder.path, 'db.sqlite'));
 
-              if (true && await file.exists()) {
-                log('sqlite reset success: ${(await file.delete()).path}');
-              }
+              // if (true && await file.exists()) {
+              //   log('sqlite reset success: ${(await file.delete()).path}');
+              // }
 
               return NativeDatabase(file, logStatements: true);
             },
@@ -62,5 +62,12 @@ class DriftDb extends _$DriftDb {
   }
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 5;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+      onCreate: (Migrator m) {
+        return m.createAll();
+      },
+      onUpgrade: (Migrator m, int from, int to) async {});
 }

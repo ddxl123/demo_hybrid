@@ -25,10 +25,7 @@ class RetrieveDAO extends DatabaseAccessor<DriftDb> with _$RetrieveDAOMixin {
   }
 
   Future<List<Folder>> getFoldersBySort(int offset, int limit) async {
-    return await (select(folders)
-          ..orderBy([(u) => OrderingTerm.asc(u.sort)])
-          ..limit(limit, offset: offset))
-        .get();
+    return await (select(folders)..limit(limit, offset: offset)).get();
   }
 
   /// 获取 [folder] 内的 [Fragment]s，连带 [folder2Fragments] 查询。
@@ -200,5 +197,9 @@ class RetrieveDAO extends DatabaseAccessor<DriftDb> with _$RetrieveDAOMixin {
           ..orderBy([(u) => OrderingTerm.random()])
           ..limit(1))
         .getSingle();
+  }
+
+  Future<List<Fragment>> getSearchFragment(String content) async {
+    return await (select(fragments)..where((tbl) => tbl.answer.contains(content) | tbl.question.contains(content) | tbl.description.contains(content))).get();
   }
 }

@@ -116,8 +116,6 @@ class Users extends TableCloudBase {
 
 class Folders extends TableCloudBase {
   TextColumn get title => text().nullable()();
-
-  IntColumn get sort => integer().nullable()();
 }
 
 class Fragments extends TableCloudBase {

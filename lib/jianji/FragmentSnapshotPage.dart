@@ -51,7 +51,7 @@ class FragmentSnapshotPage extends StatefulWidget {
   /// 是否隐藏答案和描述
   final bool isSecret;
 
-  final Future<void> Function(Fragment oldFragment, Fragment newFragment)? onUpdateSerialize;
+  final Future<void> Function(Fragment oldFragment, Fragment newFragment) onUpdateSerialize;
 
   final AppBar? appBar;
 
@@ -100,7 +100,7 @@ class _FragmentSnapshotPageState extends State<FragmentSnapshotPage> {
                       icon: const Icon(Icons.edit, color: Colors.blue),
                       onPressed: () async {
                         final Fragment newFragment = await Get.to(() => FragmentEditPage(fragment: currentFragment));
-                        await widget.onUpdateSerialize?.call(currentFragment, newFragment);
+                        await widget.onUpdateSerialize.call(currentFragment, newFragment);
                         currentFragment = newFragment;
                         if (mounted) setState(() {});
                       },

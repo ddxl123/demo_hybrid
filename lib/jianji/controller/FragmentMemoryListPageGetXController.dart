@@ -32,7 +32,7 @@ class FragmentMemoryListPageGetXController extends GetxController {
   }
 
   Future<void> getManySerializeFragmentMemorys(MemoryGroup forMemoryGroup) async {
-    final List<Fragment> newFragments = await DriftDb.instance.retrieveDAO.getMemoryGroup2Fragments(forMemoryGroup, offset, 50);
+    final List<Fragment> newFragments = await DriftDb.instance.retrieveDAO.getMemoryGroup2Fragments(forMemoryGroup, offset, 9999);
     // 插入到 widget 中。
     fragmentMemorys.addAll(newFragments);
     offset += newFragments.length;

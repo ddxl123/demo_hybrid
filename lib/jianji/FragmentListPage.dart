@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:hybrid/data/drift/db/DriftDb.dart';
 import 'package:hybrid/jianji/FragmentCreatePage.dart';
 import 'package:hybrid/jianji/FragmentSnapshotPage.dart';
+import 'package:hybrid/jianji/SearchPage.dart';
 import 'package:hybrid/jianji/controller/FragmentListPageGetXController.dart';
 import 'package:hybrid/util/sheetroute/Helper.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -66,7 +67,6 @@ class _FragmentListPageState extends State<FragmentListPage> {
               }
             },
           ),
-          const SizedBox(width: 10),
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () {

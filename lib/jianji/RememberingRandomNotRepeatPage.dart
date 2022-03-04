@@ -1,5 +1,4 @@
 import 'dart:developer';
-import 'dart:ui';
 
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:flutter/material.dart';
@@ -12,16 +11,22 @@ import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import 'controller/RememberingPageGetXController.dart';
 
-class RememberingRunPage extends StatefulWidget {
-  const RememberingRunPage({Key? key}) : super(key: key);
+class RememberingRandomNotRepeatPage extends StatefulWidget {
+  const RememberingRandomNotRepeatPage({Key? key}) : super(key: key);
 
   @override
-  _RememberingRunPageState createState() => _RememberingRunPageState();
+  _RememberingRandomNotRepeatPageState createState() => _RememberingRandomNotRepeatPageState();
 }
 
-class _RememberingRunPageState extends State<RememberingRunPage> {
+class _RememberingRandomNotRepeatPageState extends State<RememberingRandomNotRepeatPage> {
   final RememberPageGetXController _rememberPageGetXController = Get.find<RememberPageGetXController>();
   final RememberingRunPageGetXController _rememberingRunPageGetXController = Get.find<RememberingRunPageGetXController>();
+
+  @override
+  void initState() {
+    super.initState();
+    _rememberPageGetXController.reGetRememberRunCompleteCount();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,14 +53,7 @@ class _RememberingRunPageState extends State<RememberingRunPage> {
               elevation: 0,
               leading: const BackButton(color: Colors.blue),
               title: Text(
-                () {
-                  if (_rememberingRunPageGetXController.runRememberStatus == RememberStatus.randomRepeat) {
-                    return '随机可重复';
-                  } else if (_rememberingRunPageGetXController.runRememberStatus == RememberStatus.randomNotRepeat) {
-                    return '随机不重复（${_rememberPageGetXController.rememberRunCompleteCount}/${_rememberPageGetXController.rememberingCount}）';
-                  }
-                  return '异常状态:${_rememberingRunPageGetXController.runRememberStatus}';
-                }(),
+                '随机不重复（${_rememberPageGetXController.rememberRunCompleteCount}/${_rememberPageGetXController.rememberingCount}）',
                 style: const TextStyle(color: Colors.blue),
                 textScaleFactor: 0.8,
               ),
@@ -63,7 +61,7 @@ class _RememberingRunPageState extends State<RememberingRunPage> {
                 MaterialButton(
                   child: const Text('重置任务', style: TextStyle(color: Colors.red)),
                   onPressed: () {
-                    _rememberingRunPageGetXController.resetButtonHandle(context);
+                    _rememberingRunPageGetXController.resetButtonHandle(context, true);
                   },
                 )
               ],
@@ -132,9 +130,6 @@ class _RememberingRunPageState extends State<RememberingRunPage> {
                       }
                     }
                   } else {
-                    log('message else');
-                    log('currentIndex $currentIndex');
-                    log('currentIndex ${_rememberingRunPageGetXController.recordFragments}');
                     _rememberingRunPageGetXController.currentFragment = _rememberingRunPageGetXController.recordFragments[currentIndex + 1];
                     setState(() {});
                   }

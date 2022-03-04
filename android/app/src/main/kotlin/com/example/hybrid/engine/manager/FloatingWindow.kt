@@ -204,11 +204,11 @@ class Viewer(private val windowManager: WindowManager) {
     fun resetLayoutParams(nViewParams: ViewParams): Viewer {
         currentViewParams.changeFrom(nViewParams)
         // 最小限制。
-        if (currentViewParams.width < 600) {
-            currentViewParams.width = 600
+        if (currentViewParams.width < 100) {
+            currentViewParams.width = 100
         }
-        if (currentViewParams.height < 300) {
-            currentViewParams.height = 300
+        if (currentViewParams.height < 100) {
+            currentViewParams.height = 100
         }
         setLayoutParamsForLocation()
         setLayoutParamsForFocus()
@@ -234,6 +234,12 @@ class Viewer(private val windowManager: WindowManager) {
         dragMoveViewLayoutParams.height = dragRightViewLayoutParams.height
         dragMoveViewLayoutParams.x = dragRightViewLayoutParams.x - dragRightViewLayoutParams.width
         dragMoveViewLayoutParams.y = dragRightViewLayoutParams.y
+        if (dragMoveViewLayoutParams.width <= 100) {
+            dragMoveViewLayoutParams.width = 100
+        }
+        if (dragMoveViewLayoutParams.height <= 50) {
+            dragMoveViewLayoutParams.height = 50
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -323,7 +329,7 @@ class FloatingWindow(private val flutterEnginer: FlutterEnginer) {
         endViewParams: ViewParams?,
         closeViewAfterSeconds: Int?
     ) {
-        if (CheckPermission.checkFloatingWindow(false)) {
+        if (CheckPermission.checkFloatingWindow(true)) {
             // 解决并发问题的处理。
             updateFlutterViewConcurrentCount += 1
             val currentUpdateFlutterViewConcurrentCount = updateFlutterViewConcurrentCount
@@ -342,7 +348,9 @@ class FloatingWindow(private val flutterEnginer: FlutterEnginer) {
                     viewer.getFlutterView()!!,
                     if (startViewParams == null) viewer.flutterViewLayoutParams
                     // -= 1 防止第一次 addView 后再立即 updateView 时，flutter 渲染的图形是第一次 addView 的大小。
-                    else viewer.resetLayoutParams(startViewParams.apply { width -= 1 }).flutterViewLayoutParams
+                    else viewer.resetLayoutParams(
+                        startViewParams.apply { width -= 1 }
+                    ).flutterViewLayoutParams
                 )
                 windowManager.addView(viewer.dragRightView, viewer.dragRightViewLayoutParams)
                 windowManager.addView(viewer.dragMoveView, viewer.dragMoveViewLayoutParams)
@@ -350,7 +358,9 @@ class FloatingWindow(private val flutterEnginer: FlutterEnginer) {
                 Handler(Looper.getMainLooper()).postDelayed({
                     windowManager.updateViewLayout(
                         viewer.getFlutterView()!!,
-                        if (endViewParams == null) viewer.resetLayoutParams(lastViewParams).flutterViewLayoutParams
+                        if (endViewParams == null) viewer.resetLayoutParams(
+                            lastViewParams
+                        ).flutterViewLayoutParams
                         else viewer.resetLayoutParams(endViewParams).flutterViewLayoutParams
                     )
                     windowManager.updateViewLayout(
@@ -380,7 +390,9 @@ class FloatingWindow(private val flutterEnginer: FlutterEnginer) {
                 Handler(Looper.getMainLooper()).postDelayed({
                     windowManager.updateViewLayout(
                         viewer.getFlutterView()!!,
-                        if (endViewParams == null) viewer.resetLayoutParams(lastViewParams).flutterViewLayoutParams
+                        if (endViewParams == null) viewer.resetLayoutParams(
+                            lastViewParams
+                        ).flutterViewLayoutParams
                         else viewer.resetLayoutParams(endViewParams).flutterViewLayoutParams
                     )
                     windowManager.updateViewLayout(

@@ -1,16 +1,15 @@
 package com.example.hybrid
 
+import android.annotation.TargetApi
 import android.app.*
 import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.os.IBinder
-import androidx.annotation.RequiresApi
 import kotlin.system.exitProcess
 
 class MainService : Service() {
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate() {
         super.onCreate()
         keepForeground()
@@ -20,7 +19,7 @@ class MainService : Service() {
         return null
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+    @TargetApi(Build.VERSION_CODES.O)
     private fun keepForeground() {
         val channelOneId = packageName;
         val notification: Notification = Notification.Builder(this, channelOneId).build()

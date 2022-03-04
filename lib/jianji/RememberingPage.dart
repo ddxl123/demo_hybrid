@@ -1,13 +1,21 @@
+import 'dart:developer';
+
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:hybrid/data/drift/db/DriftDb.dart';
+import 'package:hybrid/engine/constant/execute/EngineEntryName.dart';
+import 'package:hybrid/engine/constant/o/OUniform.dart';
+import 'package:hybrid/engine/transfer/TransferManager.dart';
 import 'package:hybrid/jianji/FragmentSnapshotPage.dart';
 import 'package:hybrid/jianji/controller/GlobalGetXController.dart';
 import 'package:hybrid/jianji/controller/RememberingPageGetXController.dart';
 import 'package:hybrid/jianji/controller/RememberingRunPageGetXController.dart';
+import 'package:hybrid/util/SbHelper.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+
+import 'RememberingRandomNotRepeatPage.dart';
 
 class RememberingPage extends StatefulWidget {
   const RememberingPage({Key? key}) : super(key: key);
@@ -112,7 +120,7 @@ class _RememberingPageState extends State<RememberingPage> {
                       label: '问答翻转（${_rememberPageGetXController.isQuestionAndAnswerExchange.value ? '已翻转' : '未翻转'}）',
                       isDestructiveAction: true,
                     ),
-                    const SheetAction(key: 1, label: '随机可重复', isDestructiveAction: true),
+                    const SheetAction(key: 1, label: '随机不可重复（悬浮）', isDestructiveAction: true),
                     const SheetAction(key: 0, label: '随机不可重复', isDestructiveAction: true),
                   ],
                 );
@@ -120,13 +128,36 @@ class _RememberingPageState extends State<RememberingPage> {
                   _rememberPageGetXController.rememberStatusSerialize.value = RememberStatus.randomNotRepeat.index;
                   _rememberingRunPageGetXController.recordFragments.clear();
                   await _rememberPageGetXController.setInitRemembering();
-                  await _rememberPageGetXController.toRunPage();
+                  await Get.to(() => const RememberingRandomNotRepeatPage());
                 } else if (result == 1) {
-                  // _rememberPageGetXController.rememberStatusSerialize.value = RememberStatus.randomRepeat.index;
-                  // _rememberingRunPageGetXController.recordFragments.clear();
-                  // await _rememberPageGetXController.setInitRemembering();
-                  // await _rememberPageGetXController.toRunPage();
-                  EasyLoading.showToast('该选项有bug未解决，请选择 随机不可重复');
+                  final result = await TransferManager.instance.transferExecutor.executeWithViewAndOperation<void, bool>(
+                    executeForWhichEngine: EngineEntryName.SHOW,
+                    closeViewAfterSeconds: null,
+                    endViewParams: (ViewParams lastViewParams, SizeInt screenSize) {
+                      return ViewParams(width: 600, height: 500, x: 100, y: 100, isFocus: true);
+                    },
+                    startViewParams: null,
+                    operationId: OUniform.SHOW_START,
+                    resultDataCast: (Object resultData) => resultData as bool,
+                    startEngineWhenClose: true,
+                    setOperationData: () {},
+                  );
+                  await result.handle(
+                    doSuccess: (bool successData) async {
+                      if (successData) {
+                        _rememberPageGetXController.rememberStatusSerialize.value = RememberStatus.randomNotRepeatFloating.index;
+                        _rememberingRunPageGetXController.recordFragments.clear();
+                        // await _rememberPageGetXController.setInitRemembering();
+                        EasyLoading.showToast('已启动悬浮模式！');
+                      } else {
+                        throw 'successData: $successData';
+                      }
+                    },
+                    doError: (SingleResult<bool> errorResult) async {
+                      EasyLoading.showToast('启动悬浮模式失败\n${errorResult.getRequiredVm()}\n可能是未允许悬浮窗权限！');
+                      print(errorResult.toJson());
+                    },
+                  );
                 } else if (result == 2) {
                   final isExchange = await showOkCancelAlertDialog(
                     context: context,
@@ -146,15 +177,15 @@ class _RememberingPageState extends State<RememberingPage> {
               backgroundColor: Colors.green,
               child: const Text('继续'),
               onPressed: () async {
-                await _rememberPageGetXController.toRunPage();
+                await Get.to(() => const RememberingRandomNotRepeatPage());
               },
             );
-          } else if (_rememberPageGetXController.rememberStatusSerialize.value == RememberStatus.randomRepeat.index) {
+          } else if (_rememberPageGetXController.rememberStatusSerialize.value == RememberStatus.randomNotRepeatFloating.index) {
             return FloatingActionButton(
               backgroundColor: Colors.green,
-              child: const Text('继续'),
+              child: const Text('重置'),
               onPressed: () async {
-                await _rememberPageGetXController.toRunPage();
+                await _rememberingRunPageGetXController.resetButtonHandle(context, false);
               },
             );
           } else {

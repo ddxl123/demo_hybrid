@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:drift/drift.dart';
 import 'package:hybrid/data/drift/db/DriftDb.dart';
 import 'package:hybrid/data/drift/table/Cloud.dart';
@@ -58,10 +56,11 @@ class UpdateDAO extends DatabaseAccessor<DriftDb> with _$UpdateDAOMixin {
         }
 
         // 更新下一个。
-        if (rememberStatus == RememberStatus.randomRepeat) {
-          final Remember rr = await DriftDb.instance.retrieveDAO.getRandomRepeatRemember();
-          await update(remembers).replace(rr.copyWith(status: RememberStatus.randomRepeat.index));
-        } else if (rememberStatus == RememberStatus.randomNotRepeat) {
+        // if (rememberStatus == RememberStatus.randomRepeat) {
+        //   final Remember rr = await DriftDb.instance.retrieveDAO.getRandomRepeatRemember();
+        //   await update(remembers).replace(rr.copyWith(status: RememberStatus.randomRepeat.index));
+        // } else
+        if (rememberStatus == RememberStatus.randomNotRepeat || rememberStatus == RememberStatus.randomNotRepeatFloating) {
           final Remember? rnr = (await DriftDb.instance.retrieveDAO.getRandomNotRepeatRemember());
           if (rnr != null) {
             await update(remembers).replace(rnr.copyWith(status: RememberStatus.randomNotRepeat.index));

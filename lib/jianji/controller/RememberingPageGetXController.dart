@@ -2,17 +2,15 @@ import 'package:get/get.dart';
 import 'package:hybrid/data/drift/db/DriftDb.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
-import '../RememberingRunPage.dart';
-
 enum RememberStatus {
   /// 表示无状态: 本轮结束 或且 用户可随意翻阅。
   none,
 
-  /// 随机可重复。
-  randomRepeat,
-
   /// 随机不可重复。
   randomNotRepeat,
+
+  /// 随机不可重复（悬浮）。
+  randomNotRepeatFloating,
 }
 
 class RememberPageGetXController extends GetxController {
@@ -35,12 +33,9 @@ class RememberPageGetXController extends GetxController {
     fragments.addAll(result);
   }
 
-  Future<void> toRunPage() async {
-    await Get.to(() => const RememberingRunPage());
-  }
-
   /// 点击【随机可重复】或【随机不可重复】时，对其设置初始化 [Remember]。
   Future<void> setInitRemembering() async {
+    await DriftDb.instance.updateDAO.updateBeforeInitRemembering();
     await DriftDb.instance.updateDAO.updateInitRandomRemembering(RememberStatus.values[rememberStatusSerialize.value]);
   }
 

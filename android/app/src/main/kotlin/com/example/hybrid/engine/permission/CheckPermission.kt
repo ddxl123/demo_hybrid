@@ -1,10 +1,10 @@
 package com.example.hybrid.engine.permission
 
+import android.annotation.TargetApi
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
-import androidx.annotation.RequiresApi
 import com.example.hybrid.GlobalApplication
 
 object CheckPermission {
@@ -14,7 +14,7 @@ object CheckPermission {
      *
      * @param isPushSettingPageWhenUnAllowed 当为 true 时，且未被允许权限时，是否弹出权限设置页面。
      */
-    @RequiresApi(Build.VERSION_CODES.M)
+    @TargetApi(Build.VERSION_CODES.M)
     fun checkFloatingWindow(isPushSettingPageWhenUnAllowed: Boolean): Boolean {
         // TODO: 不让这个函数并发执行。
         val isAllowed = Settings.canDrawOverlays(GlobalApplication.context)

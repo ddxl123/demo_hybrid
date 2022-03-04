@@ -1,6 +1,3 @@
-import 'dart:convert';
-import 'dart:developer';
-
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -9,7 +6,7 @@ import 'package:hybrid/data/drift/db/DriftDb.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import '../FragmentSnapshotPage.dart';
-import '../RememberingRunPage.dart';
+import '../RememberingRandomNotRepeatPage.dart';
 import 'RememberingPageGetXController.dart';
 
 class RememberingRunPageGetXController extends GetxController {
@@ -28,19 +25,19 @@ class RememberingRunPageGetXController extends GetxController {
     rememberPageGetXController.rememberStatusSerialize.value = RememberStatus.none.index;
   }
 
-  Future<void> resetButtonHandle(BuildContext context) async {
+  Future<void> resetButtonHandle(BuildContext context, bool isBack) async {
     final result = await showOkCancelAlertDialog(context: context, title: '确定要重置任务？', okLabel: '确认重置', cancelLabel: '继续任务', isDestructiveAction: true);
     if (result == OkCancelResult.ok) {
       await backToInit();
       recordFragments.clear();
-      Get.back();
+      if (isBack) Get.back();
       EasyLoading.showToast('重置成功！可点击浮动按钮重新开始！');
     }
   }
 
   /// 没有下一个时：返回 false，不进行刷新。
   /// 存在下一个时：将 [currentFragment] 替换为新的，并添加至 [recordFragments]，并刷新且返回 true。
-  Future<bool> getNextFragment(State<RememberingRunPage> state) async {
+  Future<bool> getNextFragment(State<RememberingRandomNotRepeatPage> state) async {
     // 仅序列化当前和下一个。
     await DriftDb.instance.updateDAO.updateCurrentAndNextRemember(runRememberStatus);
     // 获取刚序列化的下一个。
@@ -50,17 +47,13 @@ class RememberingRunPageGetXController extends GetxController {
       return false;
     } else {
       currentFragment = rfn;
-      log('JsonEncoder');
-      log(JsonEncoder.withIndent('  ').convert(recordFragments));
       recordFragments.add(rfn);
-      log('JsonEncoder ddd');
-      log(JsonEncoder.withIndent('  ').convert(recordFragments));
       state.setState(() {});
       return true;
     }
   }
 
-  Future<void> getInitFragment(State<RememberingRunPage> state) async {
+  Future<void> getInitFragment(State<RememberingRandomNotRepeatPage> state) async {
     final result = await DriftDb.instance.retrieveDAO.getRememberingOrNull();
     if (result == null) {
       EasyLoading.showToast('_getNextFragment 结果为 null, 但是仍然进入了 RememberingRunPage！');

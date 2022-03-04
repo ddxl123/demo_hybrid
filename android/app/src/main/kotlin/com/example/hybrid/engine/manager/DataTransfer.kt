@@ -57,6 +57,7 @@ class DataTransfer(private val flutterEnginer: FlutterEnginer) {
      *
      * 不能返回空。
      */
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun nativeInterception(
         flutterEnginer: FlutterEnginer,
         operationId: String,
@@ -71,6 +72,7 @@ class DataTransfer(private val flutterEnginer: FlutterEnginer) {
     /**
      * 若返回 null，则继续下一个拦截。
      */
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun startEngineInterception(
         flutterEnginer: FlutterEnginer,
         operationId: String,
@@ -79,6 +81,7 @@ class DataTransfer(private val flutterEnginer: FlutterEnginer) {
         return when (operationId) {
             // 来自引擎A的操作，启动新引擎B。如果引擎已存在，则使用已存在的。
             OToNative.START_ENGINE -> {
+                println("starting: ${flutterEnginer.entryPointName}");
                 val dataMap = data.checkType<Map<String, Any?>>()
                 val startWhichEngine: String = dataMap["start_which_engine"].checkType()
                 val startWhenClose: Boolean = dataMap["start_when_close"].checkType()
@@ -91,7 +94,9 @@ class DataTransfer(private val flutterEnginer: FlutterEnginer) {
                 }
 
                 if (startWhenClose) {
+                    println("starting startWhenClose: ${flutterEnginer.entryPointName}");
                     FlutterEngineManager.startFlutterEngine(startWhichEngine)
+                    println("started startWhenClose: ${flutterEnginer.entryPointName}");
                     // 返回 true 启动成功。
                     true
                 } else {
@@ -103,6 +108,7 @@ class DataTransfer(private val flutterEnginer: FlutterEnginer) {
             OToNative.SET_VIEW_PARAMS -> {
                 val dataMap = data.checkType<Map<String, Any?>>()
 
+                @RequiresApi(Build.VERSION_CODES.O)
                 fun setViewParams(viewParamsKey: String): ViewParams? {
                     return if (dataMap[viewParamsKey] != null) {
                         val viewParamsMap: Map<String, Any?> = dataMap[viewParamsKey].checkType()
@@ -158,6 +164,7 @@ class DataTransfer(private val flutterEnginer: FlutterEnginer) {
     /**
      *
      */
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun otherInterception(operationId: String, data: Any?): Any? {
         return when (operationId) {
             OToNative.GET_NATIVE_WINDOW_VIEW_PARAMS -> {

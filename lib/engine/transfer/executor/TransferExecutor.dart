@@ -42,8 +42,8 @@ class TransferExecutor {
   Future<SingleResult<R>> _sendMessageToOther<S, R extends Object>({
     required String sendToWhichEngine,
     required String operationId,
-    required S putOperationData(),
-    required R resultDataCast(Object data),
+    required S Function() putOperationData,
+    required R Function(Object data) resultDataCast,
   }) async {
     final SingleResult<R> returnResult = SingleResult<R>();
     try {
@@ -129,11 +129,11 @@ class TransferExecutor {
     required String executeForWhichEngine,
     required bool startWhenClose,
     required String? operationId,
-    required S setOperationData()?,
-    required ViewParams startViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
-    required ViewParams endViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
+    required S Function()? setOperationData,
+    required ViewParams Function(ViewParams lastViewParams, SizeInt screenSize)? startViewParams,
+    required ViewParams Function(ViewParams lastViewParams, SizeInt screenSize)? endViewParams,
     required int? closeViewAfterSeconds,
-    required R resultDataCast(Object resultData),
+    required R Function(Object resultData) resultDataCast,
   }) async {
     final SingleResult<R> returnResult = SingleResult<R>();
 
@@ -202,11 +202,11 @@ class TransferExecutor {
     required SingleResult<R> returnResult,
     required String executeForWhichEngine,
     required String? operationId,
-    required S setOperationData()?,
-    required ViewParams startViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
-    required ViewParams endViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
+    required S Function()? setOperationData,
+    required ViewParams Function(ViewParams lastViewParams, SizeInt screenSize)? startViewParams,
+    required ViewParams Function(ViewParams lastViewParams, SizeInt screenSize)? endViewParams,
     required int? closeViewAfterSeconds,
-    required R resultDataCast(Object resultData),
+    required R Function(Object resultData) resultDataCast,
   }) async {
     ViewParams? lastViewParams;
     SizeInt? screenSize;
@@ -338,8 +338,8 @@ class TransferExecutor {
   /// 未启动则启动，已启动则保持启动。
   Future<SingleResult<bool>> executeWithOnlyView({
     required String executeForWhichEngine,
-    required ViewParams startViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
-    required ViewParams endViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
+    required ViewParams Function(ViewParams lastViewParams, SizeInt screenSize)? startViewParams,
+    required ViewParams Function(ViewParams lastViewParams, SizeInt screenSize)? endViewParams,
     required int? closeViewAfterSeconds,
   }) async {
     return await _executeWithView<void, bool>(
@@ -358,11 +358,11 @@ class TransferExecutor {
     required String executeForWhichEngine,
     required bool startEngineWhenClose,
     required String operationId,
-    required S setOperationData(),
-    required ViewParams startViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
-    required ViewParams endViewParams(ViewParams lastViewParams, SizeInt screenSize)?,
+    required S Function() setOperationData,
+    required ViewParams Function(ViewParams lastViewParams, SizeInt screenSize)? startViewParams,
+    required ViewParams Function(ViewParams lastViewParams, SizeInt screenSize)? endViewParams,
     required int? closeViewAfterSeconds,
-    required R resultDataCast(Object resultData),
+    required R Function(Object resultData) resultDataCast,
   }) async {
     final SingleResult<R> returnResult = SingleResult<R>();
 

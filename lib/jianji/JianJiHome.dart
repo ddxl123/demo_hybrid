@@ -5,11 +5,14 @@ import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
+import 'package:hybrid/engine/constant/execute/EngineEntryName.dart';
+import 'package:hybrid/engine/transfer/TransferManager.dart';
 import 'package:hybrid/jianji/FolderListPage.dart';
 import 'package:hybrid/jianji/MemoryGroupListPage.dart';
 import 'package:hybrid/jianji/RememberingPage.dart';
 import 'package:hybrid/jianji/controller/JianJiHomeGetXController.dart';
 import 'package:hybrid/jianji/controller/RememberingRunPageGetXController.dart';
+import 'package:hybrid/util/SbHelper.dart';
 
 import 'controller/GlobalGetXController.dart';
 import 'controller/MemoryGroupListGetXController.dart';
@@ -110,8 +113,17 @@ class _JianJiHomeState extends State<JianJiHome> {
                         child: FloatingActionButton(
                           child: positionValue[1].value ? const Text('可移动') : const Text('任务', style: TextStyle(color: Colors.green)),
                           backgroundColor: Colors.greenAccent,
-                          onPressed: () {
+                          onPressed: () async {
                             Get.to(() => const RememberingPage());
+                            EasyLoading.showToast('正在启动悬浮窗口...');
+                            await TransferManager.instance.transferExecutor.executeWithOnlyView(
+                              executeForWhichEngine: EngineEntryName.SHOW,
+                              startViewParams: null,
+                              endViewParams: (ViewParams lastViewParams, SizeInt screenSize) =>
+                                  ViewParams(width: 100, height: 100, x: 10, y: 10, isFocus: false),
+                              closeViewAfterSeconds: null,
+                            );
+                            EasyLoading.showToast('已启动');
                           },
                         ),
                         onPointerMove: (d) {

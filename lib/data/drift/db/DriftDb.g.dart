@@ -183,9 +183,10 @@ class AppInfosCompanion extends UpdateCompanion<AppInfo> {
 }
 
 class $AppInfosTable extends AppInfos with TableInfo<$AppInfosTable, AppInfo> {
-  final GeneratedDatabase _db;
+  @override
+  final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $AppInfosTable(this._db, [this._alias]);
+  $AppInfosTable(this.attachedDatabase, [this._alias]);
   final VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int?> id = GeneratedColumn<int?>(
@@ -257,7 +258,7 @@ class $AppInfosTable extends AppInfos with TableInfo<$AppInfosTable, AppInfo> {
 
   @override
   $AppInfosTable createAlias(String alias) {
-    return $AppInfosTable(_db, alias);
+    return $AppInfosTable(attachedDatabase, alias);
   }
 }
 
@@ -673,9 +674,10 @@ class UsersCompanion extends UpdateCompanion<User> {
 }
 
 class $UsersTable extends Users with TableInfo<$UsersTable, User> {
-  final GeneratedDatabase _db;
+  @override
+  final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $UsersTable(this._db, [this._alias]);
+  $UsersTable(this.attachedDatabase, [this._alias]);
   final VerificationMeta _cloudIdMeta = const VerificationMeta('cloudId');
   @override
   late final GeneratedColumn<int?> cloudId = GeneratedColumn<int?>(
@@ -843,7 +845,7 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
 
   @override
   $UsersTable createAlias(String alias) {
-    return $UsersTable(_db, alias);
+    return $UsersTable(attachedDatabase, alias);
   }
 }
 
@@ -1126,9 +1128,10 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
 }
 
 class $FoldersTable extends Folders with TableInfo<$FoldersTable, Folder> {
-  final GeneratedDatabase _db;
+  @override
+  final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $FoldersTable(this._db, [this._alias]);
+  $FoldersTable(this.attachedDatabase, [this._alias]);
   final VerificationMeta _cloudIdMeta = const VerificationMeta('cloudId');
   @override
   late final GeneratedColumn<int?> cloudId = GeneratedColumn<int?>(
@@ -1227,7 +1230,7 @@ class $FoldersTable extends Folders with TableInfo<$FoldersTable, Folder> {
 
   @override
   $FoldersTable createAlias(String alias) {
-    return $FoldersTable(_db, alias);
+    return $FoldersTable(attachedDatabase, alias);
   }
 }
 
@@ -1565,9 +1568,10 @@ class FragmentsCompanion extends UpdateCompanion<Fragment> {
 
 class $FragmentsTable extends Fragments
     with TableInfo<$FragmentsTable, Fragment> {
-  final GeneratedDatabase _db;
+  @override
+  final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $FragmentsTable(this._db, [this._alias]);
+  $FragmentsTable(this.attachedDatabase, [this._alias]);
   final VerificationMeta _cloudIdMeta = const VerificationMeta('cloudId');
   @override
   late final GeneratedColumn<int?> cloudId = GeneratedColumn<int?>(
@@ -1696,7 +1700,7 @@ class $FragmentsTable extends Fragments
 
   @override
   $FragmentsTable createAlias(String alias) {
-    return $FragmentsTable(_db, alias);
+    return $FragmentsTable(attachedDatabase, alias);
   }
 }
 
@@ -1980,9 +1984,10 @@ class MemoryGroupsCompanion extends UpdateCompanion<MemoryGroup> {
 
 class $MemoryGroupsTable extends MemoryGroups
     with TableInfo<$MemoryGroupsTable, MemoryGroup> {
-  final GeneratedDatabase _db;
+  @override
+  final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $MemoryGroupsTable(this._db, [this._alias]);
+  $MemoryGroupsTable(this.attachedDatabase, [this._alias]);
   final VerificationMeta _cloudIdMeta = const VerificationMeta('cloudId');
   @override
   late final GeneratedColumn<int?> cloudId = GeneratedColumn<int?>(
@@ -2081,7 +2086,7 @@ class $MemoryGroupsTable extends MemoryGroups
 
   @override
   $MemoryGroupsTable createAlias(String alias) {
-    return $MemoryGroupsTable(_db, alias);
+    return $MemoryGroupsTable(attachedDatabase, alias);
   }
 }
 
@@ -2457,9 +2462,10 @@ class Folder2FragmentsCompanion extends UpdateCompanion<Folder2Fragment> {
 
 class $Folder2FragmentsTable extends Folder2Fragments
     with TableInfo<$Folder2FragmentsTable, Folder2Fragment> {
-  final GeneratedDatabase _db;
+  @override
+  final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $Folder2FragmentsTable(this._db, [this._alias]);
+  $Folder2FragmentsTable(this.attachedDatabase, [this._alias]);
   final VerificationMeta _cloudIdMeta = const VerificationMeta('cloudId');
   @override
   late final GeneratedColumn<int?> cloudId = GeneratedColumn<int?>(
@@ -2603,7 +2609,7 @@ class $Folder2FragmentsTable extends Folder2Fragments
 
   @override
   $Folder2FragmentsTable createAlias(String alias) {
-    return $Folder2FragmentsTable(_db, alias);
+    return $Folder2FragmentsTable(attachedDatabase, alias);
   }
 }
 
@@ -2982,9 +2988,10 @@ class MemoryGroup2FragmentsCompanion
 
 class $MemoryGroup2FragmentsTable extends MemoryGroup2Fragments
     with TableInfo<$MemoryGroup2FragmentsTable, MemoryGroup2Fragment> {
-  final GeneratedDatabase _db;
+  @override
+  final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $MemoryGroup2FragmentsTable(this._db, [this._alias]);
+  $MemoryGroup2FragmentsTable(this.attachedDatabase, [this._alias]);
   final VerificationMeta _cloudIdMeta = const VerificationMeta('cloudId');
   @override
   late final GeneratedColumn<int?> cloudId = GeneratedColumn<int?>(
@@ -3132,7 +3139,7 @@ class $MemoryGroup2FragmentsTable extends MemoryGroup2Fragments
 
   @override
   $MemoryGroup2FragmentsTable createAlias(String alias) {
-    return $MemoryGroup2FragmentsTable(_db, alias);
+    return $MemoryGroup2FragmentsTable(attachedDatabase, alias);
   }
 }
 
@@ -3508,9 +3515,10 @@ class SimilarFragmentsCompanion extends UpdateCompanion<SimilarFragment> {
 
 class $SimilarFragmentsTable extends SimilarFragments
     with TableInfo<$SimilarFragmentsTable, SimilarFragment> {
-  final GeneratedDatabase _db;
+  @override
+  final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $SimilarFragmentsTable(this._db, [this._alias]);
+  $SimilarFragmentsTable(this.attachedDatabase, [this._alias]);
   final VerificationMeta _cloudIdMeta = const VerificationMeta('cloudId');
   @override
   late final GeneratedColumn<int?> cloudId = GeneratedColumn<int?>(
@@ -3658,7 +3666,7 @@ class $SimilarFragmentsTable extends SimilarFragments
 
   @override
   $SimilarFragmentsTable createAlias(String alias) {
-    return $SimilarFragmentsTable(_db, alias);
+    return $SimilarFragmentsTable(attachedDatabase, alias);
   }
 }
 
@@ -4020,9 +4028,10 @@ class RemembersCompanion extends UpdateCompanion<Remember> {
 
 class $RemembersTable extends Remembers
     with TableInfo<$RemembersTable, Remember> {
-  final GeneratedDatabase _db;
+  @override
+  final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $RemembersTable(this._db, [this._alias]);
+  $RemembersTable(this.attachedDatabase, [this._alias]);
   final VerificationMeta _cloudIdMeta = const VerificationMeta('cloudId');
   @override
   late final GeneratedColumn<int?> cloudId = GeneratedColumn<int?>(
@@ -4170,7 +4179,7 @@ class $RemembersTable extends Remembers
 
   @override
   $RemembersTable createAlias(String alias) {
-    return $RemembersTable(_db, alias);
+    return $RemembersTable(attachedDatabase, alias);
   }
 }
 

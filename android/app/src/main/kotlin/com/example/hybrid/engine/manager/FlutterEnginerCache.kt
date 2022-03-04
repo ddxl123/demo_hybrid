@@ -1,12 +1,12 @@
 package com.example.hybrid.engine.manager
 
+import android.annotation.TargetApi
 import android.os.Build
-import androidx.annotation.RequiresApi
 
 object FlutterEnginerCache {
     private val cacheEnginers = mutableMapOf<String, FlutterEnginer>()
 
-    @RequiresApi(Build.VERSION_CODES.N)
+    @TargetApi(Build.VERSION_CODES.N)
     fun put(entryPointName: String, flutterEnginer: FlutterEnginer) {
         cacheEnginers.putIfAbsent(entryPointName, flutterEnginer)
     }

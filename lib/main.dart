@@ -3,7 +3,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
+import 'package:hybrid/engine/transfer/listener/ShowTransferListener.dart';
 import 'package:hybrid/jianji/JianJiHome.dart';
+import 'package:hybrid/jianji/RememberingRandomNotRepeatFloatingPage.dart';
 
 import 'engine/init/EngineInit.dart';
 import 'engine/transfer/listener/MainDataTransferListener.dart';
@@ -20,6 +22,20 @@ void main() async {
       home: const FlutterEngineApp(
         child: JianJiHome(),
         isSetOnReadyImdtWhenFirstFrameInitialized: true,
+      ),
+      builder: EasyLoading.init(),
+    ),
+  );
+}
+
+@pragma('vm:entry-point')
+void show() {
+  flutterEngineBinding('show', () => ShowTransferListener());
+  runApp(
+    MaterialApp(
+      home: const FlutterEngineApp(
+        isSetOnReadyImdtWhenFirstFrameInitialized: true,
+        child: RememberingRandomNotRepeatFloatingPage(),
       ),
       builder: EasyLoading.init(),
     ),

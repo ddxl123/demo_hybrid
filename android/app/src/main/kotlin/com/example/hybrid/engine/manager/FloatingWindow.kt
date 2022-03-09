@@ -204,11 +204,11 @@ class Viewer(private val windowManager: WindowManager) {
     fun resetLayoutParams(nViewParams: ViewParams): Viewer {
         currentViewParams.changeFrom(nViewParams)
         // 最小限制。
-        if (currentViewParams.width < 100) {
-            currentViewParams.width = 100
+        if (currentViewParams.width < 150) {
+            currentViewParams.width = 150
         }
-        if (currentViewParams.height < 100) {
-            currentViewParams.height = 100
+        if (currentViewParams.height < 150) {
+            currentViewParams.height = 150
         }
         setLayoutParamsForLocation()
         setLayoutParamsForFocus()
@@ -237,8 +237,8 @@ class Viewer(private val windowManager: WindowManager) {
         if (dragMoveViewLayoutParams.width <= 100) {
             dragMoveViewLayoutParams.width = 100
         }
-        if (dragMoveViewLayoutParams.height <= 50) {
-            dragMoveViewLayoutParams.height = 50
+        if (dragMoveViewLayoutParams.height <= 100) {
+            dragMoveViewLayoutParams.height = 100
         }
     }
 

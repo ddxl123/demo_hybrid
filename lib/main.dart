@@ -19,6 +19,7 @@ void main() async {
   flutterEngineBinding('main', () => MainDataTransferListener());
   runApp(
     GetMaterialApp(
+      debugShowCheckedModeBanner: false,
       home: const FlutterEngineApp(
         child: JianJiHome(),
         isSetOnReadyImdtWhenFirstFrameInitialized: true,
@@ -33,6 +34,7 @@ void show() {
   flutterEngineBinding('show', () => ShowTransferListener());
   runApp(
     MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: const FlutterEngineApp(
         isSetOnReadyImdtWhenFirstFrameInitialized: true,
         child: RememberingRandomNotRepeatFloatingPage(),

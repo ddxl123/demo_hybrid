@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +9,7 @@ import 'package:hybrid/engine/transfer/TransferManager.dart';
 import 'package:hybrid/jianji/FolderListPage.dart';
 import 'package:hybrid/jianji/MemoryGroupListPage.dart';
 import 'package:hybrid/jianji/RememberingPage.dart';
+import 'package:hybrid/jianji/RememberingRandomNotRepeatFloatingPage.dart';
 import 'package:hybrid/jianji/controller/JianJiHomeGetXController.dart';
 import 'package:hybrid/jianji/controller/RememberingRunPageGetXController.dart';
 import 'package:hybrid/util/SbHelper.dart';
@@ -83,7 +83,6 @@ class _JianJiHomeState extends State<JianJiHome> {
                   // 若已是当前页面时，不执行任何。
                   return false;
                 } else {
-                  log('message');
                   _jianJiHomeGetXController.animateToPage(index);
                   _currentBody = index;
                   return true;
@@ -116,14 +115,23 @@ class _JianJiHomeState extends State<JianJiHome> {
                           onPressed: () async {
                             Get.to(() => const RememberingPage());
                             EasyLoading.showToast('正在启动悬浮窗口...');
-                            await TransferManager.instance.transferExecutor.executeWithOnlyView(
+                            final result = await TransferManager.instance.transferExecutor.executeWithOnlyView(
                               executeForWhichEngine: EngineEntryName.SHOW,
                               startViewParams: null,
-                              endViewParams: (ViewParams lastViewParams, SizeInt screenSize) =>
-                                  ViewParams(width: 100, height: 100, x: 10, y: 10, isFocus: false),
+                              endViewParams: (ViewParams lastViewParams, SizeInt screenSize) => smallViewParams,
                               closeViewAfterSeconds: null,
                             );
-                            EasyLoading.showToast('已启动');
+                            await result.handle(
+                              doSuccess: (bool successData) async {
+                                if (!successData) {
+                                  throw 'successData 为空';
+                                }
+                                await EasyLoading.showToast('已启动');
+                              },
+                              doError: (SingleResult<bool> errorResult) async {
+                                await EasyLoading.showToast('启动异常}');
+                              },
+                            );
                           },
                         ),
                         onPointerMove: (d) {

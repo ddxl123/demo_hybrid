@@ -61,8 +61,8 @@ class TransferExecutor {
         'operation_id': operationId,
         'operation_data': putOperationData(),
       };
-
-      final Object? sendResult = await TransferManager.instance.transferListener.basicMessageChannel.send(messageMap);
+      late final Object? sendResult;
+      sendResult = await TransferManager.instance.transferListener.basicMessageChannel.send(messageMap);
       if (sendResult == null) {
         return returnResult.setError(
           vm: '通道传输异常！',
@@ -71,7 +71,7 @@ class TransferExecutor {
           st: null,
         );
       } else {
-        return returnResult.setSuccess(putData: () => resultDataCast(sendResult));
+        return returnResult.setSuccess(putData: () => resultDataCast(sendResult!));
       }
     } catch (e, st) {
       return returnResult.setError(vm: '通道传输异常！', descp: Description(''), e: e, st: st);

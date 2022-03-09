@@ -196,7 +196,7 @@ packages:
       name: dart_style
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "2.2.1"
+    version: "2.2.2"
   device_info_plus:
     dependency: "direct main"
     description:
@@ -498,7 +498,7 @@ packages:
       name: path
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "1.8.0"
+    version: "1.8.1"
   path_drawing:
     dependency: transitive
     description:
@@ -664,7 +664,7 @@ packages:
       name: source_span
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "1.8.1"
+    version: "1.8.2"
   sqflite:
     dependency: "direct main"
     description:
@@ -689,11 +689,9 @@ packages:
   sqlite3_flutter_libs:
     dependency: "direct main"
     description:
-      path: sqlite3_flutter_libs
-      ref: main
-      resolved-ref: "36d78f4212a4a68309f083ca559de9ad59a911a4"
-      url: "https://github.com/simolus3/sqlite3.dart.git"
-    source: git
+      name: sqlite3_flutter_libs
+      url: "https://pub.flutter-io.cn"
+    source: hosted
     version: "0.5.4"
   sqlparser:
     dependency: transitive
@@ -778,7 +776,7 @@ packages:
       name: vector_math
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "2.1.1"
+    version: "2.1.2"
   watcher:
     dependency: transitive
     description:

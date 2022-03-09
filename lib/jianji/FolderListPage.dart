@@ -12,6 +12,12 @@ import 'SearchPage.dart';
 import 'controller/FragmentListPageGetXController.dart';
 import 'controller/GlobalGetXController.dart';
 
+String logContent = '> 头';
+
+void addLog(String content) {
+  logContent += '\n● $content';
+}
+
 class FolderListPage extends StatefulWidget {
   const FolderListPage({Key? key}) : super(key: key);
 
@@ -31,6 +37,18 @@ class _FolderListPageState extends State<FolderListPage> with AutomaticKeepAlive
         elevation: 0,
         title: const Text('知识类别'),
         actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.info_outline),
+            onPressed: () {
+              showAboutDialog(
+                context: context,
+                applicationName: '日志',
+                children: [
+                  Text(logContent),
+                ],
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {

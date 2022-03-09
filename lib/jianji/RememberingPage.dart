@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -9,6 +7,7 @@ import 'package:hybrid/engine/constant/execute/EngineEntryName.dart';
 import 'package:hybrid/engine/constant/o/OUniform.dart';
 import 'package:hybrid/engine/transfer/TransferManager.dart';
 import 'package:hybrid/jianji/FragmentSnapshotPage.dart';
+import 'package:hybrid/jianji/RememberingRandomNotRepeatFloatingPage.dart';
 import 'package:hybrid/jianji/controller/GlobalGetXController.dart';
 import 'package:hybrid/jianji/controller/RememberingPageGetXController.dart';
 import 'package:hybrid/jianji/controller/RememberingRunPageGetXController.dart';
@@ -133,9 +132,7 @@ class _RememberingPageState extends State<RememberingPage> {
                   final result = await TransferManager.instance.transferExecutor.executeWithViewAndOperation<void, bool>(
                     executeForWhichEngine: EngineEntryName.SHOW,
                     closeViewAfterSeconds: null,
-                    endViewParams: (ViewParams lastViewParams, SizeInt screenSize) {
-                      return ViewParams(width: 600, height: 500, x: 100, y: 100, isFocus: true);
-                    },
+                    endViewParams: (ViewParams lastViewParams, SizeInt screenSize) => bigViewParams,
                     startViewParams: null,
                     operationId: OUniform.SHOW_START,
                     resultDataCast: (Object resultData) => resultData as bool,
@@ -148,14 +145,13 @@ class _RememberingPageState extends State<RememberingPage> {
                         _rememberPageGetXController.rememberStatusSerialize.value = RememberStatus.randomNotRepeatFloating.index;
                         _rememberingRunPageGetXController.recordFragments.clear();
                         // await _rememberPageGetXController.setInitRemembering();
-                        EasyLoading.showToast('已启动悬浮模式！');
+                        await EasyLoading.showToast('已启动悬浮模式！');
                       } else {
                         throw 'successData: $successData';
                       }
                     },
                     doError: (SingleResult<bool> errorResult) async {
                       EasyLoading.showToast('启动悬浮模式失败\n${errorResult.getRequiredVm()}\n可能是未允许悬浮窗权限！');
-                      print(errorResult.toJson());
                     },
                   );
                 } else if (result == 2) {

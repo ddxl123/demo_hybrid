@@ -13,6 +13,8 @@ import 'package:hybrid/util/SbHelper.dart';
 
 Function? toDoSetState;
 Function? reStart;
+ViewParams smallViewParams = ViewParams(width: 150, height: 150, x: 100, y: 200, isFocus: false);
+ViewParams bigViewParams = ViewParams(width: 1000, height: 800, x: 100, y: 200, isFocus: true);
 
 class RememberingRandomNotRepeatFloatingPage extends StatefulWidget {
   const RememberingRandomNotRepeatFloatingPage({Key? key}) : super(key: key);
@@ -52,9 +54,7 @@ class _RememberingRandomNotRepeatFloatingPageState extends State<RememberingRand
         TransferManager.instance.transferExecutor.executeWithOnlyView(
           executeForWhichEngine: EngineEntryName.SHOW,
           startViewParams: null,
-          endViewParams: (ViewParams lastViewParams, SizeInt screenSize) {
-            return ViewParams(width: 100, height: 100, x: 10, y: 10, isFocus: false);
-          },
+          endViewParams: (ViewParams lastViewParams, SizeInt screenSize) => smallViewParams,
           closeViewAfterSeconds: null,
         );
       }
@@ -101,7 +101,7 @@ class _RememberingRandomNotRepeatFloatingPageState extends State<RememberingRand
     final result = await TransferManager.instance.transferExecutor.executeWithOnlyView(
       executeForWhichEngine: EngineEntryName.SHOW,
       startViewParams: null,
-      endViewParams: (ViewParams lastViewParams, SizeInt screenSize) => ViewParams(width: 100, height: 100, x: 10, y: 10, isFocus: true),
+      endViewParams: (ViewParams lastViewParams, SizeInt screenSize) => smallViewParams,
       closeViewAfterSeconds: null,
     );
     await result.handle(
@@ -117,7 +117,7 @@ class _RememberingRandomNotRepeatFloatingPageState extends State<RememberingRand
               await TransferManager.instance.transferExecutor.executeWithOnlyView(
                 executeForWhichEngine: EngineEntryName.SHOW,
                 startViewParams: null,
-                endViewParams: (ViewParams lastViewParams, SizeInt screenSize) => ViewParams(width: 600, height: 500, x: 10, y: 10, isFocus: true),
+                endViewParams: (ViewParams lastViewParams, SizeInt screenSize) => bigViewParams,
                 closeViewAfterSeconds: null,
               );
               await _updateCurrentAndNext();
@@ -136,7 +136,7 @@ class _RememberingRandomNotRepeatFloatingPageState extends State<RememberingRand
   void _onSizeChanged() {
     final Size size = MediaQueryData.fromWindow(window).size * MediaQueryData.fromWindow(window).devicePixelRatio;
     log('restart $size');
-    if (size.height <= 200 || size.width <= 200) {
+    if (size.height <= 500 || size.width <= 500) {
       if (isSizeSmall) {
         return;
       }
@@ -195,7 +195,7 @@ class _RememberingRandomNotRepeatFloatingPageState extends State<RememberingRand
               await TransferManager.instance.transferExecutor.executeWithOnlyView(
                 executeForWhichEngine: EngineEntryName.SHOW,
                 startViewParams: null,
-                endViewParams: (ViewParams lastViewParams, SizeInt screenSize) => ViewParams(width: 600, height: 500, x: 50, y: 50, isFocus: true),
+                endViewParams: (ViewParams lastViewParams, SizeInt screenSize) => bigViewParams,
                 closeViewAfterSeconds: null,
               );
               EasyLoading.showToast('长按任意处可快速缩小');
@@ -363,7 +363,7 @@ class _ContentState extends State<Content> {
                 onPressed: () async {
                   final List<String>? result = await showTextInputDialog(
                     context: context,
-                    message: '当前每 ${widget.r.intervalTime}s 展示一次新内容，\n将其修改为：',
+                    message: '当前长按后，经过 ${widget.r.intervalTime}s 会展示一次新内容。将其修改为：',
                     textFields: <DialogTextField>[
                       DialogTextField(
                         initialText: widget.r.intervalTime.toString(),

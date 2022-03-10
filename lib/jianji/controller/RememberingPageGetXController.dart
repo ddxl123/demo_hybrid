@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:get/get.dart';
 import 'package:hybrid/data/drift/db/DriftDb.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -34,9 +36,9 @@ class RememberPageGetXController extends GetxController {
   }
 
   /// 点击【随机可重复】或【随机不可重复】时，对其设置初始化 [Remember]。
-  Future<void> setInitRemembering() async {
-    await DriftDb.instance.updateDAO.updateBeforeInitRemembering();
-    await DriftDb.instance.updateDAO.updateInitRandomRemembering(RememberStatus.values[rememberStatusSerialize.value]);
+  Future<void> setInitRemembering(RememberStatus rememberStatus) async {
+    log('setInitRemembering: ${rememberStatusSerialize.value}');
+    await DriftDb.instance.updateDAO.initRandomRemembering(rememberStatus);
   }
 
   /// 修改 [fragments] 某个元素的值。

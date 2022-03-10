@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:drift/drift.dart';
 import 'package:hybrid/data/drift/db/DriftDb.dart';
 import 'package:hybrid/data/drift/table/Cloud.dart';
@@ -139,7 +141,16 @@ class RetrieveDAO extends DatabaseAccessor<DriftDb> with _$RetrieveDAOMixin {
     return (await select(remembers, distinct: true).get()).length;
   }
 
+  Future<Remember?> getCurrentStatus() async {
+    List<Remember> rs =
+        (await (select(remembers)..where((tbl) => tbl.status.isIn(RememberStatus.values.map<int>((e) => e.index).toList()..removeAt(0)))).get());
+    return rs.isEmpty ? null : rs.first;
+  }
+
   Future<int> getAllCompleteRemember2FragmentsCount() async {
+    log('getAllCompleteRemember2FragmentsCount');
+    log((await select(remembers).get()).toString());
+    // log((await (select(remembers)..where((tbl) => tbl.rememberTimes.isBiggerOrEqualValue(1))).get()).toString());
     return (await (selectOnly(remembers)
               ..where(remembers.rememberTimes.isBiggerOrEqualValue(1))
               ..addColumns([countAll()]))

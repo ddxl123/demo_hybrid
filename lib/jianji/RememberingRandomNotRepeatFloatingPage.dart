@@ -38,6 +38,8 @@ class _RememberingRandomNotRepeatFloatingPageState extends State<RememberingRand
 
   bool isWillNext = false;
 
+  String info = '1. 长按任意处可快速缩小\n2. 长按任意处后，下一个新内容才会自动弹出！（右上角可设置下次弹出时间）';
+
   Future<void> _updateCurrentAndNext() async {
     await DriftDb.instance.updateDAO.updateCurrentAndNextRemember(RememberStatus.randomNotRepeatFloating);
     final Fragment? f = await DriftDb.instance.retrieveDAO.getRemembering2FragmentOrNull();
@@ -69,28 +71,35 @@ class _RememberingRandomNotRepeatFloatingPageState extends State<RememberingRand
   Future<void> _getCount() async {
     await DriftDb.instance.retrieveDAO.getAllCompleteRemember2FragmentsCount().then((value) => completedCount = value);
     await DriftDb.instance.retrieveDAO.getAllRemember2FragmentsCount().then((value) => allCount = value);
-    if (mounted) setState(() {});
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) setState(() {});
+    });
   }
 
   Future<void> _initGetAndReTimer() async {
-    EasyLoading.showToast('长按任意处后，才能自动弹出下一个新内容！\n右上角可设置弹出时间！', duration: const Duration(seconds: 5));
-    await DriftDb.instance.updateDAO.updateBeforeInitRemembering();
-    await DriftDb.instance.updateDAO.updateInitRandomRemembering(RememberStatus.randomNotRepeatFloating);
+    EasyLoading.showToast(info, duration: const Duration(seconds: 5));
+    // await DriftDb.instance.updateDAO.updateBeforeInitRemembering();
+    // await DriftDb.instance.updateDAO.updateInitRandomRemembering(RememberStatus.randomNotRepeatFloating);
     await DriftDb.instance.retrieveDAO.getRemembering2FragmentOrNull().then(
-      (value) {
+      (value) async {
+        log('getRemembering2FragmentOrNull:$value');
         if (value == null) {
           return;
         }
         fragments.clear();
         fragments.add(value);
         currentIndex = 0;
-        if (mounted) setState(() {});
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (mounted) setState(() {});
+        });
       },
     ).catchError(
       (e) {
         fragments.clear();
         errorMessage = e.toString();
-        if (mounted) setState(() {});
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (mounted) setState(() {});
+        });
       },
     );
     await _getCount();
@@ -135,7 +144,6 @@ class _RememberingRandomNotRepeatFloatingPageState extends State<RememberingRand
 
   void _onSizeChanged() {
     final Size size = MediaQueryData.fromWindow(window).size * MediaQueryData.fromWindow(window).devicePixelRatio;
-    log('restart $size');
     if (size.height <= 500 || size.width <= 500) {
       if (isSizeSmall) {
         return;
@@ -198,7 +206,6 @@ class _RememberingRandomNotRepeatFloatingPageState extends State<RememberingRand
                 endViewParams: (ViewParams lastViewParams, SizeInt screenSize) => bigViewParams,
                 closeViewAfterSeconds: null,
               );
-              EasyLoading.showToast('长按任意处可快速缩小');
             },
           ),
         ),
@@ -354,7 +361,7 @@ class _ContentState extends State<Content> {
               IconButton(
                 padding: EdgeInsets.zero,
                 onPressed: () async {
-                  EasyLoading.showToast('长按任意处后，才能自动弹出下一个新内容！\n右上角可设置弹出时间！', duration: const Duration(seconds: 5));
+                  EasyLoading.showToast(widget.r.info, duration: const Duration(seconds: 5));
                 },
                 icon: const Icon(Icons.info_outline),
               ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:hybrid/data/drift/db/DriftDb.dart';
+import 'package:hybrid/jianji/FolderListPage.dart';
 import 'package:hybrid/jianji/controller/FragmentMemoryListPageGetXController.dart';
 import 'package:hybrid/jianji/controller/JianJiHomeGetXController.dart';
 
@@ -289,9 +290,16 @@ class GlobalGetXController extends GetxController {
 
   @override
   void onReady() {
-    DriftDb.instance.retrieveDAO.getAllRemember2FragmentsCount().then(
+    DriftDb.instance.retrieveDAO.getCurrentStatus().then(
       (value) {
-        isRemembering.value = value > 0 ? true : false;
+        addLog('getCurrentStatus: ${value.toString()}');
+        if (value == null) {
+          isRemembering.value = false;
+        } else {
+          isRemembering.value = true;
+          selectModel.value = value.status;
+        }
+        refresh();
       },
     );
   }

@@ -92,7 +92,6 @@ class _RememberingPageState extends State<RememberingPage> {
           controller: _rememberPageGetXController.refreshController,
           enablePullUp: false,
           enablePullDown: true,
-          header: const WaterDropMaterialHeader(),
           child: ListView.builder(
             itemCount: _rememberPageGetXController.fragments.length,
             itemBuilder: (BuildContext context, int index) {
@@ -126,9 +125,10 @@ class _RememberingPageState extends State<RememberingPage> {
                 if (result == 0) {
                   _rememberPageGetXController.rememberStatusSerialize.value = RememberStatus.randomNotRepeat.index;
                   _rememberingRunPageGetXController.recordFragments.clear();
-                  await _rememberPageGetXController.setInitRemembering();
+                  await _rememberPageGetXController.setInitRemembering(RememberStatus.randomNotRepeat);
                   await Get.to(() => const RememberingRandomNotRepeatPage());
                 } else if (result == 1) {
+                  await _rememberPageGetXController.setInitRemembering(RememberStatus.randomNotRepeatFloating);
                   final result = await TransferManager.instance.transferExecutor.executeWithViewAndOperation<void, bool>(
                     executeForWhichEngine: EngineEntryName.SHOW,
                     closeViewAfterSeconds: null,

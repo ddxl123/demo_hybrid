@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
@@ -114,24 +115,27 @@ class _JianJiHomeState extends State<JianJiHome> {
                           backgroundColor: Colors.greenAccent,
                           onPressed: () async {
                             Get.to(() => const RememberingPage());
-                            EasyLoading.showToast('正在启动悬浮窗口...');
-                            final result = await TransferManager.instance.transferExecutor.executeWithOnlyView(
-                              executeForWhichEngine: EngineEntryName.SHOW,
-                              startViewParams: null,
-                              endViewParams: (ViewParams lastViewParams, SizeInt screenSize) => smallViewParams,
-                              closeViewAfterSeconds: null,
-                            );
-                            await result.handle(
-                              doSuccess: (bool successData) async {
-                                if (!successData) {
-                                  throw 'successData 为空';
-                                }
-                                await EasyLoading.showToast('已启动');
-                              },
-                              doError: (SingleResult<bool> errorResult) async {
-                                await EasyLoading.showToast('启动异常}');
-                              },
-                            );
+                            log('_globalGetXController.selectModel.value ${_globalGetXController.selectModel.value}');
+                            if (_globalGetXController.selectModel.value == RememberStatus.randomNotRepeatFloating.index) {
+                              EasyLoading.showToast('正在启动悬浮窗口...');
+                              final result = await TransferManager.instance.transferExecutor.executeWithOnlyView(
+                                executeForWhichEngine: EngineEntryName.SHOW,
+                                startViewParams: null,
+                                endViewParams: (ViewParams lastViewParams, SizeInt screenSize) => smallViewParams,
+                                closeViewAfterSeconds: null,
+                              );
+                              await result.handle(
+                                doSuccess: (bool successData) async {
+                                  if (!successData) {
+                                    throw 'successData 为空';
+                                  }
+                                  await EasyLoading.showToast('已启动');
+                                },
+                                doError: (SingleResult<bool> errorResult) async {
+                                  await EasyLoading.showToast('启动异常}');
+                                },
+                              );
+                            }
                           },
                         ),
                         onPointerMove: (d) {

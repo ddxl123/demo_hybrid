@@ -20,7 +20,7 @@ class RememberingRunPageGetXController extends GetxController {
 
   Future<void> backToInit() async {
     // 恢复到初始化前。
-    await DriftDb.instance.updateDAO.updateBeforeInitRemembering();
+    await DriftDb.instance.updateDAO.initRandomRemembering(RememberStatus.none);
     await rememberPageGetXController.reGetRememberRunCompleteCount();
     rememberPageGetXController.rememberStatusSerialize.value = RememberStatus.none.index;
   }

@@ -3,13 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:hybrid/data/drift/db/DriftDb.dart';
-import 'package:hybrid/jianji/FragmentCreatePage.dart';
+import 'package:hybrid/jianji/DefaultAsset.dart';
 import 'package:hybrid/jianji/FragmentSnapshotPage.dart';
-import 'package:hybrid/jianji/SearchPage.dart';
 import 'package:hybrid/jianji/controller/FragmentListPageGetXController.dart';
+import 'package:hybrid/util/SbHelper.dart';
 import 'package:hybrid/util/sheetroute/Helper.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
+import 'FragmentCreatePage.dart';
 import 'controller/GlobalGetXController.dart';
 
 class FragmentListPage extends StatefulWidget {
@@ -69,8 +70,87 @@ class _FragmentListPageState extends State<FragmentListPage> {
           ),
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () {
-              Get.to(FragmentCreatePage(folder: widget.folder));
+            onPressed: () async {
+              int? result = await showModalActionSheet(
+                context: context,
+                actions: [
+                  const SheetAction(label: "创建知识点", key: 1),
+                  const SheetAction(label: "从预设中创建", key: 0),
+                ],
+              );
+              if (result == 0) {
+                String two = "语文寒假作业200道判断题";
+                String one = '语文寒假作业200道古诗词填空题';
+                String zero = "语文寒假作业360道选择题";
+                int? defaultAssetsResult = await showModalActionSheet(
+                  context: context,
+                  actions: [
+                    SheetAction(label: two, key: 2),
+                    SheetAction(label: one, key: 1),
+                    SheetAction(label: zero, key: 0),
+                  ],
+                );
+                String selectedResult = 'null';
+                if (defaultAssetsResult == 0) {
+                  selectedResult = zero;
+                }
+                if (defaultAssetsResult == 1) {
+                  selectedResult = one;
+                }
+                if (defaultAssetsResult == 2) {
+                  selectedResult = two;
+                }
+
+                if (defaultAssetsResult != null) {
+                  bool answerResult = await showTextAnswerDialog(
+                    context: context,
+                    keyword: '1',
+                    message: '将会把「$selectedResult」添加到该文件夹中（不会覆盖原有的，且无法撤销）。确定请输入1',
+                    okLabel: '确定',
+                    cancelLabel: '取消',
+                    isDestructiveAction: true,
+                    retryMessage: '输入有误！',
+                    retryCancelLabel: '返回',
+                    retryOkLabel: '重新输入',
+                  );
+                  if (answerResult) {
+                    await EasyLoading.show(status: '正在添加...');
+                    if (defaultAssetsResult == 0) {
+                      await _fragmentListPageGetXController.insertSerializeFragments(
+                        widget.folder,
+                        await defaultAssetChoice360(
+                          single: (String question, String answer) async {
+                            return FragmentsCompanion(question: question.toValue(), answer: answer.toValue());
+                          },
+                        ),
+                      );
+                    }
+                    if (defaultAssetsResult == 1) {
+                      await _fragmentListPageGetXController.insertSerializeFragments(
+                        widget.folder,
+                        await defaultAssetAncientPoems200(
+                          single: (String question) async {
+                            return FragmentsCompanion(question: question.toValue(), answer: ''.toValue());
+                          },
+                        ),
+                      );
+                    }
+                    if (defaultAssetsResult == 2) {
+                      await _fragmentListPageGetXController.insertSerializeFragments(
+                        widget.folder,
+                        await defaultAssetJudge200(
+                          single: (String question) async {
+                            return FragmentsCompanion(question: question.toValue(), answer: ''.toValue());
+                          },
+                        ),
+                      );
+                    }
+                    await EasyLoading.showSuccess('添加成功');
+                  }
+                }
+              } else if (result == 1) {
+                Get.to(FragmentCreatePage(folder: widget.folder));
+              }
             },
           )
         ],

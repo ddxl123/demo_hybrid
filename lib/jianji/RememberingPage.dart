@@ -157,7 +157,7 @@ class _RememberingPageState extends State<RememberingPage> {
                 } else if (result == 2) {
                   final isExchange = await showOkCancelAlertDialog(
                     context: context,
-                    message: '${_rememberPageGetXController.isQuestionAndAnswerExchange.value ? '确定取消翻转问题和答案？' : '确定翻转问题和答案？'}\n单词记忆可进行尝试翻转！',
+                    message: '${_rememberPageGetXController.isQuestionAndAnswerExchange.value ? '确定取消翻转问题和答案？' : '确定翻转问题和答案？'}\n单词记忆可进行尝试翻转！\n（悬浮模式暂不支持反转）',
                     okLabel: '确定',
                     cancelLabel: '否定',
                     isDestructiveAction: true,

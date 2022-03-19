@@ -10,6 +10,9 @@ import 'package:hybrid/engine/constant/execute/EngineEntryName.dart';
 import 'package:hybrid/engine/transfer/TransferManager.dart';
 import 'package:hybrid/jianji/controller/RememberingPageGetXController.dart';
 import 'package:hybrid/util/SbHelper.dart';
+import 'package:vibration/vibration.dart';
+
+import 'JianJiTool.dart';
 
 Function? toDoSetState;
 Function? reStart;
@@ -38,7 +41,7 @@ class _RememberingRandomNotRepeatFloatingPageState extends State<RememberingRand
 
   bool isWillNext = false;
 
-  String info = '1. 长按任意处可快速缩小\n2. 长按任意处后，下一个新内容才会自动弹出！（右上角可设置下次弹出时间）';
+  String info = '1. 长按任意处可快速缩小\n2. 只有长按任意处后，下一个新内容才会自动弹出！（右上角可设置下次弹出时间）\n3. 长按文字部分可对选中文字进行搜索\n4. 轻触非文字部分可隐藏/显示内容\n5. 只有强制关闭后台应用才能彻底关闭悬浮窗\n6. 悬浮窗可在任何应用上方悬浮。';
 
   Future<void> _updateCurrentAndNext() async {
     await DriftDb.instance.updateDAO.updateCurrentAndNextRemember(RememberStatus.randomNotRepeatFloating);
@@ -121,8 +124,11 @@ class _RememberingRandomNotRepeatFloatingPageState extends State<RememberingRand
           }
           isWillNext = true;
           Future.delayed(
-            Duration(seconds: intervalTime),
+            Duration(seconds: intervalTime.abs()),
             () async {
+              if (intervalTime >= 0) {
+                Vibration.vibrate(pattern: [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100]);
+              }
               await TransferManager.instance.transferExecutor.executeWithOnlyView(
                 executeForWhichEngine: EngineEntryName.SHOW,
                 startViewParams: null,
@@ -338,14 +344,26 @@ class _ContentState extends State<Content> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         if (widget.r.isQuestion) Row(children: const [Text('问题：')]),
-                        if (widget.r.isQuestion) Text(widget.r.fragments[widget.r.currentIndex].question.toString()),
+                        if (widget.r.isQuestion)
+                          SelectableText(
+                            widget.r.fragments[widget.r.currentIndex].question.toString(),
+                            selectionControls: selectionControlForSearchByBrowser(context),
+                          ),
                         if (!widget.r.isQuestion) Row(children: const [Text('答案：')]),
-                        if (!widget.r.isQuestion) Text(widget.r.fragments[widget.r.currentIndex].answer.toString()),
+                        if (!widget.r.isQuestion)
+                          SelectableText(
+                            widget.r.fragments[widget.r.currentIndex].answer.toString(),
+                            selectionControls: selectionControlForSearchByBrowser(context),
+                          ),
                         const Text(' '),
                         if (!widget.r.isQuestion) Row(children: const [Text('描述：')]),
-                        if (!widget.r.isQuestion) Text(widget.r.fragments[widget.r.currentIndex].description.toString()),
+                        if (!widget.r.isQuestion)
+                          SelectableText(
+                            widget.r.fragments[widget.r.currentIndex].description?.toString() ?? '',
+                            selectionControls: selectionControlForSearchByBrowser(context),
+                          ),
                         const Text(' '),
-                        const Text('轻触任意处显示/隐藏答案', style: TextStyle(color: Colors.grey)),
+                        const Text('轻触非文字部分可隐藏/显示内容', style: TextStyle(color: Colors.grey)),
                       ],
                     ),
                   ),
@@ -370,7 +388,7 @@ class _ContentState extends State<Content> {
                 onPressed: () async {
                   final List<String>? result = await showTextInputDialog(
                     context: context,
-                    message: '当前长按后，经过 ${widget.r.intervalTime}s 会展示一次新内容。将其修改为：',
+                    message: '当前长按后，经过 |${widget.r.intervalTime}|s 会展示一次新内容。\n1. 只有长按任意处后，下一个新内容才会自动弹出！\n2. 每次重启应用后会恢复为 5s 。\n3. 输入值为负值时禁用震动。\n\n将其修改为：',
                     textFields: <DialogTextField>[
                       DialogTextField(
                         initialText: widget.r.intervalTime.toString(),

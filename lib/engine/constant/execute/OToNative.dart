@@ -19,4 +19,7 @@ class OToNative {
 
   /// 检查是否已允许悬浮窗权限，如果未允许，则弹出悬浮窗权限设置页面。
   static const String check_and_push_page_floating_window_permission = 'check_and_push_page_floating_window_permission';
+
+  /// 启动 web
+  static const String LAUNCH_WEB = 'launch_web';
 }

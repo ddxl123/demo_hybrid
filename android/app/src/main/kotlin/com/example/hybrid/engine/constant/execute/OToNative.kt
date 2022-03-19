@@ -7,4 +7,5 @@ object OToNative {
     const val GET_NATIVE_WINDOW_VIEW_PARAMS: String = "get_native_window_view_params"
     const val CHECK_FLOATING_WINDOW_PERMISSION: String = "check_floating_window_permission"
     const val CHECK_AND_PUSH_PAGE_FLOATING_WINDOW_PERMISSION: String = "check_and_push_page_floating_window_permission"
+    const val LAUNCH_WEB: String = "launch_web"
 } 

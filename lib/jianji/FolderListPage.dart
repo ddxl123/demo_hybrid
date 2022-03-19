@@ -42,9 +42,17 @@ class _FolderListPageState extends State<FolderListPage> with AutomaticKeepAlive
             onPressed: () {
               showAboutDialog(
                 context: context,
-                applicationName: '日志',
+                applicationName: '更新内容：',
                 children: [
-                  Text(logContent),
+                  const Text('1. 新增了「批量创建单词/词组（大文本导入）」功能。', textAlign: TextAlign.left),
+                  const SizedBox(height: 10),
+                  const Text('2. 新增了「批量创建词义辨析（大文本导入）」功能。', textAlign: TextAlign.left),
+                  const SizedBox(height: 10),
+                  const Text('3. 新增了文字选中功能。', textAlign: TextAlign.left),
+                  const SizedBox(height: 10),
+                  const Text('4. 对选中的文字增加了浏览器搜索功能，可以直接利用浏览器搜索答案。', textAlign: TextAlign.left),
+                  const SizedBox(height: 10),
+                  const Text('5. 新增了悬浮窗弹出时震动提示功能。', textAlign: TextAlign.left),
                 ],
               );
             },

@@ -2,6 +2,7 @@ package com.example.hybrid.engine.manager
 
 import android.annotation.SuppressLint
 import android.app.Service
+import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.os.Build
 import android.os.Handler
 import android.os.Looper

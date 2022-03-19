@@ -107,3 +107,31 @@ Future<List<T>> defaultAssetJudge200<T>({required Future<T> Function(String ques
   }
   return singles;
 }
+
+Future<List<T>> wordMeaningAnalysis<T>({required String content, required Future<T> Function(String question, String answer) single}) async {
+  List<String> groups = content.trim().split('|');
+
+  List<T> singles = [];
+  for (var group in groups) {
+    String answer = group;
+    String question = '';
+    List<String> wordAndMeans = group.split(RegExp(r'\n'));
+    for (var value in wordAndMeans) {
+      question += value.split('-').first + '\n';
+    }
+    answer = answer.trim();
+    question = question.trim();
+    singles.add(await single(question, answer));
+  }
+  return singles;
+}
+
+Future<List<T>> wordMeaning<T>({required String content, required Future<T> Function(String question, String answer) single}) async {
+  List<String> wordMeanings = content.trim().split(RegExp('\n'));
+  List<T> singles = [];
+  for (var wordMeaning in wordMeanings) {
+    List<String> qa = wordMeaning.split('-');
+    singles.add(await single(qa.first.trim(), qa.last.trim()));
+  }
+  return singles;
+}

@@ -1,8 +1,10 @@
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:hybrid/data/drift/db/DriftDb.dart';
 import 'package:hybrid/jianji/FragmentEditPage.dart';
+import 'package:hybrid/jianji/JianJiTool.dart';
 import 'package:hybrid/jianji/controller/GlobalGetXController.dart';
 import 'package:hybrid/jianji/controller/RememberingPageGetXController.dart';
 
@@ -95,6 +97,12 @@ class _FragmentSnapshotPageState extends State<FragmentSnapshotPage> {
             leading: const BackButton(color: Colors.blue),
             backgroundColor: Colors.white,
             actions: [
+              IconButton(
+                icon: const Icon(Icons.info_outline, color: Colors.blue),
+                onPressed: () async {
+                  EasyLoading.showToast('1. 轻触非文字部分可隐藏/显示内容\n2. 长按文字部分可对选中文字进行搜索');
+                },
+              ),
               widget.isEnableEdit
                   ? IconButton(
                       icon: const Icon(Icons.edit, color: Colors.blue),
@@ -131,17 +139,24 @@ class _FragmentSnapshotPageState extends State<FragmentSnapshotPage> {
                         Expanded(
                           child: DottedBorder(
                             child: SingleChildScrollView(
-                              child: Row(children: [
-                                Expanded(child: Text(() {
-                                  if (!widget.isRelyOnQuestionAndAnswerExchange) {
-                                    return currentFragment.question.toString();
-                                  } else {
-                                    return _rememberPageGetXController.isQuestionAndAnswerExchange.value
-                                        ? currentFragment.answer.toString()
-                                        : currentFragment.question.toString();
-                                  }
-                                }()))
-                              ]),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: SelectableText(
+                                      () {
+                                        if (!widget.isRelyOnQuestionAndAnswerExchange) {
+                                          return currentFragment.question.toString();
+                                        } else {
+                                          return _rememberPageGetXController.isQuestionAndAnswerExchange.value
+                                              ? currentFragment.answer.toString()
+                                              : currentFragment.question.toString();
+                                        }
+                                      }(),
+                                      selectionControls: selectionControlForSearchByBrowser(context),
+                                    ),
+                                  )
+                                ],
+                              ),
                               padding: const EdgeInsets.all(5),
                             ),
                             color: Colors.grey,
@@ -154,17 +169,24 @@ class _FragmentSnapshotPageState extends State<FragmentSnapshotPage> {
                           Expanded(
                             child: DottedBorder(
                               child: SingleChildScrollView(
-                                child: Row(children: [
-                                  Expanded(child: Text(() {
-                                    if (!widget.isRelyOnQuestionAndAnswerExchange) {
-                                      return currentFragment.answer.toString();
-                                    } else {
-                                      return _rememberPageGetXController.isQuestionAndAnswerExchange.value
-                                          ? currentFragment.question.toString()
-                                          : currentFragment.answer.toString();
-                                    }
-                                  }()))
-                                ]),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: SelectableText(
+                                        () {
+                                          if (!widget.isRelyOnQuestionAndAnswerExchange) {
+                                            return currentFragment.answer.toString();
+                                          } else {
+                                            return _rememberPageGetXController.isQuestionAndAnswerExchange.value
+                                                ? currentFragment.question.toString()
+                                                : currentFragment.answer.toString();
+                                          }
+                                        }(),
+                                        selectionControls: selectionControlForSearchByBrowser(context),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                                 padding: const EdgeInsets.all(5),
                               ),
                               color: Colors.grey,
@@ -177,7 +199,16 @@ class _FragmentSnapshotPageState extends State<FragmentSnapshotPage> {
                           Expanded(
                             child: DottedBorder(
                               child: SingleChildScrollView(
-                                child: Row(children: [Expanded(child: Text(currentFragment.description.toString()))]),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: SelectableText(
+                                        currentFragment.description?.toString() ?? '',
+                                        selectionControls: selectionControlForSearchByBrowser(context),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                                 padding: const EdgeInsets.all(5),
                               ),
                               color: Colors.grey,
@@ -185,7 +216,7 @@ class _FragmentSnapshotPageState extends State<FragmentSnapshotPage> {
                           ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [Text('轻触页面任意位置可隐藏/显示', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey))],
+                          children: const [Text('轻触非文字部分可隐藏/显示内容', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey))],
                         ),
                         const SizedBox(height: 150),
                       ],

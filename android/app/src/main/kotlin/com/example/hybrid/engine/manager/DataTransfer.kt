@@ -1,7 +1,11 @@
 package com.example.hybrid.engine.manager
 
+import android.content.Intent
+import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat.startActivity
 import com.example.hybrid.GlobalApplication
 import com.example.hybrid.engine.constant.execute.EngineEntryName
 import com.example.hybrid.engine.constant.execute.OToNative
@@ -9,6 +13,7 @@ import com.example.hybrid.engine.permission.CheckPermission
 import com.example.hybrid.util.checkType
 import io.flutter.plugin.common.BasicMessageChannel
 import io.flutter.plugin.common.StandardMessageCodec
+
 
 /**
  * 当 [FlutterEngine] 被附着在 [FlutterEnginer] 时会生成 [DataTransfer]，这时 [DataTransfer] 会执行自身的构造函数进行初始化。
@@ -63,6 +68,13 @@ class DataTransfer(private val flutterEnginer: FlutterEnginer) {
         operationId: String,
         data: Any?
     ): Any {
+        if (operationId == OToNative.LAUNCH_WEB) {
+            val uri: Uri = Uri.parse(data.checkType())
+            val intent = Intent(Intent.ACTION_VIEW, uri)
+            intent.flags = FLAG_ACTIVITY_NEW_TASK
+            GlobalApplication.context.startActivity(intent)
+            return true;
+        }
         return startEngineInterception(flutterEnginer, operationId, data)
             ?: androidPermissionInterception(operationId)
             ?: otherInterception(operationId, data)

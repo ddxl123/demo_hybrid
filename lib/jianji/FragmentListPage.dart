@@ -26,6 +26,9 @@ class _FragmentListPageState extends State<FragmentListPage> {
   final GlobalGetXController _globalGetXController = Get.find<GlobalGetXController>();
   late final FragmentListPageGetXController _fragmentListPageGetXController;
 
+  String defaultWordMeaningAnalysisContent = '';
+  String defaultWordMeaningContent = '';
+
   @override
   void initState() {
     super.initState();
@@ -74,7 +77,9 @@ class _FragmentListPageState extends State<FragmentListPage> {
               int? result = await showModalActionSheet(
                 context: context,
                 actions: [
-                  const SheetAction(label: "创建知识点", key: 1),
+                  const SheetAction(label: "批量创建单词/词组（大文本导入）", key: 3),
+                  const SheetAction(label: "批量创建词义辨析（大文本导入）", key: 2),
+                  const SheetAction(label: "批量创建任意知识点", key: 1),
                   const SheetAction(label: "从预设中创建", key: 0),
                 ],
               );
@@ -150,6 +155,116 @@ class _FragmentListPageState extends State<FragmentListPage> {
                 }
               } else if (result == 1) {
                 Get.to(FragmentCreatePage(folder: widget.folder));
+              } else if (result == 2) {
+                List<String>? bigTextAnalysisResult = await showTextInputDialog(
+                  context: context,
+                  cancelLabel: '取消',
+                  okLabel: '解析',
+                  isDestructiveAction: true,
+                  title: '''组之间用 '|' 分割\n单词与意思用 '-' 分割\n每对英汉后必须换一次行\n例如：''',
+                  message: '''
+at heart - 内心里
+in person - 亲自
+on purpose - 故意地（purpose 意图；计划）
+by nature - 天生地
+|
+postpone - 使延期
+refuse - 拒绝
+delay - 推迟；延期
+cancel - 取消
+|
+conservative - 保守的
+content to - 满足于（content 内容；目录）
+confident - 自信的
+generous - 慷慨的
+''',
+                  textFields: [
+                    DialogTextField(
+                      hintText: '在此输入大文本',
+                      initialText: defaultWordMeaningAnalysisContent == '' ? null : defaultWordMeaningAnalysisContent,
+                      maxLines: 6,
+                      minLines: 1,
+                    ),
+                  ],
+                );
+                if (bigTextAnalysisResult != null && bigTextAnalysisResult.isNotEmpty) {
+                  EasyLoading.show(status: '正在解析...');
+                  defaultWordMeaningAnalysisContent = bigTextAnalysisResult.first;
+                  late List<FragmentsCompanion> fs;
+                  try {
+                    fs = await wordMeaningAnalysis(
+                      content: defaultWordMeaningAnalysisContent,
+                      single: (String question, String answer) async => FragmentsCompanion(
+                        question: question.toValue(),
+                        answer: answer.toValue(),
+                      ),
+                    );
+                    EasyLoading.dismiss();
+                  } catch (e, st) {
+                    EasyLoading.showError('解析失败：${e.toString()}');
+                  }
+                  OkCancelResult ocr = await showOkCancelAlertDialog(
+                    context: context,
+                    message: '确定要将 ${fs.length} 个词义辨析添加该目录下？',
+                    okLabel: '确定',
+                    cancelLabel: '取消',
+                    isDestructiveAction: true,
+                  );
+                  if (ocr == OkCancelResult.ok) {
+                    EasyLoading.show(status: '正在添加');
+                    await _fragmentListPageGetXController.insertSerializeFragments(widget.folder, fs);
+                    EasyLoading.showSuccess('添加成功！');
+                  }
+                }
+              } else if (result == 3) {
+                List<String>? bigTextResult = await showTextInputDialog(
+                  context: context,
+                  cancelLabel: '取消',
+                  okLabel: '解析',
+                  isDestructiveAction: true,
+                  title: '''单词与意思用 '-' 分割\n每对英汉后必须换一次行\n例如：''',
+                  message: '''
+dog - 狗
+be named after - 以...命名
+''',
+                  textFields: [
+                    DialogTextField(
+                      hintText: '在此输入大文本',
+                      initialText: defaultWordMeaningContent == '' ? null : defaultWordMeaningContent,
+                      maxLines: 6,
+                      minLines: 1,
+                    ),
+                  ],
+                );
+                if (bigTextResult != null && bigTextResult.isNotEmpty) {
+                  EasyLoading.show(status: '正在解析...');
+                  defaultWordMeaningContent = bigTextResult.first;
+                  late List<FragmentsCompanion> fs;
+                  try {
+                    fs = await wordMeaning(
+                      content: defaultWordMeaningContent,
+                      single: (String question, String answer) async => FragmentsCompanion(
+                        question: question.toValue(),
+                        answer: answer.toValue(),
+                      ),
+                    );
+                    EasyLoading.dismiss();
+                  } catch (e, st) {
+                    EasyLoading.showError('解析失败：${e.toString()}');
+                  }
+                  OkCancelResult ocr = await showOkCancelAlertDialog(
+                    context: context,
+                    message: '确定要将 ${fs.length} 个单词/词组添加该目录下？',
+                    okLabel: '确定',
+                    cancelLabel: '取消',
+                    isDestructiveAction: true,
+                  );
+                  if (ocr == OkCancelResult.ok) {
+                    EasyLoading.show(status: '正在添加');
+                    await _fragmentListPageGetXController.insertSerializeFragments(widget.folder, fs);
+                    EasyLoading.showSuccess('添加成功！');
+                  }
+                }
               }
             },
           )

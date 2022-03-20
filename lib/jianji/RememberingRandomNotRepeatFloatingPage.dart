@@ -13,6 +13,7 @@ import 'package:hybrid/jianji/controller/RememberingPageGetXController.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:vibration/vibration.dart';
 
+import 'HtmlWidget.dart';
 import 'JianJiTool.dart';
 
 Function? toDoSetState;
@@ -479,6 +480,16 @@ class _ContentState extends State<Content> {
               );
             }
           }(),
+        ),
+        Positioned(
+          top: 0,
+          right: 0,
+          child: IconButton(
+            icon: const Icon(Icons.remove_red_eye_outlined, color: Colors.blue),
+            onPressed: () async {
+              showByType(context: context, fragment: widget.r.fragments[widget.r.currentIndex]);
+            },
+          ),
         ),
       ],
     );

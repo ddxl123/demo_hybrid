@@ -5,6 +5,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:hybrid/data/drift/db/DriftDb.dart';
 import 'package:hybrid/jianji/FragmentMemoryListPage.dart';
+import 'package:hybrid/jianji/HtmlWidget.dart';
 import 'package:hybrid/jianji/JianJiTool.dart';
 import 'package:hybrid/jianji/RememberingPage.dart';
 import 'package:hybrid/jianji/controller/JianJiHomeGetXController.dart';

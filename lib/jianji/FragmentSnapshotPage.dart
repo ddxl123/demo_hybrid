@@ -8,6 +8,8 @@ import 'package:hybrid/jianji/JianJiTool.dart';
 import 'package:hybrid/jianji/controller/GlobalGetXController.dart';
 import 'package:hybrid/jianji/controller/RememberingPageGetXController.dart';
 
+import 'HtmlWidget.dart';
+
 class FragmentSnapshotPageController {
   FragmentSnapshotPageController(this.state);
 
@@ -97,6 +99,12 @@ class _FragmentSnapshotPageState extends State<FragmentSnapshotPage> {
             leading: const BackButton(color: Colors.blue),
             backgroundColor: Colors.white,
             actions: [
+              IconButton(
+                icon: const Icon(Icons.remove_red_eye_outlined, color: Colors.blue),
+                onPressed: () async {
+                  showByType(context: context, fragment: currentFragment);
+                },
+              ),
               IconButton(
                 icon: const Icon(Icons.info_outline, color: Colors.blue),
                 onPressed: () async {

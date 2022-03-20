@@ -50,7 +50,7 @@ class _RememberingPageState extends State<RememberingPage> {
           leading: const BackButton(color: Colors.blue),
           backgroundColor: Colors.white,
           elevation: 0,
-          title: Text('任务列表（${_rememberPageGetXController.rememberingCount.value}）', style: const TextStyle(color: Colors.blue)),
+          title: Text('任务列表（${_rememberPageGetXController.rememberingCount.value}）', style: const TextStyle(color: Colors.blue,fontSize: 14)),
           actions: [
             IconButton(
               icon: const Icon(Icons.info_outline),

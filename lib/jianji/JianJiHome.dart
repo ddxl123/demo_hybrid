@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
@@ -115,7 +114,6 @@ class _JianJiHomeState extends State<JianJiHome> {
                           backgroundColor: Colors.greenAccent,
                           onPressed: () async {
                             Get.to(() => const RememberingPage());
-                            log('_globalGetXController.selectModel.value ${_globalGetXController.selectModel.value}');
                             if (_globalGetXController.selectModel.value == RememberStatus.randomNotRepeatFloating.index) {
                               EasyLoading.showToast('正在启动悬浮窗口...');
                               final result = await TransferManager.instance.transferExecutor.executeWithOnlyView(

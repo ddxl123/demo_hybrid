@@ -8,6 +8,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:hybrid/data/drift/db/DriftDb.dart';
 import 'package:hybrid/engine/constant/execute/EngineEntryName.dart';
 import 'package:hybrid/engine/transfer/TransferManager.dart';
+import 'package:hybrid/jianji/FragmentEditPage.dart';
 import 'package:hybrid/jianji/controller/RememberingPageGetXController.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:vibration/vibration.dart';
@@ -23,10 +24,24 @@ class RememberingRandomNotRepeatFloatingPage extends StatefulWidget {
   const RememberingRandomNotRepeatFloatingPage({Key? key}) : super(key: key);
 
   @override
-  _RememberingRandomNotRepeatFloatingPageState createState() => _RememberingRandomNotRepeatFloatingPageState();
+  State<RememberingRandomNotRepeatFloatingPage> createState() => _RememberingRandomNotRepeatFloatingPageState();
 }
 
 class _RememberingRandomNotRepeatFloatingPageState extends State<RememberingRandomNotRepeatFloatingPage> {
+  @override
+  Widget build(BuildContext context) {
+    return const RememberingRandomNotRepeatFloatingBodyPage();
+  }
+}
+
+class RememberingRandomNotRepeatFloatingBodyPage extends StatefulWidget {
+  const RememberingRandomNotRepeatFloatingBodyPage({Key? key}) : super(key: key);
+
+  @override
+  _RememberingRandomNotRepeatFloatingBodyPageState createState() => _RememberingRandomNotRepeatFloatingBodyPageState();
+}
+
+class _RememberingRandomNotRepeatFloatingBodyPageState extends State<RememberingRandomNotRepeatFloatingBodyPage> {
   final List<Fragment> fragments = <Fragment>[];
   int currentIndex = 0;
   bool isQuestion = true;
@@ -41,7 +56,8 @@ class _RememberingRandomNotRepeatFloatingPageState extends State<RememberingRand
 
   bool isWillNext = false;
 
-  String info = '1. 长按任意处可快速缩小\n2. 只有长按任意处后，下一个新内容才会自动弹出！（右上角可设置下次弹出时间）\n3. 长按文字部分可对选中文字进行搜索\n4. 轻触非文字部分可隐藏/显示内容\n5. 只有强制关闭后台应用才能彻底关闭悬浮窗\n6. 悬浮窗可在任何应用上方悬浮。';
+  String info =
+      '1. 长按任意处可快速缩小\n\n2. 只有长按任意处后，下一个新内容才会自动弹出！（可在设置里配置下次弹出时间）\n\n3. 长按文字部分可对选中文字进行搜索\n\n4. 轻触非文字部分可隐藏/显示内容\n\n5. 只有强制关闭后台应用才能彻底关闭悬浮窗\n\n6. 悬浮窗可在任何应用上方悬浮。';
 
   Future<void> _updateCurrentAndNext() async {
     await DriftDb.instance.updateDAO.updateCurrentAndNextRemember(RememberStatus.randomNotRepeatFloating);
@@ -80,9 +96,7 @@ class _RememberingRandomNotRepeatFloatingPageState extends State<RememberingRand
   }
 
   Future<void> _initGetAndReTimer() async {
-    EasyLoading.showToast(info, duration: const Duration(seconds: 5));
-    // await DriftDb.instance.updateDAO.updateBeforeInitRemembering();
-    // await DriftDb.instance.updateDAO.updateInitRandomRemembering(RememberStatus.randomNotRepeatFloating);
+    showAlertDialog(context: context, message: info);
     await DriftDb.instance.retrieveDAO.getRemembering2FragmentOrNull().then(
       (value) async {
         log('getRemembering2FragmentOrNull:$value');
@@ -251,50 +265,143 @@ class _RememberingRandomNotRepeatFloatingPageState extends State<RememberingRand
         onLongPress: () async {
           await _longPressedToSmall(true);
         },
-        child: Container(
-          decoration: BoxDecoration(border: Border.all(color: Colors.orange, width: 2)),
-          child: Row(
-            children: [
-              Flexible(
-                flex: 1,
-                child: Center(
-                  child: InkWell(
-                    child: const SizedBox(height: 1000, width: 50, child: Icon(Icons.keyboard_arrow_left)),
-                    onTap: () {
-                      // 左
-                      if (currentIndex == 0) {
-                        EasyLoading.showToast('没有上一个了');
-                      } else {
-                        currentIndex -= 1;
-                        isQuestion = true;
-                        if (mounted) setState(() {});
-                      }
-                    },
+        child: Stack(
+          children: [
+            Container(
+              decoration: BoxDecoration(border: Border.all(color: Colors.orange, width: 2)),
+              child: Row(
+                children: [
+                  Flexible(
+                    flex: 1,
+                    child: Column(
+                      children: [
+                        Center(
+                          child: IconButton(
+                            padding: EdgeInsets.zero,
+                            color: Colors.blue,
+                            onPressed: () async {
+                              showCheckAppVersionUpdate(context: context, isForceShow: true, isShowToastWhenNotUpdate: true);
+                              int? menuResult = await showMenu(
+                                context: context,
+                                position: RelativeRect.fill,
+                                items: [
+                                  PopupMenuItem(
+                                    child: Row(
+                                      children: const [
+                                        Icon(Icons.settings, color: Colors.blue),
+                                        SizedBox(width: 10),
+                                        Text('设置', style: TextStyle(color: Colors.blue)),
+                                      ],
+                                    ),
+                                    value: 0,
+                                  ),
+                                  PopupMenuItem(
+                                    child: Row(
+                                      children: const [
+                                        Icon(Icons.info_outline, color: Colors.blue),
+                                        SizedBox(width: 10),
+                                        Text('提示', style: TextStyle(color: Colors.blue)),
+                                      ],
+                                    ),
+                                    value: 1,
+                                  ),
+                                ],
+                              );
+                              if (menuResult == 0) {
+                                final List<String>? inputResult = await showTextInputDialog(
+                                  context: context,
+                                  message: '当前长按后，经过 |$intervalTime|s 会展示一次新内容。\n1. 只有长按任意处后，下一个新内容才会自动弹出！\n2. 每次重启应用后会恢复为 5s 。\n3. 输入值为负值时禁用震动。\n\n将其修改为：',
+                                  textFields: <DialogTextField>[
+                                    DialogTextField(
+                                      initialText: intervalTime.toString(),
+                                      keyboardType: TextInputType.number,
+                                    ),
+                                  ],
+                                  okLabel: '确认',
+                                  cancelLabel: '取消',
+                                  isDestructiveAction: true,
+                                );
+                                if (inputResult != null && inputResult.isNotEmpty && inputResult.first != intervalTime.toString()) {
+                                  try {
+                                    intervalTime = int.parse(inputResult.first);
+                                  } catch (e, st) {
+                                    EasyLoading.showToast('必须是纯数字！');
+                                  }
+                                }
+                              } else if (menuResult == 1) {
+                                showAlertDialog(context: context, message: info);
+                              }
+                            },
+                            icon: const Icon(Icons.settings),
+                          ),
+                        ),
+                        Flexible(
+                          child: InkWell(
+                            child: const SizedBox(height: 1000, width: 50, child: Icon(Icons.keyboard_arrow_left)),
+                            onTap: () {
+                              // 左
+                              if (currentIndex == 0) {
+                                EasyLoading.showToast('没有上一个了');
+                              } else {
+                                currentIndex -= 1;
+                                isQuestion = true;
+                                if (mounted) setState(() {});
+                              }
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+                  Flexible(
+                    flex: 3,
+                    child: Content(r: this),
+                  ),
+                  Flexible(
+                    flex: 1,
+                    child: Column(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit),
+                          color: Colors.blue,
+                          onPressed: () async {
+                            // 必须存一下 old，防止期间内 currentIndex 被切换成下一个了。
+                            int oldIndex = currentIndex;
+                            Fragment newFragment = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (BuildContext context) => FragmentEditPage(fragment: fragments[currentIndex], isUseGetX: false),
+                              ),
+                            );
+                            await DriftDb.instance.updateDAO.updateFragment(newFragment);
+                            fragments.removeAt(oldIndex);
+                            fragments.insert(oldIndex, newFragment);
+                            if (mounted) setState(() {});
+                          },
+                        ),
+                        Flexible(
+                          flex: 5,
+                          child: InkWell(
+                            child: const SizedBox(height: 1000, width: 50, child: Icon(Icons.keyboard_arrow_right)),
+                            onTap: () async {
+                              // 右
+                              isQuestion = true;
+                              if (currentIndex < fragments.length - 1) {
+                                currentIndex += 1;
+                                if (mounted) setState(() {});
+                              } else {
+                                await _updateCurrentAndNext();
+                              }
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              Flexible(
-                flex: 3,
-                child: Content(r: this),
-              ),
-              Flexible(
-                flex: 1,
-                child: InkWell(
-                  child: const SizedBox(height: 1000, width: 50, child: Icon(Icons.keyboard_arrow_right)),
-                  onTap: () async {
-                    // 右
-                    isQuestion = true;
-                    if (currentIndex < fragments.length - 1) {
-                      currentIndex += 1;
-                      if (mounted) setState(() {});
-                    } else {
-                      await _updateCurrentAndNext();
-                    }
-                  },
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -303,7 +410,7 @@ class _RememberingRandomNotRepeatFloatingPageState extends State<RememberingRand
 
 class Content extends StatefulWidget {
   const Content({Key? key, required this.r}) : super(key: key);
-  final _RememberingRandomNotRepeatFloatingPageState r;
+  final _RememberingRandomNotRepeatFloatingBodyPageState r;
 
   @override
   State<Content> createState() => _ContentState();
@@ -330,6 +437,7 @@ class _ContentState extends State<Content> {
             } else {
               return GestureDetector(
                 onTap: () {
+                  showCheckAppVersionUpdate(context: context, isForceShow: false, isShowToastWhenNotUpdate: false);
                   if (mounted) {
                     widget.r.isQuestion = !widget.r.isQuestion;
                     setState(() {});
@@ -371,46 +479,6 @@ class _ContentState extends State<Content> {
               );
             }
           }(),
-        ),
-        Positioned(
-          right: 0,
-          child: Row(
-            children: [
-              IconButton(
-                padding: EdgeInsets.zero,
-                onPressed: () async {
-                  EasyLoading.showToast(widget.r.info, duration: const Duration(seconds: 5));
-                },
-                icon: const Icon(Icons.info_outline),
-              ),
-              IconButton(
-                padding: EdgeInsets.zero,
-                onPressed: () async {
-                  final List<String>? result = await showTextInputDialog(
-                    context: context,
-                    message: '当前长按后，经过 |${widget.r.intervalTime}|s 会展示一次新内容。\n1. 只有长按任意处后，下一个新内容才会自动弹出！\n2. 每次重启应用后会恢复为 5s 。\n3. 输入值为负值时禁用震动。\n\n将其修改为：',
-                    textFields: <DialogTextField>[
-                      DialogTextField(
-                        initialText: widget.r.intervalTime.toString(),
-                        keyboardType: TextInputType.number,
-                      ),
-                    ],
-                    okLabel: '确认',
-                    cancelLabel: '取消',
-                    isDestructiveAction: true,
-                  );
-                  if (result != null && result.isNotEmpty && result.first != widget.r.intervalTime.toString()) {
-                    try {
-                      widget.r.intervalTime = int.parse(result.first);
-                    } catch (e, st) {
-                      EasyLoading.showToast('必须是纯数字！');
-                    }
-                  }
-                },
-                icon: const Icon(Icons.settings),
-              ),
-            ],
-          ),
         ),
       ],
     );

@@ -4,6 +4,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:hybrid/data/drift/db/DriftDb.dart';
 import 'package:hybrid/jianji/FragmentListPage.dart';
+import 'package:hybrid/jianji/JianJiTool.dart';
 import 'package:hybrid/jianji/controller/FolderListPageGetXController.dart';
 import 'package:hybrid/util/SbHelper.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -38,23 +39,20 @@ class _FolderListPageState extends State<FolderListPage> with AutomaticKeepAlive
         title: const Text('知识类别'),
         actions: <Widget>[
           IconButton(
-            icon: const Icon(Icons.info_outline),
-            onPressed: () {
-              showAboutDialog(
+            icon: const Icon(Icons.whatshot_outlined, color: Colors.orange),
+            onPressed: () async {
+              OkCancelResult okCancelResult = await showOkCancelAlertDialog(
                 context: context,
-                applicationName: '更新内容：',
-                children: [
-                  const Text('1. 新增了「批量创建单词/词组（大文本导入）」功能。', textAlign: TextAlign.left),
-                  const SizedBox(height: 10),
-                  const Text('2. 新增了「批量创建词义辨析（大文本导入）」功能。', textAlign: TextAlign.left),
-                  const SizedBox(height: 10),
-                  const Text('3. 新增了文字选中功能。', textAlign: TextAlign.left),
-                  const SizedBox(height: 10),
-                  const Text('4. 对选中的文字增加了浏览器搜索功能，可以直接利用浏览器搜索答案。', textAlign: TextAlign.left),
-                  const SizedBox(height: 10),
-                  const Text('5. 新增了悬浮窗弹出时震动提示功能。', textAlign: TextAlign.left),
-                ],
+                title: '更新说明：',
+                message: '当前版本 $currentAppVersion --- 最新版本 $dioAppVersion${currentAppVersion != dioAppVersion ? '\n*（请检查更新并下载最新版本应用）' : ''}\n\n\n' +
+                    appUpdateContent,
+                okLabel: '检查更新',
+                cancelLabel: '返回',
+                isDestructiveAction: true,
               );
+              if (okCancelResult == OkCancelResult.ok) {
+                await showCheckAppVersionUpdate(context: context, isForceShow: true, isShowToastWhenNotUpdate: true);
+              }
             },
           ),
           IconButton(

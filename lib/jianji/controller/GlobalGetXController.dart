@@ -1,11 +1,14 @@
+import 'dart:async';
+
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:hybrid/data/drift/db/DriftDb.dart';
-import 'package:hybrid/jianji/FolderListPage.dart';
 import 'package:hybrid/jianji/controller/FragmentMemoryListPageGetXController.dart';
 import 'package:hybrid/jianji/controller/JianJiHomeGetXController.dart';
+
+import '../JianJiTool.dart';
 
 class GlobalGetXController extends GetxController {
   ///
@@ -292,7 +295,6 @@ class GlobalGetXController extends GetxController {
   void onReady() {
     DriftDb.instance.retrieveDAO.getCurrentStatus().then(
       (value) {
-        addLog('getCurrentStatus: ${value.toString()}');
         if (value == null) {
           isRemembering.value = false;
         } else {
@@ -302,5 +304,11 @@ class GlobalGetXController extends GetxController {
         refresh();
       },
     );
+    onReadyInit();
+  }
+
+  Future<void> onReadyInit() async {
+    await showCheckAppVersionUpdate(context: Get.context!, isForceShow: true, isShowToastWhenNotUpdate: true);
+    await showAppInstruction(context: Get.context!);
   }
 }

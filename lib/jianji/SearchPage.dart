@@ -50,7 +50,7 @@ class _SearchPageState extends State<SearchPage> {
         itemCount: fragments.isEmpty ? 1 : fragments.length,
         itemBuilder: (BuildContext context, int index) {
           if (fragments.isEmpty) {
-            return const Padding(padding: EdgeInsets.fromLTRB(0, 20, 0, 0), child: Text('无结果', textAlign: TextAlign.center));
+            return const Padding(padding: EdgeInsets.fromLTRB(0, 20, 0, 0), child: Text('可搜索已创建的知识点\n（可根据问题、答案、描述等所包含的关键字进行搜索）', textAlign: TextAlign.center));
           }
           return Card(
             elevation: 1,

@@ -17,11 +17,13 @@ class FragmentEdit {
 
 class FragmentEditPage extends StatefulWidget {
   /// 返回会传递 Get.back(after-edit_Fragment)
-  const FragmentEditPage({Key? key, required this.fragment}) : super(key: key);
+  /// 注意：只会返回修改后的对象，并没有持久性修改！
+  const FragmentEditPage({Key? key, required this.fragment, this.isUseGetX = true}) : super(key: key);
 
   // final Folder? folder;
   // final MemoryGroup? memoryGroup;
   final Fragment fragment;
+  final bool isUseGetX;
 
   @override
   _FragmentEditPageState createState() => _FragmentEditPageState();
@@ -97,7 +99,11 @@ class _FragmentEditPageState extends State<FragmentEditPage> {
             color: Colors.red,
             onPressed: () async {
               if (await checkAndIsBack()) {
-                Get.back(result: _fragment);
+                if (widget.isUseGetX) {
+                  Get.back(result: _fragment);
+                } else {
+                  Navigator.pop(context, _fragment);
+                }
               }
             },
           ),
@@ -108,7 +114,11 @@ class _FragmentEditPageState extends State<FragmentEditPage> {
                 EasyLoading.show();
                 if (!isEdited()) {
                   EasyLoading.showToast('无修改！');
-                  Get.back(result: _fragment);
+                  if (widget.isUseGetX) {
+                    Get.back(result: _fragment);
+                  } else {
+                    Navigator.pop(context, _fragment);
+                  }
                 } else {
                   final newFragment = _fragment.copyWith(
                     question: _fragmentEdit.question,
@@ -123,7 +133,11 @@ class _FragmentEditPageState extends State<FragmentEditPage> {
                   //   throw '发送异常: folder: ${widget.folder.toString()}, memoryGroup: ${widget.memoryGroup.toString()}';
                   // }
                   _fragment = newFragment;
-                  Get.back(result: _fragment);
+                  if (widget.isUseGetX) {
+                    Get.back(result: _fragment);
+                  } else {
+                    Navigator.pop(context, _fragment);
+                  }
                   EasyLoading.showSuccess('修改成功！');
                 }
               },

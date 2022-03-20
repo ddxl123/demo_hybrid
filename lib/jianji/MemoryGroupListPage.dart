@@ -5,6 +5,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:hybrid/data/drift/db/DriftDb.dart';
 import 'package:hybrid/jianji/FragmentMemoryListPage.dart';
+import 'package:hybrid/jianji/JianJiTool.dart';
 import 'package:hybrid/jianji/RememberingPage.dart';
 import 'package:hybrid/jianji/controller/JianJiHomeGetXController.dart';
 import 'package:hybrid/jianji/controller/MemoryGroupListGetXController.dart';
@@ -33,6 +34,12 @@ class _MemoryGroupListPageState extends State<MemoryGroupListPage> with Automati
         elevation: 0,
         title: const Text('记忆组'),
         actions: <Widget>[
+          MaterialButton(
+            child: const Text('软件使用说明', style: TextStyle(color: Colors.tealAccent)),
+            onPressed: () async {
+              await showAppInstruction(context: context);
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () async {

@@ -46,7 +46,7 @@ bool once = false;
 bool isShortNotRemind = false;
 
 /// [currentAppVersion] 必须与服务器版本相同。
-int currentAppVersion = 2;
+int currentAppVersion = 3;
 int dioAppVersion = 1;
 String appUpdateContent = '请先检查更新！';
 

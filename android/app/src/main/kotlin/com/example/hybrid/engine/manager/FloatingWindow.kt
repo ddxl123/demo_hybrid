@@ -3,9 +3,13 @@ package com.example.hybrid.engine.manager
 import android.annotation.SuppressLint
 import android.app.Service
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+import android.graphics.Color
+import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.provider.CalendarContract
+import android.util.TypedValue
 import android.view.*
 import android.widget.Button
 import androidx.annotation.RequiresApi
@@ -70,8 +74,8 @@ class Viewer(private val windowManager: WindowManager) {
         return flutterView;
     }
 
-    var dragMoveView: View? = null
-    var dragRightView: View? = null
+    var dragMoveView: Button? = null
+    var dragRightView: Button? = null
 
     @RequiresApi(Build.VERSION_CODES.O)
     val currentViewParams: ViewParams = ViewParams(100, 100, 100, 100, false)
@@ -106,7 +110,18 @@ class Viewer(private val windowManager: WindowManager) {
     fun addInitView(flutterView: FlutterView) {
         this.flutterView = flutterView
         dragMoveView = Button(GlobalApplication.context)
+        dragMoveView!!.text = "一"
+        dragMoveView!!.textScaleX = 2f
+        dragMoveView!!.setPadding(0, 1, 0, 0)
+        dragMoveView!!.setTextColor(Color.BLUE)
+        dragMoveView!!.setBackgroundColor(Color.argb(100, 255, 255, 255))
+
         dragRightView = Button(GlobalApplication.context)
+        dragRightView!!.text = "⌟"
+        dragRightView!!.setTextSize(TypedValue.COMPLEX_UNIT_PX, dragRightView!!.textSize * 2)
+        dragRightView!!.setPadding(0, 0, 1, 1)
+        dragRightView!!.setTextColor(Color.BLUE)
+        dragRightView!!.setBackgroundColor(Color.argb(100, 255, 255, 255))
         addOnTouchListener()
     }
 
